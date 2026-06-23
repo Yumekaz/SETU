@@ -34,7 +34,18 @@ def test_rules_extractor_produces_valid_signal_event() -> None:
 def test_low_confidence_unknown_type_is_rejected() -> None:
     os.environ["SETU_EXTRACTOR_MODE"] = "rules"
     row = _sample_row()
-    row["EventCode"] = "999"  # maps to UNKNOWN with lower confidence
+    row["EventCode"] = "999"  # not in CAMEO allowlist
     result = extract_signal(row)
     assert result.status == "rejected"
-    assert result.reason in {"low_confidence", "unknown_type"}
+    assert result.reason == "ingest_filter"
+
+
+def test_non_english_source_rejected_by_ingest_filter() -> None:
+    os.environ["SETU_EXTRACTOR_MODE"] = "rules"
+    row = _sample_row()
+    row["ActionGeo_FullName"] = "مضيق هرمز"
+    row["Actor1Name"] = "إيران"
+    row["SOURCEURL"] = "https://example.com/ar"
+    result = extract_signal(row)
+    assert result.status == "rejected"
+    assert result.reason == "ingest_filter"

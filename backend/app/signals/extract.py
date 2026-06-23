@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 from pydantic import ValidationError
 
 from app.models.generated import EventType, SignalEvent
-from app.signals.classify import build_raw_snippet, classify_corridor
+from app.signals.classify import build_raw_snippet, classify_corridor, passes_ingest_filter
 from app.signals.config import AppConfig, load_config
 from app.signals.ingest_gdelt import parse_goldstein, parse_sql_date
 from app.signals.rules_extractor import extract_from_gdelt
@@ -92,6 +92,13 @@ def extract_signal(
 ) -> ExtractionResult:
     cfg = config or load_config()
     source_id = str(row.get("GLOBALEVENTID", ""))
+    if not passes_ingest_filter(row, cfg):
+        return ExtractionResult(
+            status="rejected",
+            reason="ingest_filter",
+            source_id=source_id,
+            payload={"row_id": source_id},
+        )
     pre_corridor = classify_corridor(row, cfg)
     if pre_corridor is None:
         return ExtractionResult(
