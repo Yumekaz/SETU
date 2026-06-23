@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import csv
+import json
+import re
 from pathlib import Path
 
 import pytest
@@ -54,3 +56,15 @@ def test_samples_and_fixtures_present() -> None:
     fixture_names = {p.name for p in FIXTURES_DIR.glob("*.json")}
     assert EXPECTED_SAMPLES <= sample_names
     assert EXPECTED_FIXTURES <= fixture_names
+
+
+def test_samples_contain_no_raw_api_keys() -> None:
+    """Committed samples must not embed live API keys (only REDACTED placeholders)."""
+    key_pattern = re.compile(r'"(?:api_key|apikey)"\s*:\s*"(?!REDACTED")[^"]{8,}"')
+    for path in SAMPLES_DIR.glob("*.json"):
+        text = path.read_text(encoding="utf-8")
+        assert not key_pattern.search(text), f"{path.name} contains a non-redacted API key"
+        if "api_key" in text:
+            data = json.loads(text)
+            raw = json.dumps(data)
+            assert "REDACTED" in raw or '"api_key"' not in raw, path.name

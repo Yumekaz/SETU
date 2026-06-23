@@ -44,13 +44,26 @@ GDELT_HEADERS = [
     "DATEADDED", "SOURCEURL",
 ]
 
+_SECRET_KEYS = frozenset({"api_key", "apikey", "api-key"})
+
+
+def _redact_secrets(obj: object) -> object:
+    if isinstance(obj, dict):
+        return {
+            k: "REDACTED" if k.lower() in _SECRET_KEYS else _redact_secrets(v)
+            for k, v in obj.items()
+        }
+    if isinstance(obj, list):
+        return [_redact_secrets(item) for item in obj]
+    return obj
+
 
 def _write_json(name: str, payload: object, meta: dict | None = None) -> Path:
     out = SAMPLES_DIR / name
     wrapper = {
         "pulled_at": datetime.now(timezone.utc).isoformat(),
         "source": meta or {},
-        "data": payload,
+        "data": _redact_secrets(payload),
     }
     out.write_text(json.dumps(wrapper, indent=2), encoding="utf-8")
     print(f"  wrote {out}")

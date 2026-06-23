@@ -26,6 +26,9 @@ frontend/.vite/
 .env
 .env.local
 
+# Internal build plan (not for public repo)
+docs/SETU_SRS_Phased_Build_Plan.md
+
 # Data (generated/cached)
 data/setu.db
 
