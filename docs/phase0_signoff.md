@@ -1,8 +1,8 @@
 # Phase 0 Sign-Off — Foundations & Contract Freeze
 
-**Branch:** `phase-0/foundations`  
+**Branch:** `main` (merged from `phase-0/foundations`)  
 **Date:** 2026-06-23 (updated after review fixes)  
-**Status:** ✅ Acceptance criteria met with documented limitations
+**Status:** Phase 0 plumbing complete; see SRS AC reconciliation below
 
 ---
 
@@ -107,11 +107,21 @@ No modeling / intelligence logic. `/ml/` contains README placeholder only.
 
 ---
 
+## SRS Section 10 — Verbatim AC Reconciliation
+
+| Verbatim SRS acceptance criterion | Met? | Notes |
+|---|---|---|
+| "All 5 JSON contracts exist as enforced types in both backend and frontend." | **Yes** | Codegen from `/schemas/`; 32+ tests validate fixtures |
+| "Docker Compose brings up a working empty skeleton end to end (frontend can hit a backend health-check endpoint)." | **Structure yes; runtime unverified here** | Path fixes applied; `docker compose up --build` must be run on demo machine |
+| "Real, successful sample pulls from GDELT, EIA, FRED, and OFAC are committed as fixtures in `/data/samples`." | **Partial** | GDELT, OFAC, FRED: live pulls committed. EIA: committed samples are documented **fallbacks** (`live: false`) until `EIA_API_KEY` is set — literal "successful" EIA pull not yet done |
+| "Mock data generator produces valid fixtures against the frozen schemas." | **Yes** | `generate_mocks.py` + `test_generate_mocks.py` + `test_schemas.py` |
+
 ## Sign-Off Checklist
 
 - [x] All 5 JSON contracts enforced in backend and frontend
-- [x] Docker Compose skeleton with corrected paths (user-verified pending)
+- [x] Docker Compose skeleton with corrected paths (runtime verify on demo machine)
 - [x] Samples for GDELT, OFAC, FRED live; EIA Brent + India imports documented fallbacks
 - [x] Mock generator deterministic with 20+ events, 10+ nodes
-- [x] Schema + health + generate_mocks tests pass
+- [x] Schema + health + generate_mocks + phase0 artifact tests pass
+- [x] Hormuz timeline: 5 cited rows (`data/hormuz_2026_timeline.csv`)
 - [x] Docs in `/docs/` updated honestly

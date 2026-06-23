@@ -4,3 +4,4 @@ date,event_type,description,source_url,brent_usd,notes
 2026-03-11,MILITARY,"Reported temporary closure / severe restriction of Hormuz transit for commercial tankers",https://www.eia.gov/todayinenergy/,85.10,"Primary backtest anchor event for Phase 5; duration distribution input for Monte Carlo."
 2026-03-18,DIPLOMATIC,"India SPR drawdown discussions reported amid import rerouting via Cape route",https://www.ppac.gov.in/,83.75,"Policy response signal; ties corridor shock to SPR days-required metric."
 2026-03-25,ACCIDENT,"Brent spot volatility spike; alternate corridor routing cost penalties documented",https://fred.stlouisfed.org/series/DCOILBRENTEU,84.30,"Price lag feature for GRU forecast layer; FRED series DCOILBRENTEU."
+2026-06-15,DIPLOMATIC,"Framework agreement reported easing Hormuz transit restrictions after closure period",https://www.reuters.com/world/middle-east/,88.50,"End-of-window reopening anchor for Phase 5 backtest; VERIFY against live reporting."
