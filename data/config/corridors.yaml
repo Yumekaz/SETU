@@ -1,0 +1,81 @@
+# Corridor definitions for Phase 1 pre-classification (deterministic, no LLM).
+# Geo bboxes are approximate maritime chokepoint regions (lat/lon).
+
+corridors:
+  HORMUZ:
+    keywords:
+      - strait of hormuz
+      - hormuz
+      - persian gulf
+      - gulf of oman
+      - bandar abbas
+      - qeshm
+    bbox:
+      lat_min: 24.0
+      lat_max: 28.5
+      lon_min: 54.0
+      lon_max: 58.5
+
+  BAB_EL_MANDEB:
+    keywords:
+      - bab el-mandeb
+      - bab el mandeb
+      - red sea
+      - gulf of aden
+      - djibouti
+      - yemen
+      - suez
+    bbox:
+      lat_min: 11.0
+      lat_max: 16.5
+      lon_min: 41.0
+      lon_max: 45.5
+
+  MALACCA:
+    keywords:
+      - strait of malacca
+      - malacca
+      - singapore strait
+      - andaman sea
+      - penang
+      - malaysia
+    bbox:
+      lat_min: 0.5
+      lat_max: 6.5
+      lon_min: 98.0
+      lon_max: 104.5
+
+# CAMEO event code roots relevant to energy-corridor risk (Phase 1 filter).
+cameo_allowlist_roots:
+  - "04"  # consult / diplomatic tension
+  - "05"
+  - "14"  # protest / military posture
+  - "15"
+  - "16"
+  - "17"
+  - "18"
+  - "19"  # fight / use of force
+  - "07"  # accident / infrastructure stress
+  - "08"
+  - "09"  # piracy / crime
+
+# Event-type weights for deterministic risk scoring (0-1 scale).
+event_type_weights:
+  MILITARY: 1.0
+  SANCTION: 0.9
+  PIRACY: 0.85
+  INFRASTRUCTURE: 0.75
+  DIPLOMATIC: 0.6
+  ACCIDENT: 0.5
+  UNKNOWN: 0.3
+
+# Scoring parameters (also documented in docs/risk_scoring.md).
+scoring:
+  w_sev: 0.45
+  w_gold: 0.30
+  w_type: 0.25
+  recency_tau_days: 14
+  cap_single_event: 0.25
+  confidence_threshold: 0.5
+  trend_stable_epsilon: 0.03
+  top_k_events: 5

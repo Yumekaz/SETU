@@ -31,6 +31,7 @@ docs/SETU_SRS_Phased_Build_Plan.md
 
 # Data (generated/cached)
 data/setu.db
+data/models/
 
 # IDE
 .idea/

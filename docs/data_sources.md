@@ -59,6 +59,13 @@ Output wrapper format:
 }
 ```
 
+## GDELT Hormuz backtest cache (Phase 1)
+
+- **File:** `gdelt_hormuz_backtest.json` (55 filtered rows, Feb–Jun 2026 window)
+- **Builder:** `python scripts/pull_gdelt_backtest.py` (strategic daily pulls + offline `--offline` fails without cache)
+- **Use:** Offline pipeline input for `POST /api/pipeline/run` with `source=cache`
+- **GKG:** Deferred in Phase 1 — Events CSV only
+
 ## Hormuz 2026 backtest timeline
 
 Curated event rows in `/data/hormuz_2026_timeline.csv`.

@@ -1,0 +1,13 @@
+root ::= "{" ws
+  "\"corridor\":" ws corridor "," ws
+  "\"event_type\":" ws eventtype "," ws
+  "\"severity\":" ws float01 "," ws
+  "\"confidence\":" ws float01 "," ws
+  "\"event_date\":" ws date
+  ws "}"
+
+corridor ::= "\"HORMUZ\"" | "\"BAB_EL_MANDEB\"" | "\"MALACCA\"" | "\"OTHER\""
+eventtype ::= "\"MILITARY\"" | "\"SANCTION\"" | "\"ACCIDENT\"" | "\"PIRACY\"" | "\"DIPLOMATIC\"" | "\"INFRASTRUCTURE\"" | "\"UNKNOWN\""
+float01 ::= "0." [0-9][0-9]? | "1.0" | "1"
+date ::= "\"" [0-9][0-9][0-9][0-9] "-" [0-9][0-9] "-" [0-9][0-9] "\""
+ws ::= [ \t\n]*

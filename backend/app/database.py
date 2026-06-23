@@ -24,7 +24,7 @@ def get_db_path() -> Path:
 
 
 def init_db() -> None:
-    """Create data directory and initialize SQLite with Phase 0 placeholder tables."""
+    """Create data directory and initialize SQLite schema."""
     db_path = get_db_path()
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -38,9 +38,49 @@ def init_db() -> None:
                 updated_at TEXT DEFAULT (datetime('now'))
             );
 
+            CREATE TABLE IF NOT EXISTS signal_events (
+                event_id TEXT PRIMARY KEY,
+                corridor TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                severity REAL NOT NULL,
+                goldstein_scale REAL NOT NULL,
+                confidence REAL NOT NULL,
+                event_date TEXT NOT NULL,
+                ingested_at TEXT NOT NULL,
+                source_url TEXT NOT NULL,
+                raw_text_snippet TEXT NOT NULL,
+                payload_json TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS risk_scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                corridor TEXT NOT NULL,
+                score REAL NOT NULL,
+                score_date TEXT NOT NULL,
+                contributing_event_ids TEXT NOT NULL,
+                trend_7d TEXT NOT NULL,
+                computed_at TEXT DEFAULT (datetime('now')),
+                UNIQUE(corridor, score_date)
+            );
+
+            CREATE TABLE IF NOT EXISTS extraction_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source_id TEXT,
+                status TEXT NOT NULL,
+                reason TEXT,
+                payload_json TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
+            );
+
             INSERT OR IGNORE INTO schema_meta (key, value)
-            VALUES ('phase', '0'), ('version', '0.1.0');
+            VALUES ('phase', '1'), ('version', '0.2.0');
             """
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('phase', '1')"
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.2.0')"
         )
         conn.commit()
     finally:

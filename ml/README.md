@@ -1,10 +1,15 @@
-# SETU ML — Reserved for Phase 3+
+# SETU ML
 
-This directory is reserved for the GRU forecasting layer (Phase 3).
+## Phase 1 — Signal extraction (llama-cpp-python)
 
-**Phase 0:** No ML code — only a placeholder to preserve monorepo layout per the phased build plan.
+- GBNF grammar: [`grammars/signal_event.gbnf`](grammars/signal_event.gbnf)
+- Runner: [`extraction/llama_runner.py`](extraction/llama_runner.py)
+- Download model: `python scripts/download_model.py`
+- Set `SETU_LLM_MODEL_PATH` and `SETU_EXTRACTOR_MODE=llm` for Phi-3 extraction
 
-Planned contents (Phase 3):
-- Per-corridor GRU training scripts
-- Feature engineering (14-day lookback windows)
-- Model checkpoints and evaluation outputs
+When the model is absent, the backend uses the deterministic rules fallback in
+`backend/app/signals/rules_extractor.py` (CI default).
+
+## Phase 3 — GRU forecasting (planned)
+
+Per-corridor GRU training, 14-day lookback features, model checkpoints.
