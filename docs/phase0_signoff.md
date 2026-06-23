@@ -60,10 +60,10 @@ docker compose up --build
 | `gdelt_events_sample.json` | GDELT 2.0 `gdeltv2/` export | `true` when network available; fallback otherwise |
 | `ofac_sdn_sample.json` | Treasury SDN CSV | `true` when network available; documented fallback |
 | `fred_brent_sample.json` | FRED public CSV `DCOILBRENTEU` | `true` (CSV, no key) |
-| `eia_brent_sample.json` | EIA API v2 shape | `false` — no `EIA_API_KEY` set |
-| `eia_india_imports_sample.json` | EIA API v2 shape | `false` — no `EIA_API_KEY` set |
+| `eia_brent_sample.json` | EIA API v2 Brent (`PET.RBRTE.R2`) | `true` — live pull 2026-06-23 |
+| `eia_india_imports_sample.json` | EIA API v2 India imports | `true` — live pull 2026-06-23 |
 
-**Honest assessment:** GDELT, OFAC, and FRED have live or public-no-key pulls. Both EIA samples are **documented fallbacks** until `EIA_API_KEY` is provided. Each puller is isolated with per-source `try/except`.
+**Assessment:** All five sources committed with `source.live: true` after `EIA_API_KEY` configured in local `.env` (not committed). Each puller is isolated with per-source `try/except`.
 
 ---
 
@@ -113,14 +113,14 @@ No modeling / intelligence logic. `/ml/` contains README placeholder only.
 |---|---|---|
 | "All 5 JSON contracts exist as enforced types in both backend and frontend." | **Yes** | Codegen from `/schemas/`; 32+ tests validate fixtures |
 | "Docker Compose brings up a working empty skeleton end to end (frontend can hit a backend health-check endpoint)." | **Structure yes; runtime unverified here** | Path fixes applied; `docker compose up --build` must be run on demo machine |
-| "Real, successful sample pulls from GDELT, EIA, FRED, and OFAC are committed as fixtures in `/data/samples`." | **Partial** | GDELT, OFAC, FRED: live pulls committed. EIA: committed samples are documented **fallbacks** (`live: false`) until `EIA_API_KEY` is set — literal "successful" EIA pull not yet done |
+| "Real, successful sample pulls from GDELT, EIA, FRED, and OFAC are committed as fixtures in `/data/samples`." | **Yes** | All five `data/samples/*.json` files committed with `source.live: true` (verified 2026-06-23) |
 | "Mock data generator produces valid fixtures against the frozen schemas." | **Yes** | `generate_mocks.py` + `test_generate_mocks.py` + `test_schemas.py` |
 
 ## Sign-Off Checklist
 
 - [x] All 5 JSON contracts enforced in backend and frontend
 - [x] Docker Compose skeleton with corrected paths (runtime verify on demo machine)
-- [x] Samples for GDELT, OFAC, FRED live; EIA Brent + India imports documented fallbacks
+- [x] Samples for GDELT, OFAC, FRED, EIA Brent, EIA India imports — all live pulls committed
 - [x] Mock generator deterministic with 20+ events, 10+ nodes
 - [x] Schema + health + generate_mocks + phase0 artifact tests pass
 - [x] Hormuz timeline: 5 cited rows (`data/hormuz_2026_timeline.csv`)

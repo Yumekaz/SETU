@@ -1,39 +1,213 @@
 {
-  "pulled_at": "2026-06-23T13:13:03.001485+00:00",
+  "pulled_at": "2026-06-23T13:51:42.604465+00:00",
   "source": {
     "provider": "US EIA Open Data",
     "series": "India crude oil imports (VERIFY series ID against live EIA catalog)",
     "docs": "https://www.eia.gov/opendata/",
-    "live": false,
-    "note": "Fallback sample \u2014 set EIA_API_KEY in .env for live pull. VERIFY productId/series against EIA catalog before Phase 1 modeling."
+    "live": true,
+    "url": "https://api.eia.gov/v2/international/data/?api_key=REDACTED"
   },
   "data": {
+    "warnings": [
+      {
+        "warning": "incomplete return",
+        "description": "The API can only return 5000 rows in JSON format.  Please consider constraining your request with facet, start, or end, or using offset to paginate results."
+      }
+    ],
     "response": {
-      "total": 2,
+      "total": "578",
       "dateFormat": "YYYY-MM",
       "frequency": "monthly",
       "data": [
         {
-          "period": "2026-03",
-          "value": 4850.0,
+          "period": "2026-02",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
           "countryRegionId": "IND",
-          "productId": "57"
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "563.11675349041153",
+          "unit": "TBPD"
         },
         {
-          "period": "2026-02",
-          "value": 4720.0,
+          "period": "2026-01",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
           "countryRegionId": "IND",
-          "productId": "57"
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "564.45032472838978",
+          "unit": "TBPD"
+        },
+        {
+          "period": "2025-12",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
+          "countryRegionId": "IND",
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "566.28183926938581",
+          "unit": "TBPD"
+        },
+        {
+          "period": "2025-11",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
+          "countryRegionId": "IND",
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "569.51241935353878",
+          "unit": "TBPD"
+        },
+        {
+          "period": "2025-10",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
+          "countryRegionId": "IND",
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "566.62772932576707",
+          "unit": "TBPD"
+        },
+        {
+          "period": "2025-09",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
+          "countryRegionId": "IND",
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "565.58975681646971",
+          "unit": "TBPD"
+        },
+        {
+          "period": "2025-08",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
+          "countryRegionId": "IND",
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "576.48161498284491",
+          "unit": "TBPD"
+        },
+        {
+          "period": "2025-07",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
+          "countryRegionId": "IND",
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "582.68094739730075",
+          "unit": "TBPD"
+        },
+        {
+          "period": "2025-06",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
+          "countryRegionId": "IND",
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "585.86985150925794",
+          "unit": "TBPD"
+        },
+        {
+          "period": "2025-05",
+          "productId": "57",
+          "productName": "Crude oil including lease condensate",
+          "activityId": "1",
+          "activityName": "Production",
+          "countryRegionId": "IND",
+          "countryRegionName": "India",
+          "countryRegionTypeId": "c",
+          "countryRegionTypeName": "Country",
+          "dataFlagId": null,
+          "dataFlagDescription": null,
+          "unitName": "thousand barrels per day",
+          "value": "586.50196440860655",
+          "unit": "TBPD"
         }
-      ]
+      ],
+      "description": "Country level production, consumption, imports, exports by energy source (petroleum, natural gas, electricity, renewable, etc.)  \r\n        Interactive product:  https://www.eia.gov/international/data/world"
     },
     "request": {
       "command": "/v2/international/data/",
       "params": {
+        "api_key": "REDACTED",
         "frequency": "monthly",
-        "facets[countryRegionId][]": "IND",
-        "facets[productId][]": "57"
+        "data": [
+          "value"
+        ],
+        "facets": {
+          "countryRegionId": [
+            "IND"
+          ],
+          "productId": [
+            "57"
+          ]
+        },
+        "sort": [
+          {
+            "column": "period",
+            "direction": "desc"
+          }
+        ],
+        "length": "10"
       }
-    }
+    },
+    "apiVersion": "2.1.12",
+    "ExcelAddInVersion": "2.1.0"
   }
 }

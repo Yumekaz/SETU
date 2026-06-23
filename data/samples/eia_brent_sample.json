@@ -1,37 +1,179 @@
 {
-  "pulled_at": "2026-06-23T13:13:03.001029+00:00",
+  "pulled_at": "2026-06-23T13:51:42.011243+00:00",
   "source": {
     "provider": "US EIA Open Data",
     "series": "PET.RBRTE.R2 (Brent spot, daily)",
     "docs": "https://www.eia.gov/opendata/",
-    "live": false,
-    "note": "Fallback sample \u2014 set EIA_API_KEY in .env for live pull. Shape matches EIA Open Data API v2 response."
+    "live": true,
+    "url": "https://api.eia.gov/v2/petroleum/pri/spt/data/?api_key=REDACTED"
   },
   "data": {
+    "warnings": [
+      {
+        "warning": "incomplete return",
+        "description": "The API can only return 5000 rows in JSON format.  Please consider constraining your request with facet, start, or end, or using offset to paginate results."
+      }
+    ],
     "response": {
-      "total": 2,
+      "total": "9913",
       "dateFormat": "YYYY-MM-DD",
       "frequency": "daily",
       "data": [
         {
-          "period": "2026-06-20",
-          "value": 82.45,
-          "series": "RBRTE"
+          "period": "2026-06-15",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "84.36",
+          "units": "$/BBL"
         },
         {
-          "period": "2026-06-19",
-          "value": 81.9,
-          "series": "RBRTE"
+          "period": "2026-06-12",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "88.64",
+          "units": "$/BBL"
+        },
+        {
+          "period": "2026-06-11",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "92.84",
+          "units": "$/BBL"
+        },
+        {
+          "period": "2026-06-10",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "95.73",
+          "units": "$/BBL"
+        },
+        {
+          "period": "2026-06-09",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "94.15",
+          "units": "$/BBL"
+        },
+        {
+          "period": "2026-06-08",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "97.46",
+          "units": "$/BBL"
+        },
+        {
+          "period": "2026-06-05",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "97.29",
+          "units": "$/BBL"
+        },
+        {
+          "period": "2026-06-04",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "98.98",
+          "units": "$/BBL"
+        },
+        {
+          "period": "2026-06-03",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "101.69",
+          "units": "$/BBL"
+        },
+        {
+          "period": "2026-06-02",
+          "duoarea": "ZEU",
+          "area-name": "NA",
+          "product": "EPCBRENT",
+          "product-name": "UK Brent Crude Oil",
+          "process": "PF4",
+          "process-name": "Spot Price FOB",
+          "series": "RBRTE",
+          "series-description": "Europe Brent Spot Price FOB (Dollars per Barrel)",
+          "value": "98.49",
+          "units": "$/BBL"
         }
       ]
     },
     "request": {
       "command": "/v2/petroleum/pri/spt/data/",
       "params": {
+        "api_key": "REDACTED",
         "frequency": "daily",
-        "data[0]": "value",
-        "facets[series][]": "RBRTE"
+        "data": [
+          "value"
+        ],
+        "facets": {
+          "series": [
+            "RBRTE"
+          ]
+        },
+        "sort": [
+          {
+            "column": "period",
+            "direction": "desc"
+          }
+        ],
+        "length": "10"
       }
-    }
+    },
+    "apiVersion": "2.1.12",
+    "ExcelAddInVersion": "2.1.0"
   }
 }
