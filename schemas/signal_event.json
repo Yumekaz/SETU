@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://setu.local/schemas/signal_event.json",
+  "title": "SignalEvent",
+  "description": "Structured geopolitical/operational signal extracted from raw sources (Phase 1 output)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "corridor",
+    "event_type",
+    "severity",
+    "goldstein_scale",
+    "confidence",
+    "event_date",
+    "ingested_at",
+    "source_url",
+    "raw_text_snippet"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique event identifier"
+    },
+    "corridor": {
+      "$ref": "corridor.json"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "MILITARY",
+        "SANCTION",
+        "ACCIDENT",
+        "PIRACY",
+        "DIPLOMATIC",
+        "INFRASTRUCTURE",
+        "UNKNOWN"
+      ]
+    },
+    "severity": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "goldstein_scale": {
+      "type": "number",
+      "minimum": -10.0,
+      "maximum": 10.0,
+      "description": "Raw GDELT Goldstein scale value"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Extraction model confidence"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date"
+    },
+    "ingested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 datetime, UTC"
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "raw_text_snippet": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Audit snippet, max 500 chars"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://setu.local/schemas/recommendation.json",
+  "title": "Recommendation",
+  "description": "Pareto-optimized procurement response options (Phase 4 output)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "recommendation_id",
+    "generated_at",
+    "trigger_corridor",
+    "options",
+    "status",
+    "operator_note"
+  ],
+  "properties": {
+    "recommendation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 datetime"
+    },
+    "trigger_corridor": {
+      "$ref": "corridor.json"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "option_id",
+          "description",
+          "cost_score",
+          "time_score",
+          "risk_score",
+          "is_pareto_optimal"
+        ],
+        "properties": {
+          "option_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "cost_score": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Lower is better"
+          },
+          "time_score": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Lower is better"
+          },
+          "risk_score": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Lower is better"
+          },
+          "is_pareto_optimal": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PENDING_APPROVAL", "APPROVED", "REJECTED", "EXPIRED"]
+    },
+    "operator_note": {
+      "type": ["string", "null"]
+    }
+  }
+}

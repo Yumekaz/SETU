@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://setu.local/schemas/corridor.json",
+  "title": "Corridor",
+  "description": "Maritime import corridor identifier",
+  "type": "string",
+  "enum": ["HORMUZ", "BAB_EL_MANDEB", "MALACCA", "OTHER"]
+}

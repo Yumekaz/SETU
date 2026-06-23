@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://setu.local/schemas/graph_edge.json",
+  "title": "GraphEdge",
+  "description": "Directed edge in the crude import/refining network graph (Phase 2)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source",
+    "target",
+    "flow_mbpd",
+    "corridor_dependency",
+    "alt_route_penalty_days"
+  ],
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "Source node_id"
+    },
+    "target": {
+      "type": "string",
+      "description": "Target node_id"
+    },
+    "flow_mbpd": {
+      "type": "number"
+    },
+    "corridor_dependency": {
+      "$ref": "corridor.json"
+    },
+    "alt_route_penalty_days": {
+      "type": "number"
+    }
+  }
+}

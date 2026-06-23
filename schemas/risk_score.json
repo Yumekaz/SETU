@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://setu.local/schemas/risk_score.json",
+  "title": "RiskScore",
+  "description": "Per-corridor risk score (Phase 1 scoring engine output)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "corridor",
+    "score",
+    "score_date",
+    "contributing_event_ids",
+    "trend_7d"
+  ],
+  "properties": {
+    "corridor": {
+      "$ref": "corridor.json"
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "score_date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date"
+    },
+    "contributing_event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "trend_7d": {
+      "type": "string",
+      "enum": ["RISING", "FALLING", "STABLE"]
+    }
+  }
+}

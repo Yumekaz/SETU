@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://setu.local/schemas/percentile_band.json",
+  "title": "PercentileBand",
+  "description": "Monte Carlo percentile band (p10, p50, p90)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["p10", "p50", "p90"],
+  "properties": {
+    "p10": {
+      "type": "number",
+      "description": "10th percentile"
+    },
+    "p50": {
+      "type": "number",
+      "description": "50th percentile (median)"
+    },
+    "p90": {
+      "type": "number",
+      "description": "90th percentile"
+    }
+  }
+}

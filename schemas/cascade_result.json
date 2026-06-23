@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://setu.local/schemas/cascade_result.json",
+  "title": "CascadeResult",
+  "description": "Monte Carlo cascade simulation result (Phase 2 output)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scenario_id",
+    "corridor",
+    "disruption_duration_days",
+    "n_simulations",
+    "price_impact_pct",
+    "refinery_throughput_impact_pct",
+    "spr_days_required",
+    "affected_downstream_nodes"
+  ],
+  "properties": {
+    "scenario_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "corridor": {
+      "$ref": "corridor.json"
+    },
+    "disruption_duration_days": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_simulations": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "price_impact_pct": {
+      "$ref": "percentile_band.json"
+    },
+    "refinery_throughput_impact_pct": {
+      "$ref": "percentile_band.json"
+    },
+    "spr_days_required": {
+      "$ref": "percentile_band.json"
+    },
+    "affected_downstream_nodes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

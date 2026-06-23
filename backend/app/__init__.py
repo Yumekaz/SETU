@@ -1,0 +1,1 @@
+"""SETU backend application package."""

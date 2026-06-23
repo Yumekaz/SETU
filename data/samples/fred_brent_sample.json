@@ -1,0 +1,57 @@
+{
+  "pulled_at": "2026-06-23T13:02:18.661064+00:00",
+  "source": {
+    "provider": "FRED",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILBRENTEU",
+    "series_id": "DCOILBRENTEU",
+    "live": true,
+    "note": "Public CSV export (no API key required)"
+  },
+  "data": {
+    "series_id": "DCOILBRENTEU",
+    "source": "public_csv",
+    "csv_header": "observation_date,DCOILBRENTEU",
+    "observations": [
+      {
+        "date": "2026-06-02",
+        "value": "98.49"
+      },
+      {
+        "date": "2026-06-03",
+        "value": "101.69"
+      },
+      {
+        "date": "2026-06-04",
+        "value": "98.98"
+      },
+      {
+        "date": "2026-06-05",
+        "value": "97.29"
+      },
+      {
+        "date": "2026-06-08",
+        "value": "97.46"
+      },
+      {
+        "date": "2026-06-09",
+        "value": "94.15"
+      },
+      {
+        "date": "2026-06-10",
+        "value": "95.73"
+      },
+      {
+        "date": "2026-06-11",
+        "value": "92.84"
+      },
+      {
+        "date": "2026-06-12",
+        "value": "88.64"
+      },
+      {
+        "date": "2026-06-15",
+        "value": "84.36"
+      }
+    ]
+  }
+}

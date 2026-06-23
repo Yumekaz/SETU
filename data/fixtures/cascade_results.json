@@ -1,0 +1,80 @@
+[
+  {
+    "scenario_id": "405cacec-8774-09a9-77d2-1e02ff01cf99",
+    "corridor": "HORMUZ",
+    "disruption_duration_days": 20,
+    "n_simulations": 1000,
+    "price_impact_pct": {
+      "p10": 7.16,
+      "p50": 8.11,
+      "p90": 30.25
+    },
+    "refinery_throughput_impact_pct": {
+      "p10": 3.73,
+      "p50": 8.76,
+      "p90": 15.47
+    },
+    "spr_days_required": {
+      "p10": 3.92,
+      "p50": 5.78,
+      "p90": 19.83
+    },
+    "affected_downstream_nodes": [
+      "port_hormuz",
+      "refinery_mumbai",
+      "demand_north"
+    ]
+  },
+  {
+    "scenario_id": "b8db0672-f42d-47cc-00d4-af5974273ca3",
+    "corridor": "BAB_EL_MANDEB",
+    "disruption_duration_days": 11,
+    "n_simulations": 1000,
+    "price_impact_pct": {
+      "p10": 7.83,
+      "p50": 15.62,
+      "p90": 26.63
+    },
+    "refinery_throughput_impact_pct": {
+      "p10": 1.43,
+      "p50": 9.38,
+      "p90": 22.94
+    },
+    "spr_days_required": {
+      "p10": 3.52,
+      "p50": 6.39,
+      "p90": 18.73
+    },
+    "affected_downstream_nodes": [
+      "port_bab_el_mandeb",
+      "refinery_mumbai",
+      "demand_north"
+    ]
+  },
+  {
+    "scenario_id": "c754108f-f418-8f3f-8a14-be62295b4715",
+    "corridor": "MALACCA",
+    "disruption_duration_days": 19,
+    "n_simulations": 1000,
+    "price_impact_pct": {
+      "p10": 7.51,
+      "p50": 13.99,
+      "p90": 26.31
+    },
+    "refinery_throughput_impact_pct": {
+      "p10": 1.45,
+      "p50": 7.54,
+      "p90": 24.81
+    },
+    "spr_days_required": {
+      "p10": 4.42,
+      "p50": 6.68,
+      "p90": 16.34
+    },
+    "affected_downstream_nodes": [
+      "port_malacca",
+      "refinery_mumbai",
+      "demand_north"
+    ]
+  }
+]

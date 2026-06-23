@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://setu.local/schemas/graph_node.json",
+  "title": "GraphNode",
+  "description": "Node in the crude import/refining network graph (Phase 2)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "node_id",
+    "node_type",
+    "name",
+    "lat",
+    "lon",
+    "capacity_mbpd"
+  ],
+  "properties": {
+    "node_id": {
+      "type": "string"
+    },
+    "node_type": {
+      "type": "string",
+      "enum": [
+        "PRODUCTION_FIELD",
+        "CORRIDOR",
+        "PORT",
+        "REFINERY",
+        "DEMAND_CENTER"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lon": {
+      "type": "number"
+    },
+    "capacity_mbpd": {
+      "type": "number"
+    }
+  }
+}
