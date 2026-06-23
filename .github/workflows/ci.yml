@@ -27,6 +27,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      - name: Ruff lint
+        run: ruff check backend/ scripts/ tests/
+
       - name: Generate models from schemas
         run: python scripts/generate_models.py
 
@@ -45,11 +48,20 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm install
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Type-check frontend
         working-directory: frontend
         run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
 
   docker-build:
     runs-on: ubuntu-latest

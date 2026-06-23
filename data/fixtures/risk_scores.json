@@ -1,44 +1,46 @@
 [
   {
     "corridor": "HORMUZ",
-    "score": 0.753,
+    "score": 0.432,
     "score_date": "2026-06-23",
     "contributing_event_ids": [
       "0822e8f3-6c03-1199-972a-846916419f82",
       "43b7a3a6-9a8d-ca03-580d-7b71d8f56413",
       "3b982ef8-daf6-1a26-146d-3f31fc377a4c"
     ],
-    "trend_7d": "RISING"
+    "trend_7d": "FALLING"
   },
   {
     "corridor": "BAB_EL_MANDEB",
-    "score": 0.589,
+    "score": 0.71,
     "score_date": "2026-06-23",
     "contributing_event_ids": [
       "6b65a6a4-8b81-48f6-b38a-088ca65ed389",
       "47229389-571a-a876-6c30-7511b2b9437a",
       "a3d70628-ece6-6fa2-fd51-66e6451b4cf3"
     ],
-    "trend_7d": "STABLE"
+    "trend_7d": "RISING"
   },
   {
     "corridor": "MALACCA",
-    "score": 0.446,
+    "score": 0.324,
     "score_date": "2026-06-23",
     "contributing_event_ids": [
       "bdd640fb-0667-1ad1-1c80-317fa3b1799d",
-      "9e574f7a-a0ee-89ae-d453-dd324b0dbb41"
+      "9e574f7a-a0ee-89ae-d453-dd324b0dbb41",
+      "deda4e16-1b3d-bd5c-e9a1-fa6f81f76d1c"
     ],
     "trend_7d": "RISING"
   },
   {
     "corridor": "OTHER",
-    "score": 0.419,
+    "score": 0.525,
     "score_date": "2026-06-23",
     "contributing_event_ids": [
       "ea1fca65-e27a-984d-6548-21d07fcd9eb1",
-      "956269f0-e5d7-b875-6dad-d6c795a76d79"
+      "956269f0-e5d7-b875-6dad-d6c795a76d79",
+      "ef7ddc76-b92d-a22b-21df-306f8a0b3c33"
     ],
-    "trend_7d": "STABLE"
+    "trend_7d": "RISING"
   }
 ]

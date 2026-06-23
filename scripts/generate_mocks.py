@@ -12,7 +12,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURES_DIR = ROOT / "data" / "fixtures"
-SCHEMAS_DIR = ROOT / "schemas"
+
+# Frozen anchor date for deterministic output regardless of run date
+FREEZE_DATE = date(2026, 6, 23)
+FREEZE_DATETIME = datetime(2026, 6, 23, 12, 0, 0, tzinfo=timezone.utc)
 
 # Add backend to path for Pydantic models
 sys.path.insert(0, str(ROOT / "backend"))
@@ -39,14 +42,10 @@ EVENT_TYPES = [
     "UNKNOWN",
 ]
 TRENDS = ["RISING", "FALLING", "STABLE"]
-NODE_TYPES = [
-    "PRODUCTION_FIELD",
-    "CORRIDOR",
-    "PORT",
-    "REFINERY",
-    "DEMAND_CENTER",
-]
 STATUSES = ["PENDING_APPROVAL", "APPROVED", "REJECTED", "EXPIRED"]
+
+SIGNAL_EVENT_COUNT = 24
+GRAPH_NODE_COUNT = 12
 
 
 def _uid() -> str:
@@ -54,16 +53,23 @@ def _uid() -> str:
 
 
 def _date(days_ago: int = 0) -> str:
-    d = date.today() - timedelta(days=days_ago)
-    return d.isoformat()
+    return (FREEZE_DATE - timedelta(days=days_ago)).isoformat()
 
 
 def _datetime(days_ago: int = 0) -> str:
-    dt = datetime.now(timezone.utc) - timedelta(days=days_ago)
+    dt = FREEZE_DATETIME - timedelta(days=days_ago)
     return dt.replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def generate_signal_events(n: int = 12) -> list[SignalEvent]:
+def _ordered_percentiles() -> dict[str, float]:
+    """Return p10 <= p50 <= p90 percentile band."""
+    p10 = round(RNG.uniform(1.0, 8.0), 2)
+    p50 = round(RNG.uniform(p10, p10 + 12.0), 2)
+    p90 = round(RNG.uniform(p50, p50 + 20.0), 2)
+    return {"p10": p10, "p50": p50, "p90": p90}
+
+
+def generate_signal_events(n: int = SIGNAL_EVENT_COUNT) -> list[SignalEvent]:
     events = []
     for i in range(n):
         events.append(
@@ -112,21 +118,9 @@ def generate_cascade_results(n: int = 3) -> list[CascadeResult]:
                 corridor=corridor,
                 disruption_duration_days=RNG.randint(3, 21),
                 n_simulations=1000,
-                price_impact_pct={
-                    "p10": round(RNG.uniform(2.0, 8.0), 2),
-                    "p50": round(RNG.uniform(8.0, 18.0), 2),
-                    "p90": round(RNG.uniform(18.0, 35.0), 2),
-                },
-                refinery_throughput_impact_pct={
-                    "p10": round(RNG.uniform(1.0, 5.0), 2),
-                    "p50": round(RNG.uniform(5.0, 12.0), 2),
-                    "p90": round(RNG.uniform(12.0, 25.0), 2),
-                },
-                spr_days_required={
-                    "p10": round(RNG.uniform(2.0, 5.0), 2),
-                    "p50": round(RNG.uniform(5.0, 12.0), 2),
-                    "p90": round(RNG.uniform(12.0, 30.0), 2),
-                },
+                price_impact_pct=_ordered_percentiles(),
+                refinery_throughput_impact_pct=_ordered_percentiles(),
+                spr_days_required=_ordered_percentiles(),
                 affected_downstream_nodes=[
                     f"port_{corridor.lower()}",
                     "refinery_mumbai",
@@ -137,34 +131,28 @@ def generate_cascade_results(n: int = 3) -> list[CascadeResult]:
     return results
 
 
-def generate_graph_nodes(n: int = 8) -> list[GraphNode]:
+def generate_graph_nodes(n: int = GRAPH_NODE_COUNT) -> list[GraphNode]:
     nodes = []
     coords = [
-        (26.5, 56.5, "Hormuz Strait"),
-        (12.6, 43.3, "Bab-el-Mandeb"),
-        (1.3, 103.8, "Malacca Strait"),
-        (18.9, 72.8, "JNPT Mumbai"),
-        (13.1, 80.3, "Chennai Port"),
-        (19.0, 73.0, "Mumbai Refinery Complex"),
-        (28.6, 77.2, "North India Demand Hub"),
-        (25.2, 55.3, "Gulf Production Aggregate"),
-    ]
-    types = [
-        "CORRIDOR",
-        "CORRIDOR",
-        "CORRIDOR",
-        "PORT",
-        "PORT",
-        "REFINERY",
-        "DEMAND_CENTER",
-        "PRODUCTION_FIELD",
+        (26.5, 56.5, "Hormuz Strait", "CORRIDOR"),
+        (12.6, 43.3, "Bab-el-Mandeb", "CORRIDOR"),
+        (1.3, 103.8, "Malacca Strait", "CORRIDOR"),
+        (18.9, 72.8, "JNPT Mumbai", "PORT"),
+        (13.1, 80.3, "Chennai Port", "PORT"),
+        (22.5, 69.7, "Kandla Port", "PORT"),
+        (19.0, 73.0, "Mumbai Refinery Complex", "REFINERY"),
+        (13.0, 80.2, "Chennai Refinery", "REFINERY"),
+        (28.6, 77.2, "North India Demand Hub", "DEMAND_CENTER"),
+        (17.4, 78.5, "South India Demand Hub", "DEMAND_CENTER"),
+        (25.2, 55.3, "Gulf Production Aggregate", "PRODUCTION_FIELD"),
+        (30.0, 48.0, "Arabian Production Aggregate", "PRODUCTION_FIELD"),
     ]
     for i in range(min(n, len(coords))):
-        lat, lon, name = coords[i]
+        lat, lon, name, node_type = coords[i]
         nodes.append(
             GraphNode(
                 node_id=f"node_{i + 1}",
-                node_type=types[i],
+                node_type=node_type,
                 name=name,
                 lat=lat,
                 lon=lon,
@@ -174,7 +162,7 @@ def generate_graph_nodes(n: int = 8) -> list[GraphNode]:
     return nodes
 
 
-def generate_graph_edges(nodes: list[GraphNode], n: int = 6) -> list[GraphEdge]:
+def generate_graph_edges(nodes: list[GraphNode], n: int = 10) -> list[GraphEdge]:
     edges = []
     for i in range(min(n, len(nodes) - 1)):
         edges.append(
@@ -231,7 +219,7 @@ def write_fixture(name: str, data: list) -> Path:
 
 
 def main() -> int:
-    print("Generating mock fixtures (seed=42)...")
+    print(f"Generating mock fixtures (seed=42, freeze_date={FREEZE_DATE})...")
 
     events = generate_signal_events()
     scores = generate_risk_scores(events)
@@ -240,8 +228,7 @@ def main() -> int:
     edges = generate_graph_edges(nodes)
     recommendations = generate_recommendations()
 
-    # Validate via Pydantic (already constructed) — round-trip dump/load
-    for label, items, model in [
+    for _label, items, model in [
         ("signal_events", events, SignalEvent),
         ("risk_scores", scores, RiskScore),
         ("cascade_results", cascades, CascadeResult),

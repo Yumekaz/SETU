@@ -14,7 +14,9 @@ DEFAULT_DB_PATH = DATA_DIR / "setu.db"
 def get_db_path() -> Path:
     url = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
     if url.startswith("sqlite:///"):
-        path = Path(url.replace("sqlite:///", ""))
+        # sqlite:////absolute/path (4 slashes) or sqlite:///relative/path (3 slashes)
+        path_str = url[len("sqlite://") :]
+        path = Path(path_str)
         if not path.is_absolute():
             path = ROOT / path
         return path

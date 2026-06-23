@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -15,12 +16,21 @@ from app.database import init_db
 load_dotenv()
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-SCHEMAS_DIR = ROOT / "schemas"
+DEFAULT_SCHEMAS_DIR = ROOT / "schemas"
+SCHEMAS_DIR = Path(os.getenv("SCHEMAS_DIR", str(DEFAULT_SCHEMAS_DIR)))
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_db()
+    yield
+
 
 app = FastAPI(
     title="SETU API",
     description="Strategic Energy Trade Uncertainty — Phase 0",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 cors_origins = os.getenv(
@@ -35,11 +45,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def on_startup() -> None:
-    init_db()
 
 
 @app.get("/health")

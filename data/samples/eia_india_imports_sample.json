@@ -1,0 +1,39 @@
+{
+  "pulled_at": "2026-06-23T13:13:03.001485+00:00",
+  "source": {
+    "provider": "US EIA Open Data",
+    "series": "India crude oil imports (VERIFY series ID against live EIA catalog)",
+    "docs": "https://www.eia.gov/opendata/",
+    "live": false,
+    "note": "Fallback sample \u2014 set EIA_API_KEY in .env for live pull. VERIFY productId/series against EIA catalog before Phase 1 modeling."
+  },
+  "data": {
+    "response": {
+      "total": 2,
+      "dateFormat": "YYYY-MM",
+      "frequency": "monthly",
+      "data": [
+        {
+          "period": "2026-03",
+          "value": 4850.0,
+          "countryRegionId": "IND",
+          "productId": "57"
+        },
+        {
+          "period": "2026-02",
+          "value": 4720.0,
+          "countryRegionId": "IND",
+          "productId": "57"
+        }
+      ]
+    },
+    "request": {
+      "command": "/v2/international/data/",
+      "params": {
+        "frequency": "monthly",
+        "facets[countryRegionId][]": "IND",
+        "facets[productId][]": "57"
+      }
+    }
+  }
+}

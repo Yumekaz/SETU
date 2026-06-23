@@ -1,12 +1,5 @@
 import { useEffect, useState } from "react";
-
-interface HealthResponse {
-  status: string;
-  version: string;
-  phase: number;
-}
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+import { fetchHealth, type HealthResponse } from "../api/client";
 
 export default function HealthBadge() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
@@ -14,12 +7,8 @@ export default function HealthBadge() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/health`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: HealthResponse) => {
+    fetchHealth()
+      .then((data) => {
         setHealth(data);
         setError(null);
       })

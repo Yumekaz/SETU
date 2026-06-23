@@ -96,16 +96,16 @@ class GraphNode(BaseModel):
     name: str
     lat: float
     lon: float
-    capacity_mbpd: float
+    capacity_mbpd: float = Field(..., ge=0.0)
 class GraphEdge(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
     source: str = Field(..., description='Source node_id')
     target: str = Field(..., description='Target node_id')
-    flow_mbpd: float
+    flow_mbpd: float = Field(..., ge=0.0)
     corridor_dependency: Corridor
-    alt_route_penalty_days: float
+    alt_route_penalty_days: float = Field(..., ge=0.0)
 class Option(BaseModel):
     model_config = ConfigDict(
         extra='forbid',

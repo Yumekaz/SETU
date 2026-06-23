@@ -4,7 +4,8 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DATABASE_URL=sqlite:///data/setu.db
+    DATABASE_URL=sqlite:////data/setu.db \
+    SCHEMAS_DIR=/schemas
 
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

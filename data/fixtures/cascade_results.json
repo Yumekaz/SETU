@@ -1,23 +1,23 @@
 [
   {
-    "scenario_id": "405cacec-8774-09a9-77d2-1e02ff01cf99",
+    "scenario_id": "766ecb15-474e-bc19-2ef9-12766c006f61",
     "corridor": "HORMUZ",
-    "disruption_duration_days": 20,
+    "disruption_duration_days": 10,
     "n_simulations": 1000,
     "price_impact_pct": {
-      "p10": 7.16,
-      "p50": 8.11,
-      "p90": 30.25
+      "p10": 7.12,
+      "p50": 8.02,
+      "p90": 24.18
     },
     "refinery_throughput_impact_pct": {
-      "p10": 3.73,
-      "p50": 8.76,
-      "p90": 15.47
+      "p10": 6.99,
+      "p50": 8.16,
+      "p90": 21.2
     },
     "spr_days_required": {
-      "p10": 3.92,
-      "p50": 5.78,
-      "p90": 19.83
+      "p10": 4.78,
+      "p50": 4.96,
+      "p90": 6.83
     },
     "affected_downstream_nodes": [
       "port_hormuz",
@@ -26,24 +26,24 @@
     ]
   },
   {
-    "scenario_id": "b8db0672-f42d-47cc-00d4-af5974273ca3",
+    "scenario_id": "2a935d62-3c83-5dc0-d944-1fa5c0e9ab30",
     "corridor": "BAB_EL_MANDEB",
-    "disruption_duration_days": 11,
+    "disruption_duration_days": 16,
     "n_simulations": 1000,
     "price_impact_pct": {
-      "p10": 7.83,
-      "p50": 15.62,
-      "p90": 26.63
+      "p10": 4.4,
+      "p50": 6.96,
+      "p90": 14.98
     },
     "refinery_throughput_impact_pct": {
-      "p10": 1.43,
-      "p50": 9.38,
-      "p90": 22.94
+      "p10": 1.41,
+      "p50": 5.96,
+      "p90": 25.67
     },
     "spr_days_required": {
-      "p10": 3.52,
-      "p50": 6.39,
-      "p90": 18.73
+      "p10": 2.86,
+      "p50": 12.27,
+      "p90": 21.37
     },
     "affected_downstream_nodes": [
       "port_bab_el_mandeb",
@@ -52,24 +52,24 @@
     ]
   },
   {
-    "scenario_id": "c754108f-f418-8f3f-8a14-be62295b4715",
+    "scenario_id": "bb026576-f512-c4c3-b253-d2186c4a37ea",
     "corridor": "MALACCA",
-    "disruption_duration_days": 19,
+    "disruption_duration_days": 20,
     "n_simulations": 1000,
     "price_impact_pct": {
-      "p10": 7.51,
-      "p50": 13.99,
-      "p90": 26.31
+      "p10": 5.63,
+      "p50": 11.47,
+      "p90": 15.27
     },
     "refinery_throughput_impact_pct": {
-      "p10": 1.45,
-      "p50": 7.54,
-      "p90": 24.81
+      "p10": 2.52,
+      "p50": 3.22,
+      "p90": 17.93
     },
     "spr_days_required": {
-      "p10": 4.42,
-      "p50": 6.68,
-      "p90": 16.34
+      "p10": 1.43,
+      "p50": 5.19,
+      "p90": 6.19
     },
     "affected_downstream_nodes": [
       "port_malacca",

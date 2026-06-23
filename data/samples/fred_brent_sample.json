@@ -1,11 +1,12 @@
 {
-  "pulled_at": "2026-06-23T13:02:18.661064+00:00",
+  "pulled_at": "2026-06-23T13:13:04.748555+00:00",
   "source": {
-    "provider": "FRED",
-    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILBRENTEU",
+    "provider": "FRED (Federal Reserve Bank of St. Louis)",
     "series_id": "DCOILBRENTEU",
+    "docs": "https://fred.stlouisfed.org/series/DCOILBRENTEU",
     "live": true,
-    "note": "Public CSV export (no API key required)"
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILBRENTEU",
+    "note": "Pulled from public FRED CSV export (no API key required)"
   },
   "data": {
     "series_id": "DCOILBRENTEU",
@@ -13,44 +14,44 @@
     "csv_header": "observation_date,DCOILBRENTEU",
     "observations": [
       {
-        "date": "2026-06-02",
-        "value": "98.49"
+        "date": "1987-05-20",
+        "value": "18.63"
       },
       {
-        "date": "2026-06-03",
-        "value": "101.69"
+        "date": "1987-05-21",
+        "value": "18.45"
       },
       {
-        "date": "2026-06-04",
-        "value": "98.98"
+        "date": "1987-05-22",
+        "value": "18.55"
       },
       {
-        "date": "2026-06-05",
-        "value": "97.29"
+        "date": "1987-05-25",
+        "value": "18.60"
       },
       {
-        "date": "2026-06-08",
-        "value": "97.46"
+        "date": "1987-05-26",
+        "value": "18.63"
       },
       {
-        "date": "2026-06-09",
-        "value": "94.15"
+        "date": "1987-05-27",
+        "value": "18.60"
       },
       {
-        "date": "2026-06-10",
-        "value": "95.73"
+        "date": "1987-05-28",
+        "value": "18.60"
       },
       {
-        "date": "2026-06-11",
-        "value": "92.84"
+        "date": "1987-05-29",
+        "value": "18.58"
       },
       {
-        "date": "2026-06-12",
-        "value": "88.64"
+        "date": "1987-06-01",
+        "value": "18.65"
       },
       {
-        "date": "2026-06-15",
-        "value": "84.36"
+        "date": "1987-06-02",
+        "value": "18.68"
       }
     ]
   }

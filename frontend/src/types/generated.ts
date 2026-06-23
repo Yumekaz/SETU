@@ -14,7 +14,7 @@ export interface PercentileBand {
 
 export interface SignalEvent {
   event_id: string;
-  corridor: "HORMUZ" | "BAB_EL_MANDEB" | "MALACCA" | "OTHER";
+  corridor: Corridor;
   event_type: "MILITARY" | "SANCTION" | "ACCIDENT" | "PIRACY" | "DIPLOMATIC" | "INFRASTRUCTURE" | "UNKNOWN";
   severity: number;
   goldstein_scale: number;
@@ -26,7 +26,7 @@ export interface SignalEvent {
 }
 
 export interface RiskScore {
-  corridor: "HORMUZ" | "BAB_EL_MANDEB" | "MALACCA" | "OTHER";
+  corridor: Corridor;
   score: number;
   score_date: string;
   contributing_event_ids: string[];
@@ -35,12 +35,12 @@ export interface RiskScore {
 
 export interface CascadeResult {
   scenario_id: string;
-  corridor: "HORMUZ" | "BAB_EL_MANDEB" | "MALACCA" | "OTHER";
+  corridor: Corridor;
   disruption_duration_days: number;
   n_simulations: number;
-  price_impact_pct: CascadeResultPriceImpactPct;
-  refinery_throughput_impact_pct: CascadeResultRefineryThroughputImpactPct;
-  spr_days_required: CascadeResultSprDaysRequired;
+  price_impact_pct: PercentileBand;
+  refinery_throughput_impact_pct: PercentileBand;
+  spr_days_required: PercentileBand;
   affected_downstream_nodes: string[];
 }
 
@@ -57,15 +57,15 @@ export interface GraphEdge {
   source: string;
   target: string;
   flow_mbpd: number;
-  corridor_dependency: "HORMUZ" | "BAB_EL_MANDEB" | "MALACCA" | "OTHER";
+  corridor_dependency: Corridor;
   alt_route_penalty_days: number;
 }
 
 export interface Recommendation {
   recommendation_id: string;
   generated_at: string;
-  trigger_corridor: "HORMUZ" | "BAB_EL_MANDEB" | "MALACCA" | "OTHER";
-  options: Record<string, unknown>[];
+  trigger_corridor: Corridor;
+  options: RecommendationOption[];
   status: "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "EXPIRED";
   operator_note: string | null;
 }

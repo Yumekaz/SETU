@@ -1,9 +1,10 @@
 {
-  "pulled_at": "2026-06-23T13:02:18.659699+00:00",
+  "pulled_at": "2026-06-23T13:13:02.998186+00:00",
   "source": {
     "provider": "US Treasury OFAC",
     "url": "https://www.treasury.gov/ofac/downloads/sdn.csv",
     "format": "SDN CSV",
+    "note": "Public download; no API key",
     "live": true
   },
   "data": {

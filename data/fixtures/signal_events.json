@@ -7,7 +7,7 @@
     "goldstein_scale": 3.78,
     "confidence": 0.848,
     "event_date": "2026-05-26",
-    "ingested_at": "2026-06-19T13:04:52Z",
+    "ingested_at": "2026-06-19T12:00:00Z",
     "source_url": "https://example.com/source/1",
     "raw_text_snippet": "Mock signal event 1: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -19,7 +19,7 @@
     "goldstein_scale": 0.09,
     "confidence": 0.562,
     "event_date": "2026-06-17",
-    "ingested_at": "2026-06-18T13:04:52Z",
+    "ingested_at": "2026-06-18T12:00:00Z",
     "source_url": "https://example.com/source/2",
     "raw_text_snippet": "Mock signal event 2: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -31,7 +31,7 @@
     "goldstein_scale": 4.95,
     "confidence": 0.553,
     "event_date": "2026-05-29",
-    "ingested_at": "2026-06-22T13:04:52Z",
+    "ingested_at": "2026-06-22T12:00:00Z",
     "source_url": "https://example.com/source/3",
     "raw_text_snippet": "Mock signal event 3: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -43,7 +43,7 @@
     "goldstein_scale": -2.61,
     "confidence": 0.591,
     "event_date": "2026-06-20",
-    "ingested_at": "2026-06-21T13:04:52Z",
+    "ingested_at": "2026-06-21T12:00:00Z",
     "source_url": "https://example.com/source/4",
     "raw_text_snippet": "Mock signal event 4: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -55,7 +55,7 @@
     "goldstein_scale": -6.0,
     "confidence": 0.956,
     "event_date": "2026-06-21",
-    "ingested_at": "2026-06-19T13:04:52Z",
+    "ingested_at": "2026-06-19T12:00:00Z",
     "source_url": "https://example.com/source/5",
     "raw_text_snippet": "Mock signal event 5: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -67,7 +67,7 @@
     "goldstein_scale": -6.89,
     "confidence": 0.841,
     "event_date": "2026-05-30",
-    "ingested_at": "2026-06-21T13:04:52Z",
+    "ingested_at": "2026-06-21T12:00:00Z",
     "source_url": "https://example.com/source/6",
     "raw_text_snippet": "Mock signal event 6: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -79,7 +79,7 @@
     "goldstein_scale": 2.17,
     "confidence": 0.711,
     "event_date": "2026-06-12",
-    "ingested_at": "2026-06-21T13:04:52Z",
+    "ingested_at": "2026-06-21T12:00:00Z",
     "source_url": "https://example.com/source/7",
     "raw_text_snippet": "Mock signal event 7: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -91,7 +91,7 @@
     "goldstein_scale": 0.55,
     "confidence": 0.658,
     "event_date": "2026-06-09",
-    "ingested_at": "2026-06-20T13:04:52Z",
+    "ingested_at": "2026-06-20T12:00:00Z",
     "source_url": "https://example.com/source/8",
     "raw_text_snippet": "Mock signal event 8: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -103,7 +103,7 @@
     "goldstein_scale": 4.29,
     "confidence": 0.575,
     "event_date": "2026-05-28",
-    "ingested_at": "2026-06-23T13:04:52Z",
+    "ingested_at": "2026-06-23T12:00:00Z",
     "source_url": "https://example.com/source/9",
     "raw_text_snippet": "Mock signal event 9: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -115,7 +115,7 @@
     "goldstein_scale": 1.07,
     "confidence": 0.866,
     "event_date": "2026-06-17",
-    "ingested_at": "2026-06-18T13:04:52Z",
+    "ingested_at": "2026-06-18T12:00:00Z",
     "source_url": "https://example.com/source/10",
     "raw_text_snippet": "Mock signal event 10: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -127,7 +127,7 @@
     "goldstein_scale": -4.05,
     "confidence": 0.797,
     "event_date": "2026-06-15",
-    "ingested_at": "2026-06-18T13:04:52Z",
+    "ingested_at": "2026-06-18T12:00:00Z",
     "source_url": "https://example.com/source/11",
     "raw_text_snippet": "Mock signal event 11: corridor disruption report for SETU Phase 0 fixture validation."
   },
@@ -139,8 +139,152 @@
     "goldstein_scale": 7.96,
     "confidence": 0.774,
     "event_date": "2026-06-21",
-    "ingested_at": "2026-06-23T13:04:52Z",
+    "ingested_at": "2026-06-23T12:00:00Z",
     "source_url": "https://example.com/source/12",
     "raw_text_snippet": "Mock signal event 12: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "a0a04dc4-2720-9bdf-1c11-f735dc713d96",
+    "corridor": "BAB_EL_MANDEB",
+    "event_type": "UNKNOWN",
+    "severity": 0.678,
+    "goldstein_scale": 1.54,
+    "confidence": 0.719,
+    "event_date": "2026-06-04",
+    "ingested_at": "2026-06-20T12:00:00Z",
+    "source_url": "https://example.com/source/13",
+    "raw_text_snippet": "Mock signal event 13: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "8da0365b-f898-97b9-405c-acec877409a9",
+    "corridor": "HORMUZ",
+    "event_type": "INFRASTRUCTURE",
+    "severity": 0.713,
+    "goldstein_scale": 2.91,
+    "confidence": 0.786,
+    "event_date": "2026-06-15",
+    "ingested_at": "2026-06-18T12:00:00Z",
+    "source_url": "https://example.com/source/14",
+    "raw_text_snippet": "Mock signal event 14: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "6f4cc69a-4b22-d308-1c8e-aee95715bd6f",
+    "corridor": "BAB_EL_MANDEB",
+    "event_type": "PIRACY",
+    "severity": 0.103,
+    "goldstein_scale": 3.55,
+    "confidence": 0.867,
+    "event_date": "2026-06-07",
+    "ingested_at": "2026-06-22T12:00:00Z",
+    "source_url": "https://example.com/source/15",
+    "raw_text_snippet": "Mock signal event 15: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "deda4e16-1b3d-bd5c-e9a1-fa6f81f76d1c",
+    "corridor": "MALACCA",
+    "event_type": "UNKNOWN",
+    "severity": 0.643,
+    "goldstein_scale": 1.74,
+    "confidence": 0.617,
+    "event_date": "2026-05-30",
+    "ingested_at": "2026-06-22T12:00:00Z",
+    "source_url": "https://example.com/source/16",
+    "raw_text_snippet": "Mock signal event 16: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "ec24a3c5-c754-108f-f418-8f3f8a14be62",
+    "corridor": "HORMUZ",
+    "event_type": "DIPLOMATIC",
+    "severity": 0.376,
+    "goldstein_scale": -7.69,
+    "confidence": 0.959,
+    "event_date": "2026-05-26",
+    "ingested_at": "2026-06-21T12:00:00Z",
+    "source_url": "https://example.com/source/17",
+    "raw_text_snippet": "Mock signal event 17: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "e0c53cb8-3da9-c2a9-0ed4-2f1a3d4cbf37",
+    "corridor": "HORMUZ",
+    "event_type": "MILITARY",
+    "severity": 0.722,
+    "goldstein_scale": 5.06,
+    "confidence": 0.98,
+    "event_date": "2026-06-06",
+    "ingested_at": "2026-06-22T12:00:00Z",
+    "source_url": "https://example.com/source/18",
+    "raw_text_snippet": "Mock signal event 18: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "f264accc-79ac-1b1e-a8e5-6e0c20de435d",
+    "corridor": "BAB_EL_MANDEB",
+    "event_type": "ACCIDENT",
+    "severity": 0.549,
+    "goldstein_scale": 1.71,
+    "confidence": 0.974,
+    "event_date": "2026-05-25",
+    "ingested_at": "2026-06-19T12:00:00Z",
+    "source_url": "https://example.com/source/19",
+    "raw_text_snippet": "Mock signal event 19: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "337ea2df-b09b-2a5c-badc-c32ac1590f53",
+    "corridor": "MALACCA",
+    "event_type": "PIRACY",
+    "severity": 0.946,
+    "goldstein_scale": 2.4,
+    "confidence": 0.743,
+    "event_date": "2026-06-07",
+    "ingested_at": "2026-06-20T12:00:00Z",
+    "source_url": "https://example.com/source/20",
+    "raw_text_snippet": "Mock signal event 20: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "1064005c-3985-c3cf-3f76-be1d1efa2197",
+    "corridor": "MALACCA",
+    "event_type": "MILITARY",
+    "severity": 0.6,
+    "goldstein_scale": -4.32,
+    "confidence": 0.647,
+    "event_date": "2026-06-21",
+    "ingested_at": "2026-06-18T12:00:00Z",
+    "source_url": "https://example.com/source/21",
+    "raw_text_snippet": "Mock signal event 21: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "114125c6-3a9b-edd4-0f12-59e0a18ff6b6",
+    "corridor": "HORMUZ",
+    "event_type": "UNKNOWN",
+    "severity": 0.381,
+    "goldstein_scale": 0.23,
+    "confidence": 0.673,
+    "event_date": "2026-06-08",
+    "ingested_at": "2026-06-22T12:00:00Z",
+    "source_url": "https://example.com/source/22",
+    "raw_text_snippet": "Mock signal event 22: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "ef7ddc76-b92d-a22b-21df-306f8a0b3c33",
+    "corridor": "OTHER",
+    "event_type": "SANCTION",
+    "severity": 0.767,
+    "goldstein_scale": 4.92,
+    "confidence": 0.634,
+    "event_date": "2026-06-20",
+    "ingested_at": "2026-06-18T12:00:00Z",
+    "source_url": "https://example.com/source/23",
+    "raw_text_snippet": "Mock signal event 23: corridor disruption report for SETU Phase 0 fixture validation."
+  },
+  {
+    "event_id": "693dffbc-6c6f-a611-5ab3-3edf6e595ed3",
+    "corridor": "OTHER",
+    "event_type": "UNKNOWN",
+    "severity": 0.72,
+    "goldstein_scale": 2.77,
+    "confidence": 0.983,
+    "event_date": "2026-06-20",
+    "ingested_at": "2026-06-23T12:00:00Z",
+    "source_url": "https://example.com/source/24",
+    "raw_text_snippet": "Mock signal event 24: corridor disruption report for SETU Phase 0 fixture validation."
   }
 ]

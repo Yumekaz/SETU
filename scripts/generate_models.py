@@ -115,6 +115,16 @@ def _merge_generated_modules(out_dir: Path) -> str:
     return "\n".join(header + body_parts) + "\n"
 
 
+REF_TYPE_MAP = {
+    "corridor.json": "Corridor",
+    "percentile_band.json": "PercentileBand",
+}
+
+
+def _ref_type_name(ref_path: str) -> str | None:
+    return REF_TYPE_MAP.get(Path(ref_path).name)
+
+
 def _resolve_ref(schema: dict, root: Path) -> dict:
     if "$ref" in schema:
         ref_path = schema["$ref"]
@@ -136,8 +146,17 @@ def _resolve_refs_deep(obj: object, root: Path) -> object:
     return obj
 
 
-def _ts_type(schema: dict, root: Path, name_hint: str = "") -> str:
+def _ts_type(
+    schema: dict,
+    root: Path,
+    name_hint: str = "",
+    *,
+    array_item_name: str | None = None,
+) -> str:
     if "$ref" in schema:
+        mapped = _ref_type_name(schema["$ref"])
+        if mapped:
+            return mapped
         schema = _resolve_ref(schema, root)
 
     if "enum" in schema:
@@ -156,6 +175,10 @@ def _ts_type(schema: dict, root: Path, name_hint: str = "") -> str:
 
     if schema_type == "array":
         items = schema.get("items", {})
+        if array_item_name:
+            return f"{array_item_name}[]"
+        if items.get("type") == "object" and "properties" in items:
+            return f"{name_hint}Item[]" if name_hint else "Record<string, unknown>[]"
         return f"{_ts_type(items, root)}[]"
 
     if schema_type == "object":
@@ -183,14 +206,25 @@ def _emit_interface(name: str, schema: dict, root: Path) -> str:
     for prop_name, prop_schema in props.items():
         prop_schema = _resolve_refs_deep(prop_schema, root)
         optional = "" if prop_name in required else "?"
-        ts = _ts_type(prop_schema, root, _to_pascal(prop_name))
+        ts: str
 
-        if prop_schema.get("type") == "object" and "properties" in prop_schema:
+        if prop_name == "options" and name == "Recommendation":
+            ts = "RecommendationOption[]"
+        elif prop_name in (
+            "price_impact_pct",
+            "refinery_throughput_impact_pct",
+            "spr_days_required",
+        ):
+            ts = "PercentileBand"
+        elif prop_name in ("corridor", "trigger_corridor", "corridor_dependency"):
+            ts = "Corridor"
+        elif prop_name == "operator_note" and prop_schema.get("type") == ["string", "null"]:
+            ts = "string | null"
+        elif prop_schema.get("type") == "object" and "properties" in prop_schema:
             nested_name = f"{name}{_to_pascal(prop_name)}"
             ts = nested_name
-
-        if prop_name == "operator_note" and prop_schema.get("type") == ["string", "null"]:
-            ts = "string | null"
+        else:
+            ts = _ts_type(prop_schema, root, _to_pascal(prop_name))
 
         lines.append(f"  {prop_name}{optional}: {ts};")
 

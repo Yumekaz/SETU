@@ -22,13 +22,15 @@
       "description": "Target node_id"
     },
     "flow_mbpd": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0
     },
     "corridor_dependency": {
       "$ref": "corridor.json"
     },
     "alt_route_penalty_days": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0
     }
   }
 }

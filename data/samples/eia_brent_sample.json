@@ -1,10 +1,11 @@
 {
-  "pulled_at": "2026-06-23T13:02:18.661374+00:00",
+  "pulled_at": "2026-06-23T13:13:03.001029+00:00",
   "source": {
     "provider": "US EIA Open Data",
     "series": "PET.RBRTE.R2 (Brent spot, daily)",
+    "docs": "https://www.eia.gov/opendata/",
     "live": false,
-    "note": "Fallback sample \u2014 set EIA_API_KEY in .env for live pull"
+    "note": "Fallback sample \u2014 set EIA_API_KEY in .env for live pull. Shape matches EIA Open Data API v2 response."
   },
   "data": {
     "response": {
