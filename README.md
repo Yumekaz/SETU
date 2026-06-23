@@ -6,14 +6,19 @@ Geopolitical risk intelligence and cascade simulation for India's crude oil impo
 
 ## Quick Start (Docker)
 
+**Ubuntu Snap Docker:** the `docker` group may not exist. One-time fix:
+
 ```bash
-# Clone and enter repo
+sudo bash scripts/fix-docker-permissions.sh
+# log out and back in, then:
+bash scripts/demo-up.sh
+```
+
+Or skip the fix and use sudo: `sudo docker compose up --build`
+
+```bash
 cd SETU
-
-# Copy environment template (API keys optional for Phase 0)
-cp .env.example .env
-
-# Build and start backend + frontend
+cp .env.example .env   # add EIA_API_KEY for live pulls
 docker compose up --build
 ```
 
