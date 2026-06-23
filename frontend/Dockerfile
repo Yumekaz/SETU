@@ -6,6 +6,7 @@ COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
 
 COPY frontend/ .
+# Repo-root fixtures → /app/data/fixtures (matches @fixtures alias in vite/tsconfig)
 COPY data/fixtures ./data/fixtures
 
 ARG VITE_API_URL=http://localhost:8000

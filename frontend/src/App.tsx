@@ -1,7 +1,7 @@
 import HealthBadge from "./components/HealthBadge";
 import RiskScoreCard from "./components/RiskScoreCard";
 import type { RiskScore } from "./types/generated";
-import riskScoresFixture from "../../data/fixtures/risk_scores.json";
+import riskScoresFixture from "@fixtures/risk_scores.json";
 
 export default function App() {
   const mockScore = (riskScoresFixture as RiskScore[])[0];

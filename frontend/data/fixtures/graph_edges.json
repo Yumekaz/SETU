@@ -1,0 +1,72 @@
+[
+  {
+    "source": "node_1",
+    "target": "node_2",
+    "flow_mbpd": 1.57,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 17.4
+  },
+  {
+    "source": "node_2",
+    "target": "node_3",
+    "flow_mbpd": 1.22,
+    "corridor_dependency": "MALACCA",
+    "alt_route_penalty_days": 23.7
+  },
+  {
+    "source": "node_3",
+    "target": "node_4",
+    "flow_mbpd": 0.75,
+    "corridor_dependency": "MALACCA",
+    "alt_route_penalty_days": 9.8
+  },
+  {
+    "source": "node_4",
+    "target": "node_5",
+    "flow_mbpd": 1.17,
+    "corridor_dependency": "MALACCA",
+    "alt_route_penalty_days": 14.1
+  },
+  {
+    "source": "node_5",
+    "target": "node_6",
+    "flow_mbpd": 2.34,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 5.2
+  },
+  {
+    "source": "node_6",
+    "target": "node_7",
+    "flow_mbpd": 1.67,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 6.5
+  },
+  {
+    "source": "node_7",
+    "target": "node_8",
+    "flow_mbpd": 0.77,
+    "corridor_dependency": "MALACCA",
+    "alt_route_penalty_days": 7.6
+  },
+  {
+    "source": "node_8",
+    "target": "node_9",
+    "flow_mbpd": 1.07,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 22.6
+  },
+  {
+    "source": "node_9",
+    "target": "node_10",
+    "flow_mbpd": 1.11,
+    "corridor_dependency": "BAB_EL_MANDEB",
+    "alt_route_penalty_days": 13.8
+  },
+  {
+    "source": "node_10",
+    "target": "node_11",
+    "flow_mbpd": 1.5,
+    "corridor_dependency": "MALACCA",
+    "alt_route_penalty_days": 17.2
+  }
+]

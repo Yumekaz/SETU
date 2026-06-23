@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURES_DIR = ROOT / "data" / "fixtures"
+FRONTEND_FIXTURES_DIR = ROOT / "frontend" / "data" / "fixtures"
 
 # Frozen anchor date for deterministic output regardless of run date
 FREEZE_DATE = date(2026, 6, 23)
@@ -211,9 +212,12 @@ def generate_recommendations(n: int = 2) -> list[Recommendation]:
 
 def write_fixture(name: str, data: list) -> Path:
     FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
-    out = FIXTURES_DIR / f"{name}.json"
+    FRONTEND_FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
     payload = [item.model_dump(mode="json") for item in data]
-    out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text = json.dumps(payload, indent=2)
+    out = FIXTURES_DIR / f"{name}.json"
+    out.write_text(text, encoding="utf-8")
+    (FRONTEND_FIXTURES_DIR / f"{name}.json").write_text(text, encoding="utf-8")
     print(f"Wrote {out} ({len(data)} records)")
     return out
 

@@ -1,0 +1,68 @@
+[
+  {
+    "recommendation_id": "27cb6f2a-8da0-1097-be0f-051b1b66b5a9",
+    "generated_at": "2026-06-23T12:00:00Z",
+    "trigger_corridor": "HORMUZ",
+    "options": [
+      {
+        "option_id": "opt_1_1",
+        "description": "Option 1: reroute / reserve / supplier mix response for HORMUZ",
+        "cost_score": 0.89,
+        "time_score": 0.623,
+        "risk_score": 0.106,
+        "is_pareto_optimal": true
+      },
+      {
+        "option_id": "opt_1_2",
+        "description": "Option 2: reroute / reserve / supplier mix response for HORMUZ",
+        "cost_score": 0.754,
+        "time_score": 0.34,
+        "risk_score": 0.631,
+        "is_pareto_optimal": true
+      },
+      {
+        "option_id": "opt_1_3",
+        "description": "Option 3: reroute / reserve / supplier mix response for HORMUZ",
+        "cost_score": 0.851,
+        "time_score": 0.207,
+        "risk_score": 0.192,
+        "is_pareto_optimal": false
+      }
+    ],
+    "status": "APPROVED",
+    "operator_note": null
+  },
+  {
+    "recommendation_id": "46d483f3-d450-281c-6c6f-7633a2607723",
+    "generated_at": "2026-06-23T12:00:00Z",
+    "trigger_corridor": "BAB_EL_MANDEB",
+    "options": [
+      {
+        "option_id": "opt_2_1",
+        "description": "Option 1: reroute / reserve / supplier mix response for BAB_EL_MANDEB",
+        "cost_score": 0.325,
+        "time_score": 0.269,
+        "risk_score": 0.374,
+        "is_pareto_optimal": true
+      },
+      {
+        "option_id": "opt_2_2",
+        "description": "Option 2: reroute / reserve / supplier mix response for BAB_EL_MANDEB",
+        "cost_score": 0.65,
+        "time_score": 0.782,
+        "risk_score": 0.504,
+        "is_pareto_optimal": true
+      },
+      {
+        "option_id": "opt_2_3",
+        "description": "Option 3: reroute / reserve / supplier mix response for BAB_EL_MANDEB",
+        "cost_score": 0.301,
+        "time_score": 0.827,
+        "risk_score": 0.141,
+        "is_pareto_optimal": false
+      }
+    ],
+    "status": "PENDING_APPROVAL",
+    "operator_note": "Mock operator review note"
+  }
+]
