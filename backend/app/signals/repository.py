@@ -169,7 +169,9 @@ def list_risk_scores(
                 corridor=Corridor(row["corridor"]),
                 score=row["score"],
                 score_date=date.fromisoformat(row["score_date"]),
-                contributing_event_ids=[UUID(value) for value in json.loads(row["contributing_event_ids"])],
+                contributing_event_ids=[
+                    UUID(value) for value in json.loads(row["contributing_event_ids"])
+                ],
                 trend_7d=Trend7d(row["trend_7d"]),
             )
         )

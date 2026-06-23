@@ -5,14 +5,12 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
-
 from app.database import get_db_path, init_db
 from app.models.generated import SignalEvent
-from datetime import datetime, timezone
-
 from app.signals.extract import extract_signal
 from app.signals.ingest_gdelt import load_backtest_cache
 from app.signals.pipeline import run_pipeline

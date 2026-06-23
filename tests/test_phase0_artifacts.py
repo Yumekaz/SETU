@@ -7,8 +7,6 @@ import json
 import re
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parent.parent
 HORMUZ_CSV = ROOT / "data" / "hormuz_2026_timeline.csv"
 SCHEMAS_DIR = ROOT / "schemas"

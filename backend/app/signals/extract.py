@@ -62,7 +62,8 @@ def _merge_partial(
         goldstein = parse_goldstein(row.get("GoldsteinScale"))
 
     ingested = ingested_at or datetime.now(timezone.utc)
-    event_date_raw = partial.get("event_date") or parse_sql_date(str(row.get("SQLDATE", ""))).isoformat()
+    sql_date = str(row.get("SQLDATE", ""))
+    event_date_raw = partial.get("event_date") or parse_sql_date(sql_date).isoformat()
     if isinstance(event_date_raw, date):
         event_date_value = event_date_raw
     else:

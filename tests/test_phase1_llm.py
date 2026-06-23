@@ -25,7 +25,8 @@ def test_llm_runner_or_rules_fallback():
                 model_path=model_path,
             )
             log_lines.append(f"llm_ok keys={sorted(result.keys())}")
-            assert set(result.keys()) >= {"corridor", "event_type", "severity", "confidence", "event_date"}
+            required = {"corridor", "event_type", "severity", "confidence", "event_date"}
+            assert set(result.keys()) >= required
         except Exception as exc:  # noqa: BLE001
             log_lines.append(f"llm_error={exc}")
             pytest.skip(f"LLM load failed: {exc}")

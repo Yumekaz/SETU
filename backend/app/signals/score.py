@@ -30,7 +30,10 @@ def per_event_contribution(
     days_since = max((score_date - event.event_date).days, 0)
     recency = math.exp(-days_since / config.recency_tau_days)
     gold_norm = min(abs(event.goldstein_scale) / 10.0, 1.0)
-    type_weight = event_type_weights.get(event.event_type.value, event_type_weights.get("UNKNOWN", 0.3))
+    type_weight = event_type_weights.get(
+        event.event_type.value,
+        event_type_weights.get("UNKNOWN", 0.3),
+    )
     raw = (
         config.w_sev * event.severity
         + config.w_gold * gold_norm
@@ -123,7 +126,9 @@ def build_risk_scores(
 
     results: list[RiskScore] = []
     for corridor in CORRIDOR_ORDER:
-        score, contributors = compute_corridor_score(events, corridor=corridor, score_date=as_of, config=cfg)
+        score, contributors = compute_corridor_score(
+            events, corridor=corridor, score_date=as_of, config=cfg
+        )
         trend = compute_trend_7d(score, prior.get(corridor), config=cfg.scoring)
         results.append(
             RiskScore(

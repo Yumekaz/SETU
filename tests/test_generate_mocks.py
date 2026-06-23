@@ -7,8 +7,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURES_DIR = ROOT / "data" / "fixtures"
 SCRIPT = ROOT / "scripts" / "generate_mocks.py"

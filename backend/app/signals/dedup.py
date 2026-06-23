@@ -23,7 +23,12 @@ def _date_window(event_date: date, days: int = 1) -> tuple[date, date]:
     return event_date - timedelta(days=days), event_date + timedelta(days=days)
 
 
-def is_duplicate(candidate: SignalEvent, existing: SignalEvent, *, similarity_threshold: float = 0.8) -> bool:
+def is_duplicate(
+    candidate: SignalEvent,
+    existing: SignalEvent,
+    *,
+    similarity_threshold: float = 0.8,
+) -> bool:
     if candidate.corridor != existing.corridor:
         return False
     if candidate.event_type != existing.event_type:
@@ -31,7 +36,8 @@ def is_duplicate(candidate: SignalEvent, existing: SignalEvent, *, similarity_th
     start, end = _date_window(candidate.event_date)
     if not (start <= existing.event_date <= end):
         return False
-    return jaccard_similarity(candidate.raw_text_snippet, existing.raw_text_snippet) >= similarity_threshold
+    sim = jaccard_similarity(candidate.raw_text_snippet, existing.raw_text_snippet)
+    return sim >= similarity_threshold
 
 
 def deduplicate_events(events: list[SignalEvent]) -> tuple[list[SignalEvent], list[SignalEvent]]:

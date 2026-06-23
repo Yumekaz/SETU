@@ -15,7 +15,6 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 sys.path.insert(0, str(ROOT))
 
-from app.signals.classify import passes_ingest_filter  # noqa: E402
 from app.signals.ingest_gdelt import filter_rows, iter_zip_bytes, load_sample_rows  # noqa: E402
 
 OUT_PATH = ROOT / "data" / "samples" / "gdelt_hormuz_backtest.json"

@@ -1,0 +1,3 @@
+# Optional: Phi-3 extraction via llama-cpp-python (not required for CI/rules mode)
+-r requirements.txt
+llama-cpp-python>=0.2.0,<1.0

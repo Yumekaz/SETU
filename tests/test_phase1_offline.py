@@ -6,10 +6,9 @@ import json
 from pathlib import Path
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.main import app
 from app.signals.pipeline import run_pipeline
+from fastapi.testclient import TestClient
 
 SCRATCH = Path("/tmp/grok-goal-7dbdddf7e201/implementer")
 

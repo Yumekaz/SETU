@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
-import pytest
-
 from app.database import DEFAULT_DB_PATH, ROOT, get_db_path
 
 

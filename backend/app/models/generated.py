@@ -10,6 +10,7 @@ from uuid import UUID
 
 from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field
 
+
 class Corridor(StrEnum):
     hormuz = 'HORMUZ'
     bab_el_mandeb = 'BAB_EL_MANDEB'
