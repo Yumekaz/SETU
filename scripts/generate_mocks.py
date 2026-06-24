@@ -23,12 +23,16 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from app.models.generated import (  # noqa: E402
     CascadeResult,
+    Corridor,
     GraphEdge,
     GraphNode,
     Recommendation,
+    RiskForecast,
     RiskScore,
     SignalEvent,
 )
+from app.simulation.graph_loader import load_network_graph  # noqa: E402
+from app.simulation.monte_carlo import run_cascade  # noqa: E402
 
 RNG = random.Random(42)
 
@@ -46,7 +50,7 @@ TRENDS = ["RISING", "FALLING", "STABLE"]
 STATUSES = ["PENDING_APPROVAL", "APPROVED", "REJECTED", "EXPIRED"]
 
 SIGNAL_EVENT_COUNT = 24
-GRAPH_NODE_COUNT = 12
+GRAPH_PATH = ROOT / "data" / "graph" / "india_crude_network.json"
 
 
 def _uid() -> str:
@@ -109,73 +113,33 @@ def generate_risk_scores(events: list[SignalEvent], n: int = 4) -> list[RiskScor
     return scores
 
 
-def generate_cascade_results(n: int = 3) -> list[CascadeResult]:
-    results = []
-    for i in range(n):
-        corridor = CORRIDORS[i % len(CORRIDORS)]
+def generate_cascade_results() -> list[CascadeResult]:
+    """Deterministic cascade fixtures from the cited network graph."""
+    corridors = [Corridor.hormuz, Corridor.bab_el_mandeb, Corridor.malacca]
+    results: list[CascadeResult] = []
+    for i, corridor in enumerate(corridors):
         results.append(
-            CascadeResult(
-                scenario_id=_uid(),
-                corridor=corridor,
-                disruption_duration_days=RNG.randint(3, 21),
-                n_simulations=1000,
-                price_impact_pct=_ordered_percentiles(),
-                refinery_throughput_impact_pct=_ordered_percentiles(),
-                spr_days_required=_ordered_percentiles(),
-                affected_downstream_nodes=[
-                    f"port_{corridor.lower()}",
-                    "refinery_mumbai",
-                    "demand_north",
-                ],
-            )
+            run_cascade(corridor, n_simulations=200, seed=42 + i, network=load_network_graph(GRAPH_PATH))
         )
     return results
 
 
-def generate_graph_nodes(n: int = GRAPH_NODE_COUNT) -> list[GraphNode]:
-    nodes = []
-    coords = [
-        (26.5, 56.5, "Hormuz Strait", "CORRIDOR"),
-        (12.6, 43.3, "Bab-el-Mandeb", "CORRIDOR"),
-        (1.3, 103.8, "Malacca Strait", "CORRIDOR"),
-        (18.9, 72.8, "JNPT Mumbai", "PORT"),
-        (13.1, 80.3, "Chennai Port", "PORT"),
-        (22.5, 69.7, "Kandla Port", "PORT"),
-        (19.0, 73.0, "Mumbai Refinery Complex", "REFINERY"),
-        (13.0, 80.2, "Chennai Refinery", "REFINERY"),
-        (28.6, 77.2, "North India Demand Hub", "DEMAND_CENTER"),
-        (17.4, 78.5, "South India Demand Hub", "DEMAND_CENTER"),
-        (25.2, 55.3, "Gulf Production Aggregate", "PRODUCTION_FIELD"),
-        (30.0, 48.0, "Arabian Production Aggregate", "PRODUCTION_FIELD"),
-    ]
-    for i in range(min(n, len(coords))):
-        lat, lon, name, node_type = coords[i]
-        nodes.append(
-            GraphNode(
-                node_id=f"node_{i + 1}",
-                node_type=node_type,
-                name=name,
-                lat=lat,
-                lon=lon,
-                capacity_mbpd=round(RNG.uniform(0.5, 5.0), 2),
-            )
-        )
-    return nodes
+def generate_graph_nodes() -> list[GraphNode]:
+    return load_network_graph(GRAPH_PATH).nodes
 
 
-def generate_graph_edges(nodes: list[GraphNode], n: int = 10) -> list[GraphEdge]:
-    edges = []
-    for i in range(min(n, len(nodes) - 1)):
-        edges.append(
-            GraphEdge(
-                source=nodes[i].node_id,
-                target=nodes[i + 1].node_id,
-                flow_mbpd=round(RNG.uniform(0.3, 2.5), 2),
-                corridor_dependency=RNG.choice(CORRIDORS),
-                alt_route_penalty_days=round(RNG.uniform(5.0, 25.0), 1),
-            )
-        )
-    return edges
+def generate_graph_edges() -> list[GraphEdge]:
+    return load_network_graph(GRAPH_PATH).edges
+
+
+def generate_risk_forecasts() -> list[RiskForecast]:
+    from app.forecast.config import DEFAULT_FEATURES_PATH
+    from app.forecast.features import build_daily_features, write_features_parquet
+    from app.forecast.inference import run_all_forecasts
+
+    if not DEFAULT_FEATURES_PATH.exists():
+        write_features_parquet(build_daily_features(), DEFAULT_FEATURES_PATH)
+    return run_all_forecasts()
 
 
 def generate_recommendations(n: int = 2) -> list[Recommendation]:
@@ -229,13 +193,15 @@ def main() -> int:
     scores = generate_risk_scores(events)
     cascades = generate_cascade_results()
     nodes = generate_graph_nodes()
-    edges = generate_graph_edges(nodes)
+    edges = generate_graph_edges()
     recommendations = generate_recommendations()
+    forecasts = generate_risk_forecasts()
 
     for _label, items, model in [
         ("signal_events", events, SignalEvent),
         ("risk_scores", scores, RiskScore),
         ("cascade_results", cascades, CascadeResult),
+        ("risk_forecasts", forecasts, RiskForecast),
         ("graph_nodes", nodes, GraphNode),
         ("graph_edges", edges, GraphEdge),
         ("recommendations", recommendations, Recommendation),
@@ -246,6 +212,7 @@ def main() -> int:
     write_fixture("signal_events", events)
     write_fixture("risk_scores", scores)
     write_fixture("cascade_results", cascades)
+    write_fixture("risk_forecasts", forecasts)
     write_fixture("graph_nodes", nodes)
     write_fixture("graph_edges", edges)
     write_fixture("recommendations", recommendations)

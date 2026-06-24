@@ -44,9 +44,9 @@ def test_hormuz_timeline_has_five_cited_rows() -> None:
         assert row.get("date"), f"row {i} missing date"
 
 
-def test_schemas_dir_has_eight_files() -> None:
+def test_schemas_dir_has_ten_files() -> None:
     schemas = sorted(p.name for p in SCHEMAS_DIR.glob("*.json"))
-    assert len(schemas) == 8
+    assert len(schemas) == 10
 
 
 def test_samples_and_fixtures_present() -> None:

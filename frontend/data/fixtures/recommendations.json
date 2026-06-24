@@ -1,68 +1,68 @@
 [
   {
-    "recommendation_id": "27cb6f2a-8da0-1097-be0f-051b1b66b5a9",
+    "recommendation_id": "17e011b7-f810-2383-03c7-2ba8d605e770",
     "generated_at": "2026-06-23T12:00:00Z",
     "trigger_corridor": "HORMUZ",
     "options": [
       {
         "option_id": "opt_1_1",
         "description": "Option 1: reroute / reserve / supplier mix response for HORMUZ",
-        "cost_score": 0.89,
-        "time_score": 0.623,
-        "risk_score": 0.106,
+        "cost_score": 0.438,
+        "time_score": 0.323,
+        "risk_score": 0.3,
         "is_pareto_optimal": true
       },
       {
         "option_id": "opt_1_2",
         "description": "Option 2: reroute / reserve / supplier mix response for HORMUZ",
-        "cost_score": 0.754,
-        "time_score": 0.34,
-        "risk_score": 0.631,
+        "cost_score": 0.839,
+        "time_score": 0.455,
+        "risk_score": 0.789,
         "is_pareto_optimal": true
       },
       {
         "option_id": "opt_1_3",
         "description": "Option 3: reroute / reserve / supplier mix response for HORMUZ",
-        "cost_score": 0.851,
-        "time_score": 0.207,
-        "risk_score": 0.192,
+        "cost_score": 0.54,
+        "time_score": 0.14,
+        "risk_score": 0.899,
         "is_pareto_optimal": false
       }
     ],
-    "status": "APPROVED",
+    "status": "PENDING_APPROVAL",
     "operator_note": null
   },
   {
-    "recommendation_id": "46d483f3-d450-281c-6c6f-7633a2607723",
+    "recommendation_id": "b253d218-6c4a-37ea-4906-17f2747b6dba",
     "generated_at": "2026-06-23T12:00:00Z",
     "trigger_corridor": "BAB_EL_MANDEB",
     "options": [
       {
         "option_id": "opt_2_1",
         "description": "Option 1: reroute / reserve / supplier mix response for BAB_EL_MANDEB",
-        "cost_score": 0.325,
-        "time_score": 0.269,
-        "risk_score": 0.374,
+        "cost_score": 0.233,
+        "time_score": 0.489,
+        "risk_score": 0.271,
         "is_pareto_optimal": true
       },
       {
         "option_id": "opt_2_2",
         "description": "Option 2: reroute / reserve / supplier mix response for BAB_EL_MANDEB",
-        "cost_score": 0.65,
-        "time_score": 0.782,
-        "risk_score": 0.504,
+        "cost_score": 0.421,
+        "time_score": 0.147,
+        "risk_score": 0.403,
         "is_pareto_optimal": true
       },
       {
         "option_id": "opt_2_3",
         "description": "Option 3: reroute / reserve / supplier mix response for BAB_EL_MANDEB",
-        "cost_score": 0.301,
-        "time_score": 0.827,
-        "risk_score": 0.141,
+        "cost_score": 0.888,
+        "time_score": 0.312,
+        "risk_score": 0.727,
         "is_pareto_optimal": false
       }
     ],
-    "status": "PENDING_APPROVAL",
+    "status": "APPROVED",
     "operator_note": "Mock operator review note"
   }
 ]

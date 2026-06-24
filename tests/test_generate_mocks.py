@@ -56,6 +56,14 @@ def test_graph_nodes_meets_minimum_count() -> None:
     assert len(nodes) >= 10
 
 
+def test_graph_fixtures_use_semantic_ids_not_node_chain() -> None:
+    _run_generate_mocks()
+    nodes = _load_fixture("graph_nodes")
+    node_ids = {n["node_id"] for n in nodes}
+    assert "corridor_hormuz" in node_ids
+    assert not any(nid.startswith("node_") for nid in node_ids)
+
+
 def test_cascade_percentile_ordering() -> None:
     _run_generate_mocks()
     cascades = _load_fixture("cascade_results")

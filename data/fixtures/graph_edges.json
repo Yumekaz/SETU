@@ -1,72 +1,107 @@
 [
   {
-    "source": "node_1",
-    "target": "node_2",
-    "flow_mbpd": 1.57,
+    "source": "prod_gulf",
+    "target": "corridor_hormuz",
+    "flow_mbpd": 3.0,
     "corridor_dependency": "HORMUZ",
-    "alt_route_penalty_days": 17.4
+    "alt_route_penalty_days": 18.0
   },
   {
-    "source": "node_2",
-    "target": "node_3",
-    "flow_mbpd": 1.22,
-    "corridor_dependency": "MALACCA",
-    "alt_route_penalty_days": 23.7
-  },
-  {
-    "source": "node_3",
-    "target": "node_4",
-    "flow_mbpd": 0.75,
-    "corridor_dependency": "MALACCA",
-    "alt_route_penalty_days": 9.8
-  },
-  {
-    "source": "node_4",
-    "target": "node_5",
-    "flow_mbpd": 1.17,
-    "corridor_dependency": "MALACCA",
-    "alt_route_penalty_days": 14.1
-  },
-  {
-    "source": "node_5",
-    "target": "node_6",
-    "flow_mbpd": 2.34,
-    "corridor_dependency": "HORMUZ",
-    "alt_route_penalty_days": 5.2
-  },
-  {
-    "source": "node_6",
-    "target": "node_7",
-    "flow_mbpd": 1.67,
-    "corridor_dependency": "HORMUZ",
-    "alt_route_penalty_days": 6.5
-  },
-  {
-    "source": "node_7",
-    "target": "node_8",
-    "flow_mbpd": 0.77,
-    "corridor_dependency": "MALACCA",
-    "alt_route_penalty_days": 7.6
-  },
-  {
-    "source": "node_8",
-    "target": "node_9",
-    "flow_mbpd": 1.07,
-    "corridor_dependency": "HORMUZ",
-    "alt_route_penalty_days": 22.6
-  },
-  {
-    "source": "node_9",
-    "target": "node_10",
-    "flow_mbpd": 1.11,
+    "source": "prod_gulf",
+    "target": "corridor_bab_el_mandeb",
+    "flow_mbpd": 0.8,
     "corridor_dependency": "BAB_EL_MANDEB",
-    "alt_route_penalty_days": 13.8
+    "alt_route_penalty_days": 12.0
   },
   {
-    "source": "node_10",
-    "target": "node_11",
-    "flow_mbpd": 1.5,
+    "source": "prod_southeast",
+    "target": "corridor_malacca",
+    "flow_mbpd": 1.2,
     "corridor_dependency": "MALACCA",
-    "alt_route_penalty_days": 17.2
+    "alt_route_penalty_days": 8.0
+  },
+  {
+    "source": "corridor_hormuz",
+    "target": "port_kandla",
+    "flow_mbpd": 1.5,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 18.0
+  },
+  {
+    "source": "corridor_hormuz",
+    "target": "port_mumbai",
+    "flow_mbpd": 1.5,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 16.0
+  },
+  {
+    "source": "corridor_bab_el_mandeb",
+    "target": "port_kandla",
+    "flow_mbpd": 0.8,
+    "corridor_dependency": "BAB_EL_MANDEB",
+    "alt_route_penalty_days": 12.0
+  },
+  {
+    "source": "corridor_malacca",
+    "target": "port_chennai",
+    "flow_mbpd": 1.2,
+    "corridor_dependency": "MALACCA",
+    "alt_route_penalty_days": 8.0
+  },
+  {
+    "source": "port_kandla",
+    "target": "refinery_jamnagar",
+    "flow_mbpd": 2.0,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 0.0
+  },
+  {
+    "source": "port_mumbai",
+    "target": "refinery_mumbai",
+    "flow_mbpd": 1.2,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 0.0
+  },
+  {
+    "source": "port_chennai",
+    "target": "refinery_chennai",
+    "flow_mbpd": 1.0,
+    "corridor_dependency": "MALACCA",
+    "alt_route_penalty_days": 0.0
+  },
+  {
+    "source": "refinery_jamnagar",
+    "target": "demand_west",
+    "flow_mbpd": 0.8,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 0.0
+  },
+  {
+    "source": "refinery_jamnagar",
+    "target": "demand_north",
+    "flow_mbpd": 0.6,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 0.0
+  },
+  {
+    "source": "refinery_mumbai",
+    "target": "demand_west",
+    "flow_mbpd": 0.5,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 0.0
+  },
+  {
+    "source": "refinery_mumbai",
+    "target": "demand_north",
+    "flow_mbpd": 0.7,
+    "corridor_dependency": "HORMUZ",
+    "alt_route_penalty_days": 0.0
+  },
+  {
+    "source": "refinery_chennai",
+    "target": "demand_south",
+    "flow_mbpd": 1.0,
+    "corridor_dependency": "MALACCA",
+    "alt_route_penalty_days": 0.0
   }
 ]

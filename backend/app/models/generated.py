@@ -10,7 +10,6 @@ from uuid import UUID
 
 from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field
 
-
 class Corridor(StrEnum):
     hormuz = 'HORMUZ'
     bab_el_mandeb = 'BAB_EL_MANDEB'
@@ -23,6 +22,12 @@ class PercentileBand(BaseModel):
     p10: float = Field(..., description='10th percentile')
     p50: float = Field(..., description='50th percentile (median)')
     p90: float = Field(..., description='90th percentile')
+class ForecastTrajectoryStep(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    forecast_date: date
+    score_band: PercentileBand
 class EventType(StrEnum):
     military = 'MILITARY'
     sanction = 'SANCTION'
@@ -136,3 +141,25 @@ class Recommendation(BaseModel):
     options: list[Option]
     status: Status
     operator_note: str | None
+class ModelSource(StrEnum):
+    gru = 'GRU'
+    trend_fallback = 'TREND_FALLBACK'
+
+
+class RiskForecast(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    forecast_id: UUID
+    corridor: Corridor
+    origin_date: date = Field(
+        ..., description='Last observed score date used as forecast origin'
+    )
+    horizon_days: int = Field(..., ge=1, le=7)
+    model_source: ModelSource
+    training_data_through: date = Field(
+        ..., description='Latest training observation date (no look-ahead audit)'
+    )
+    trajectory: list[ForecastTrajectoryStep] = Field(
+        ..., max_length=7, min_length=1
+    )

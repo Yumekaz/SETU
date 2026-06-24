@@ -1,0 +1,200 @@
+[
+  {
+    "forecast_id": "382cda54-1228-5566-a504-d90c479d7fb2",
+    "corridor": "HORMUZ",
+    "origin_date": "2026-06-30",
+    "horizon_days": 7,
+    "model_source": "GRU",
+    "training_data_through": "2026-05-16",
+    "trajectory": [
+      {
+        "forecast_date": "2026-07-01",
+        "score_band": {
+          "p10": 0.0177,
+          "p50": 0.0177,
+          "p90": 0.2191
+        }
+      },
+      {
+        "forecast_date": "2026-07-02",
+        "score_band": {
+          "p10": 0.0152,
+          "p50": 0.0152,
+          "p90": 0.207
+        }
+      },
+      {
+        "forecast_date": "2026-07-03",
+        "score_band": {
+          "p10": 0.0146,
+          "p50": 0.0418,
+          "p90": 0.2101
+        }
+      },
+      {
+        "forecast_date": "2026-07-04",
+        "score_band": {
+          "p10": 0.0205,
+          "p50": 0.0205,
+          "p90": 0.1904
+        }
+      },
+      {
+        "forecast_date": "2026-07-05",
+        "score_band": {
+          "p10": 0.0248,
+          "p50": 0.0248,
+          "p90": 0.1912
+        }
+      },
+      {
+        "forecast_date": "2026-07-06",
+        "score_band": {
+          "p10": 0.0155,
+          "p50": 0.0155,
+          "p90": 0.1773
+        }
+      },
+      {
+        "forecast_date": "2026-07-07",
+        "score_band": {
+          "p10": 0.0178,
+          "p50": 0.0178,
+          "p90": 0.1611
+        }
+      }
+    ]
+  },
+  {
+    "forecast_id": "7ec2c0ce-7951-5956-b188-43818a4a9332",
+    "corridor": "BAB_EL_MANDEB",
+    "origin_date": "2026-06-30",
+    "horizon_days": 7,
+    "model_source": "GRU",
+    "training_data_through": "2026-05-16",
+    "trajectory": [
+      {
+        "forecast_date": "2026-07-01",
+        "score_band": {
+          "p10": 0.0177,
+          "p50": 0.0177,
+          "p90": 0.2189
+        }
+      },
+      {
+        "forecast_date": "2026-07-02",
+        "score_band": {
+          "p10": 0.0152,
+          "p50": 0.0152,
+          "p90": 0.2067
+        }
+      },
+      {
+        "forecast_date": "2026-07-03",
+        "score_band": {
+          "p10": 0.0145,
+          "p50": 0.0419,
+          "p90": 0.2105
+        }
+      },
+      {
+        "forecast_date": "2026-07-04",
+        "score_band": {
+          "p10": 0.0205,
+          "p50": 0.0205,
+          "p90": 0.1905
+        }
+      },
+      {
+        "forecast_date": "2026-07-05",
+        "score_band": {
+          "p10": 0.0248,
+          "p50": 0.0248,
+          "p90": 0.1916
+        }
+      },
+      {
+        "forecast_date": "2026-07-06",
+        "score_band": {
+          "p10": 0.0155,
+          "p50": 0.0155,
+          "p90": 0.178
+        }
+      },
+      {
+        "forecast_date": "2026-07-07",
+        "score_band": {
+          "p10": 0.0178,
+          "p50": 0.0178,
+          "p90": 0.1611
+        }
+      }
+    ]
+  },
+  {
+    "forecast_id": "ca293e5b-df99-5b3d-987f-ba47187b632e",
+    "corridor": "MALACCA",
+    "origin_date": "2026-06-30",
+    "horizon_days": 7,
+    "model_source": "GRU",
+    "training_data_through": "2026-05-16",
+    "trajectory": [
+      {
+        "forecast_date": "2026-07-01",
+        "score_band": {
+          "p10": 0.0177,
+          "p50": 0.0177,
+          "p90": 0.2192
+        }
+      },
+      {
+        "forecast_date": "2026-07-02",
+        "score_band": {
+          "p10": 0.0152,
+          "p50": 0.0152,
+          "p90": 0.207
+        }
+      },
+      {
+        "forecast_date": "2026-07-03",
+        "score_band": {
+          "p10": 0.0146,
+          "p50": 0.0418,
+          "p90": 0.2102
+        }
+      },
+      {
+        "forecast_date": "2026-07-04",
+        "score_band": {
+          "p10": 0.0205,
+          "p50": 0.0205,
+          "p90": 0.1904
+        }
+      },
+      {
+        "forecast_date": "2026-07-05",
+        "score_band": {
+          "p10": 0.0248,
+          "p50": 0.0248,
+          "p90": 0.1912
+        }
+      },
+      {
+        "forecast_date": "2026-07-06",
+        "score_band": {
+          "p10": 0.0155,
+          "p50": 0.0155,
+          "p90": 0.1774
+        }
+      },
+      {
+        "forecast_date": "2026-07-07",
+        "score_band": {
+          "p10": 0.0178,
+          "p50": 0.0178,
+          "p90": 0.1611
+        }
+      }
+    ]
+  }
+]

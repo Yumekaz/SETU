@@ -20,6 +20,7 @@ from app.models.generated import (  # noqa: E402
     GraphEdge,
     GraphNode,
     Recommendation,
+    RiskForecast,
     RiskScore,
     SignalEvent,
 )
@@ -28,6 +29,7 @@ CONTRACT_FILES = [
     "signal_event.json",
     "risk_score.json",
     "cascade_result.json",
+    "risk_forecast.json",
     "graph_node.json",
     "graph_edge.json",
     "recommendation.json",
@@ -37,6 +39,7 @@ MODEL_MAP = {
     "signal_events": SignalEvent,
     "risk_scores": RiskScore,
     "cascade_results": CascadeResult,
+    "risk_forecasts": RiskForecast,
     "graph_nodes": GraphNode,
     "graph_edges": GraphEdge,
     "recommendations": Recommendation,
@@ -96,6 +99,8 @@ def test_fixture_validates_against_json_schema(
         schema_file = "graph_node.json"
     elif schema_name == "graph_edge":
         schema_file = "graph_edge.json"
+    elif schema_name == "risk_forecast":
+        schema_file = "risk_forecast.json"
     else:
         schema_file = "recommendation.json"
 

@@ -1,0 +1,33 @@
+# Disruption duration distributions (days) for Monte Carlo sampling.
+# Sources documented in docs/network_graph_sources.md and docs/cascade_model.md.
+
+distributions:
+  HORMUZ:
+    type: triangular
+    min_days: 14
+    mode_days: 60
+    max_days: 96
+    analogue: "2026-03-11 closure anchor to 2026-06-15 reopening (hormuz_2026_timeline.csv)"
+  BAB_EL_MANDEB:
+    type: triangular
+    min_days: 3
+    mode_days: 10
+    max_days: 30
+    analogue: "Red Sea/Houthi disruption — wider conservative band (thin precedent)"
+  MALACCA:
+    type: triangular
+    min_days: 1
+    mode_days: 6
+    max_days: 14
+    analogue: "Ever Given Suez 2021 short blockage (~6 days) as duration contrast"
+
+simulation:
+  default_n_simulations: 1000
+  ci_n_simulations: 500
+  default_seed: 42
+  price_elasticity: 8.0
+  max_price_impact_pct: 50.0
+  max_throughput_impact_pct: 100.0
+  india_total_demand_mbpd: 5.0
+  spr_draw_rate_mbpd: 0.35
+  duration_scale_days: 30

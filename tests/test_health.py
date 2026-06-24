@@ -16,10 +16,12 @@ from app.main import app  # noqa: E402
 EXPECTED_SCHEMAS = {
     "cascade_result",
     "corridor",
+    "forecast_trajectory_step",
     "graph_edge",
     "graph_node",
     "percentile_band",
     "recommendation",
+    "risk_forecast",
     "risk_score",
     "signal_event",
 }
@@ -34,7 +36,7 @@ def test_health_returns_ok(client: TestClient) -> None:
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
-    assert data == {"status": "ok", "version": "0.2.0", "phase": 1}
+    assert data == {"status": "ok", "version": "0.4.0", "phase": 3}
 
 
 def test_contracts_endpoint_serves_schemas(client: TestClient) -> None:
@@ -42,7 +44,7 @@ def test_contracts_endpoint_serves_schemas(client: TestClient) -> None:
     assert response.status_code == 200
     data = response.json()
 
-    assert len(data) == 8
+    assert len(data) == 10
     assert set(data.keys()) == EXPECTED_SCHEMAS
     assert "corridor" in data
     assert "percentile_band" in data

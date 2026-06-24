@@ -10,6 +10,14 @@
 When the model is absent, the backend uses the deterministic rules fallback in
 `backend/app/signals/rules_extractor.py` (CI default).
 
-## Phase 3 — GRU forecasting (planned)
+## Phase 3 — GRU forecasting
 
-Per-corridor GRU training, 14-day lookback features, model checkpoints.
+```bash
+python scripts/build_forecast_dataset.py
+python scripts/train_gru.py
+```
+
+- Features: `backend/app/forecast/features.py` (14-day lookback)
+- Model: `ml/forecast/gru_model.py`
+- Checkpoint: `data/checkpoints/gru/model.pt`
+- Report: `docs/gru_training_report.md`

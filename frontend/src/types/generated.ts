@@ -78,3 +78,13 @@ export interface RecommendationOption {
   risk_score: number;
   is_pareto_optimal: boolean;
 }
+
+export interface RiskForecast {
+  forecast_id: string;
+  corridor: Corridor;
+  origin_date: string;
+  horizon_days: number;
+  model_source: "GRU" | "TREND_FALLBACK";
+  training_data_through: string;
+  trajectory: TrajectoryItem[];
+}

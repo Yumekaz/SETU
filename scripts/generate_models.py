@@ -22,18 +22,21 @@ CONTRACT_SCHEMAS = [
     "graph_node.json",
     "graph_edge.json",
     "recommendation.json",
+    "risk_forecast.json",
 ]
 
 # Order matters for shared types before dependents
 MERGE_ORDER = [
     "corridor.py",
     "percentile_band.py",
+    "forecast_trajectory_step.py",
     "signal_event.py",
     "risk_score.py",
     "cascade_result.py",
     "graph_node.py",
     "graph_edge.py",
     "recommendation.py",
+    "risk_forecast.py",
 ]
 
 
@@ -88,6 +91,9 @@ def _merge_generated_modules(out_dir: Path) -> str:
         content = content.replace("percentile_band_1.PercentileBand", "PercentileBand")
         content = content.replace("corridor.Corridor", "Corridor")
         content = content.replace("percentile_band.PercentileBand", "PercentileBand")
+        content = content.replace(
+            "forecast_trajectory_step.ForecastTrajectoryStep", "ForecastTrajectoryStep"
+        )
 
         lines = content.splitlines()
         body: list[str] = []
@@ -214,6 +220,7 @@ def _emit_interface(name: str, schema: dict, root: Path) -> str:
             "price_impact_pct",
             "refinery_throughput_impact_pct",
             "spr_days_required",
+            "score_band",
         ):
             ts = "PercentileBand"
         elif prop_name in ("corridor", "trigger_corridor", "corridor_dependency"):
@@ -263,6 +270,7 @@ def generate_typescript_python() -> None:
         "graph_node.json": "GraphNode",
         "graph_edge.json": "GraphEdge",
         "recommendation.json": "Recommendation",
+        "risk_forecast.json": "RiskForecast",
     }
 
     for filename in CONTRACT_SCHEMAS:

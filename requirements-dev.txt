@@ -1,4 +1,5 @@
 -r backend/requirements.txt
+-r backend/requirements-forecast.txt
 pytest>=7.4.0,<9.0
 httpx>=0.26.0,<1.0
 ruff>=0.1.0,<1.0

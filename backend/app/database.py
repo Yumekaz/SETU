@@ -71,15 +71,38 @@ def init_db() -> None:
                 created_at TEXT DEFAULT (datetime('now'))
             );
 
+            CREATE TABLE IF NOT EXISTS cascade_results (
+                scenario_id TEXT PRIMARY KEY,
+                corridor TEXT NOT NULL,
+                disruption_duration_days INTEGER NOT NULL,
+                n_simulations INTEGER NOT NULL,
+                price_impact_pct TEXT NOT NULL,
+                refinery_throughput_impact_pct TEXT NOT NULL,
+                spr_days_required TEXT NOT NULL,
+                affected_downstream_nodes TEXT NOT NULL,
+                seed INTEGER NOT NULL,
+                payload_json TEXT NOT NULL,
+                computed_at TEXT DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS risk_forecasts (
+                forecast_id TEXT PRIMARY KEY,
+                corridor TEXT NOT NULL,
+                origin_date TEXT NOT NULL,
+                model_source TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                computed_at TEXT DEFAULT (datetime('now'))
+            );
+
             INSERT OR IGNORE INTO schema_meta (key, value)
-            VALUES ('phase', '1'), ('version', '0.2.0');
+            VALUES ('phase', '3'), ('version', '0.4.0');
             """
         )
         conn.execute(
-            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('phase', '1')"
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('phase', '3')"
         )
         conn.execute(
-            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.2.0')"
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.4.0')"
         )
         conn.commit()
     finally:

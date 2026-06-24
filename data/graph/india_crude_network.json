@@ -1,0 +1,239 @@
+{
+  "sources": [
+    {
+      "name": "EIA International Data",
+      "url": "https://www.eia.gov/opendata/",
+      "note": "India crude import volumes; VERIFY productId against live catalog"
+    },
+    {
+      "name": "PPAC India",
+      "url": "https://www.ppac.gov.in/",
+      "note": "Public petroleum statistics for import dependency context"
+    },
+    {
+      "name": "SETU Phase 2 ASSUMPTION",
+      "note": "Total India crude imports scaled to ~5.0 mbpd; Hormuz ~60%, Malacca ~24%, Bab-el-Mandeb ~16% of seaborne inflow"
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "prod_gulf",
+      "node_type": "PRODUCTION_FIELD",
+      "name": "Gulf Production Aggregate",
+      "lat": 25.2,
+      "lon": 55.3,
+      "capacity_mbpd": 5.0
+    },
+    {
+      "node_id": "prod_southeast",
+      "node_type": "PRODUCTION_FIELD",
+      "name": "Southeast Asia Production Aggregate",
+      "lat": 4.0,
+      "lon": 104.0,
+      "capacity_mbpd": 2.0
+    },
+    {
+      "node_id": "corridor_hormuz",
+      "node_type": "CORRIDOR",
+      "name": "Strait of Hormuz",
+      "lat": 26.5,
+      "lon": 56.5,
+      "capacity_mbpd": 3.0
+    },
+    {
+      "node_id": "corridor_bab_el_mandeb",
+      "node_type": "CORRIDOR",
+      "name": "Bab-el-Mandeb",
+      "lat": 12.6,
+      "lon": 43.3,
+      "capacity_mbpd": 0.8
+    },
+    {
+      "node_id": "corridor_malacca",
+      "node_type": "CORRIDOR",
+      "name": "Strait of Malacca",
+      "lat": 1.3,
+      "lon": 103.8,
+      "capacity_mbpd": 1.2
+    },
+    {
+      "node_id": "port_kandla",
+      "node_type": "PORT",
+      "name": "Kandla Port",
+      "lat": 22.5,
+      "lon": 69.7,
+      "capacity_mbpd": 2.3
+    },
+    {
+      "node_id": "port_mumbai",
+      "node_type": "PORT",
+      "name": "JNPT Mumbai",
+      "lat": 18.9,
+      "lon": 72.8,
+      "capacity_mbpd": 1.5
+    },
+    {
+      "node_id": "port_chennai",
+      "node_type": "PORT",
+      "name": "Chennai Port",
+      "lat": 13.1,
+      "lon": 80.3,
+      "capacity_mbpd": 1.2
+    },
+    {
+      "node_id": "refinery_jamnagar",
+      "node_type": "REFINERY",
+      "name": "Jamnagar Refinery Complex",
+      "lat": 22.0,
+      "lon": 69.7,
+      "capacity_mbpd": 1.4
+    },
+    {
+      "node_id": "refinery_mumbai",
+      "node_type": "REFINERY",
+      "name": "Mumbai Refinery Complex",
+      "lat": 19.0,
+      "lon": 73.0,
+      "capacity_mbpd": 1.2
+    },
+    {
+      "node_id": "refinery_chennai",
+      "node_type": "REFINERY",
+      "name": "Chennai Refinery",
+      "lat": 13.0,
+      "lon": 80.2,
+      "capacity_mbpd": 1.0
+    },
+    {
+      "node_id": "demand_north",
+      "node_type": "DEMAND_CENTER",
+      "name": "North India Demand Hub",
+      "lat": 28.6,
+      "lon": 77.2,
+      "capacity_mbpd": 1.5
+    },
+    {
+      "node_id": "demand_west",
+      "node_type": "DEMAND_CENTER",
+      "name": "West India Demand Hub",
+      "lat": 19.0,
+      "lon": 72.8,
+      "capacity_mbpd": 1.3
+    },
+    {
+      "node_id": "demand_south",
+      "node_type": "DEMAND_CENTER",
+      "name": "South India Demand Hub",
+      "lat": 13.5,
+      "lon": 80.0,
+      "capacity_mbpd": 1.0
+    }
+  ],
+  "edges": [
+    {
+      "source": "prod_gulf",
+      "target": "corridor_hormuz",
+      "flow_mbpd": 3.0,
+      "corridor_dependency": "HORMUZ",
+      "alt_route_penalty_days": 18.0
+    },
+    {
+      "source": "prod_gulf",
+      "target": "corridor_bab_el_mandeb",
+      "flow_mbpd": 0.8,
+      "corridor_dependency": "BAB_EL_MANDEB",
+      "alt_route_penalty_days": 12.0
+    },
+    {
+      "source": "prod_southeast",
+      "target": "corridor_malacca",
+      "flow_mbpd": 1.2,
+      "corridor_dependency": "MALACCA",
+      "alt_route_penalty_days": 8.0
+    },
+    {
+      "source": "corridor_hormuz",
+      "target": "port_kandla",
+      "flow_mbpd": 1.5,
+      "corridor_dependency": "HORMUZ",
+      "alt_route_penalty_days": 18.0
+    },
+    {
+      "source": "corridor_hormuz",
+      "target": "port_mumbai",
+      "flow_mbpd": 1.5,
+      "corridor_dependency": "HORMUZ",
+      "alt_route_penalty_days": 16.0
+    },
+    {
+      "source": "corridor_bab_el_mandeb",
+      "target": "port_kandla",
+      "flow_mbpd": 0.8,
+      "corridor_dependency": "BAB_EL_MANDEB",
+      "alt_route_penalty_days": 12.0
+    },
+    {
+      "source": "corridor_malacca",
+      "target": "port_chennai",
+      "flow_mbpd": 1.2,
+      "corridor_dependency": "MALACCA",
+      "alt_route_penalty_days": 8.0
+    },
+    {
+      "source": "port_kandla",
+      "target": "refinery_jamnagar",
+      "flow_mbpd": 2.0,
+      "corridor_dependency": "HORMUZ",
+      "alt_route_penalty_days": 0.0
+    },
+    {
+      "source": "port_mumbai",
+      "target": "refinery_mumbai",
+      "flow_mbpd": 1.2,
+      "corridor_dependency": "HORMUZ",
+      "alt_route_penalty_days": 0.0
+    },
+    {
+      "source": "port_chennai",
+      "target": "refinery_chennai",
+      "flow_mbpd": 1.0,
+      "corridor_dependency": "MALACCA",
+      "alt_route_penalty_days": 0.0
+    },
+    {
+      "source": "refinery_jamnagar",
+      "target": "demand_west",
+      "flow_mbpd": 0.8,
+      "corridor_dependency": "HORMUZ",
+      "alt_route_penalty_days": 0.0
+    },
+    {
+      "source": "refinery_jamnagar",
+      "target": "demand_north",
+      "flow_mbpd": 0.6,
+      "corridor_dependency": "HORMUZ",
+      "alt_route_penalty_days": 0.0
+    },
+    {
+      "source": "refinery_mumbai",
+      "target": "demand_west",
+      "flow_mbpd": 0.5,
+      "corridor_dependency": "HORMUZ",
+      "alt_route_penalty_days": 0.0
+    },
+    {
+      "source": "refinery_mumbai",
+      "target": "demand_north",
+      "flow_mbpd": 0.7,
+      "corridor_dependency": "HORMUZ",
+      "alt_route_penalty_days": 0.0
+    },
+    {
+      "source": "refinery_chennai",
+      "target": "demand_south",
+      "flow_mbpd": 1.0,
+      "corridor_dependency": "MALACCA",
+      "alt_route_penalty_days": 0.0
+    }
+  ]
+}
