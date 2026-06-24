@@ -12,6 +12,11 @@ export interface PercentileBand {
   p90: number;
 }
 
+export interface ForecastTrajectoryStep {
+  forecast_date: string;
+  score_band: PercentileBand;
+}
+
 export interface SignalEvent {
   event_id: string;
   corridor: Corridor;
@@ -87,5 +92,5 @@ export interface RiskForecast {
   model_source: "GRU" | "TREND_FALLBACK";
   training_data_through: string;
   feature_data_through: string;
-  trajectory: TrajectoryItem[];
+  trajectory: ForecastTrajectoryStep[];
 }

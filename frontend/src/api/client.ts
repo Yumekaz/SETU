@@ -1,3 +1,12 @@
+import type {
+  CascadeResult,
+  ForecastTrajectoryStep,
+  PercentileBand,
+  RiskForecast,
+} from "../types/generated";
+
+export type { CascadeResult, ForecastTrajectoryStep, PercentileBand, RiskForecast };
+
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 export interface HealthResponse {
@@ -57,12 +66,6 @@ export async function runPipeline(): Promise<unknown> {
   return response.json();
 }
 
-export interface PercentileBand {
-  p10: number;
-  p50: number;
-  p90: number;
-}
-
 export interface GraphNode {
   node_id: string;
   node_type: string;
@@ -84,17 +87,6 @@ export interface GraphResponse {
   sources: Array<{ name: string; url?: string; note?: string }>;
   nodes: GraphNode[];
   edges: GraphEdge[];
-}
-
-export interface CascadeResult {
-  scenario_id: string;
-  corridor: string;
-  disruption_duration_days: number;
-  n_simulations: number;
-  price_impact_pct: PercentileBand;
-  refinery_throughput_impact_pct: PercentileBand;
-  spr_days_required: PercentileBand;
-  affected_downstream_nodes: string[];
 }
 
 export async function fetchGraph(): Promise<GraphResponse> {
@@ -132,21 +124,6 @@ export async function fetchCascadeResultsLatest(): Promise<CascadeResult[]> {
   const response = await fetch(`${API_URL}/api/cascade/results/latest`);
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json() as Promise<CascadeResult[]>;
-}
-
-export interface ForecastTrajectoryStep {
-  forecast_date: string;
-  score_band: PercentileBand;
-}
-
-export interface RiskForecast {
-  forecast_id: string;
-  corridor: string;
-  origin_date: string;
-  horizon_days: number;
-  model_source: "GRU" | "TREND_FALLBACK";
-  training_data_through: string;
-  trajectory: ForecastTrajectoryStep[];
 }
 
 export async function fetchForecasts(corridor?: string): Promise<RiskForecast[]> {

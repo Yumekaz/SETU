@@ -124,6 +124,7 @@ def _merge_generated_modules(out_dir: Path) -> str:
 REF_TYPE_MAP = {
     "corridor.json": "Corridor",
     "percentile_band.json": "PercentileBand",
+    "forecast_trajectory_step.json": "ForecastTrajectoryStep",
 }
 
 
@@ -225,6 +226,8 @@ def _emit_interface(name: str, schema: dict, root: Path) -> str:
             ts = "PercentileBand"
         elif prop_name in ("corridor", "trigger_corridor", "corridor_dependency"):
             ts = "Corridor"
+        elif prop_name == "trajectory":
+            ts = "ForecastTrajectoryStep[]"
         elif prop_name == "operator_note" and prop_schema.get("type") == ["string", "null"]:
             ts = "string | null"
         elif prop_schema.get("type") == "object" and "properties" in prop_schema:
@@ -272,6 +275,16 @@ def generate_typescript_python() -> None:
         "recommendation.json": "Recommendation",
         "risk_forecast.json": "RiskForecast",
     }
+
+    supporting = [
+        ("forecast_trajectory_step.json", "ForecastTrajectoryStep"),
+    ]
+    for filename, name in supporting:
+        path = SCHEMAS_DIR / filename
+        with path.open() as f:
+            schema = json.load(f)
+        parts.append(_emit_interface(name, schema, SCHEMAS_DIR))
+        parts.append("")
 
     for filename in CONTRACT_SCHEMAS:
         path = SCHEMAS_DIR / filename
