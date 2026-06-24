@@ -4,7 +4,7 @@
 
 The GDELT backtest cache contains ~55 Hormuz-window events. BAB_EL_MANDEB and MALACCA have thin daily series; those corridors use `TREND_FALLBACK` when below MIN_TRAIN_DAYS or variance threshold. This is directional evidence, not statistically proven accuracy.
 
-- Total feature rows: 450
+- Total feature rows: 600
 - HORMUZ rows: 150
 
 ## Corridor routing
@@ -15,34 +15,38 @@ The GDELT backtest cache contains ~55 Hormuz-window events. BAB_EL_MANDEB and MA
 ## Final metrics
 
 - Training data through: 2026-05-16
-- Final train loss: 0.002607
-- Final val loss: 0.002178
+- Final train loss: 0.003701
+- Final val loss: 0.002626
 
 ## Loss curve (epoch, train_loss, val_loss)
 
 | epoch | train_loss | val_loss |
 |---:|---:|---:|
-| 0 | 0.200938 | 0.200163 |
-| 4 | 0.018821 | 0.015412 |
-| 8 | 0.017844 | 0.012483 |
-| 12 | 0.017661 | 0.011326 |
-| 16 | 0.017588 | 0.010715 |
-| 20 | 0.017522 | 0.010411 |
-| 24 | 0.017375 | 0.010217 |
-| 28 | 0.016202 | 0.009389 |
-| 32 | 0.014262 | 0.007480 |
-| 36 | 0.013294 | 0.008080 |
-| 40 | 0.010007 | 0.006923 |
-| 44 | 0.010351 | 0.004384 |
-| 48 | 0.007495 | 0.005197 |
-| 52 | 0.005017 | 0.003912 |
-| 56 | 0.004276 | 0.003131 |
-| 60 | 0.003190 | 0.002821 |
-| 64 | 0.003704 | 0.002538 |
-| 68 | 0.003143 | 0.002522 |
-| 72 | 0.003218 | 0.002654 |
-| 76 | 0.002740 | 0.002503 |
+| 0 | 0.201336 | 0.199342 |
+| 4 | 0.018725 | 0.015722 |
+| 8 | 0.017838 | 0.012592 |
+| 12 | 0.017651 | 0.011413 |
+| 16 | 0.017562 | 0.010818 |
+| 20 | 0.017387 | 0.010489 |
+| 24 | 0.016230 | 0.009389 |
+| 28 | 0.015908 | 0.009702 |
+| 32 | 0.014618 | 0.008036 |
+| 36 | 0.014000 | 0.007798 |
+| 40 | 0.011802 | 0.007836 |
+| 44 | 0.008901 | 0.006910 |
+| 48 | 0.008671 | 0.006622 |
+| 52 | 0.007865 | 0.005415 |
+| 56 | 0.008884 | 0.004715 |
+| 60 | 0.007165 | 0.005668 |
+| 64 | 0.005361 | 0.004593 |
+| 68 | 0.004219 | 0.003462 |
+| 72 | 0.003873 | 0.002777 |
+| 76 | 0.003496 | 0.002482 |
 
 ## Band approach
 
 Quantile pinball loss (p10/p50/p90) with sigmoid-bounded scores.
+
+## Validation methodology
+
+Validation windows use origins in the val partition with 14-day lookback spanning the full chronological timeline (including train dates), matching production inference semantics.

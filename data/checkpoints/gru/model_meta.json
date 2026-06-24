@@ -1,0 +1,14 @@
+{
+  "eligible_corridors": [
+    "BAB_EL_MANDEB",
+    "HORMUZ",
+    "MALACCA"
+  ],
+  "fallback_corridors": [
+    "OTHER"
+  ],
+  "training_data_through": "2026-05-16",
+  "seed": 42,
+  "final_train_loss": 0.003701465808262583,
+  "final_val_loss": 0.0026262663304805756
+}

@@ -95,7 +95,7 @@ def test_extraction_rate_at_least_ninety_percent_with_determinism() -> None:
 def test_pipeline_persists_events_and_scores(phase1_db) -> None:
     result = run_pipeline(source="cache", reset=True)
     assert result.stats.input_rows >= 50
-    assert result.stats.risk_scores == 3
+    assert result.stats.risk_scores == 4
     assert len(result.events) > 0
 
     conn = sqlite3.connect(str(get_db_path()))

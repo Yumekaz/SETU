@@ -1,5 +1,5 @@
 {
-  "rows": 450,
+  "rows": 600,
   "columns": [
     "date",
     "corridor",
@@ -14,6 +14,7 @@
   "per_corridor": {
     "BAB_EL_MANDEB": 150,
     "HORMUZ": 150,
-    "MALACCA": 150
+    "MALACCA": 150,
+    "OTHER": 150
   }
 }

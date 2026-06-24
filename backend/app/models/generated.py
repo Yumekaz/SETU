@@ -158,7 +158,12 @@ class RiskForecast(BaseModel):
     horizon_days: int = Field(..., ge=1, le=7)
     model_source: ModelSource
     training_data_through: date = Field(
-        ..., description='Latest training observation date (no look-ahead audit)'
+        ...,
+        description='Last calendar date used to fit GRU weights (train partition cutoff)',
+    )
+    feature_data_through: date = Field(
+        ...,
+        description='Last observed feature/score date used as forecast origin (matches origin_date)',
     )
     trajectory: list[ForecastTrajectoryStep] = Field(
         ..., max_length=7, min_length=1

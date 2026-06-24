@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -16,6 +17,7 @@ from app.forecast.config import (
     MIN_SCORE_VARIANCE,
     MIN_TRAIN_DAYS,
 )
+from app.forecast.split import ChronologicalLeakageError, ChronologicalSplit
 
 CORRIDOR_TO_IDX = {c: i for i, c in enumerate(CORRIDOR_ORDER)}
 N_CORRIDORS = len(CORRIDOR_ORDER)
@@ -46,13 +48,19 @@ def eligible_corridors_for_gru(df: pd.DataFrame) -> set[str]:
 def build_windows(
     df: pd.DataFrame,
     *,
-    dates: list[date] | None = None,
+    origin_dates: list[date] | None = None,
+    target_dates: set[date] | None = None,
+    corridors: list[str] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, list[tuple[str, date]]]:
-    """Return X [N,14,input_dim], y [N,7], meta list of (corridor, origin_date)."""
-    pivot_dates = sorted({date.fromisoformat(str(d)[:10]) for d in df["date"].unique()})
-    if dates is not None:
-        allowed = set(dates)
-        pivot_dates = [d for d in pivot_dates if d in allowed]
+    """Return X [N,14,input_dim], y [N,7], meta list of (corridor, origin_date).
+
+    Lookback always uses the full chronological timeline (matching inference).
+    When ``origin_dates`` is set, only those dates are used as forecast origins.
+    When ``target_dates`` is set, all horizon targets must fall in that set.
+    """
+    all_dates = sorted({date.fromisoformat(str(d)[:10]) for d in df["date"].unique()})
+    allowed_origins = set(origin_dates) if origin_dates is not None else set(all_dates)
+    corridor_list = corridors or list(CORRIDOR_ORDER)
 
     by_key: dict[tuple[str, date], dict] = {}
     for _, row in df.iterrows():
@@ -63,14 +71,18 @@ def build_windows(
     ys: list[np.ndarray] = []
     meta: list[tuple[str, date]] = []
 
-    for corridor in CORRIDOR_ORDER:
-        for i, origin in enumerate(pivot_dates):
-            if i < LOOKBACK_DAYS - 1:
+    for corridor in corridor_list:
+        for idx, origin in enumerate(all_dates):
+            if origin not in allowed_origins:
                 continue
-            if i + HORIZON_DAYS >= len(pivot_dates):
+            if idx < LOOKBACK_DAYS - 1:
                 continue
-            lookback = pivot_dates[i - LOOKBACK_DAYS + 1 : i + 1]
-            future = pivot_dates[i + 1 : i + 1 + HORIZON_DAYS]
+            if idx + HORIZON_DAYS >= len(all_dates):
+                continue
+            lookback = all_dates[idx - LOOKBACK_DAYS + 1 : idx + 1]
+            future = all_dates[idx + 1 : idx + 1 + HORIZON_DAYS]
+            if target_dates is not None and not all(fd in target_dates for fd in future):
+                continue
             window_rows = []
             ok = True
             for lb in lookback:
@@ -80,7 +92,9 @@ def build_windows(
                     break
                 row = by_key[key]
                 feats = [float(row[c]) for c in FEATURE_COLUMNS]
-                window_rows.append(np.array(feats + corridor_one_hot(corridor).tolist(), dtype=np.float32))
+                window_rows.append(
+                    np.array(feats + corridor_one_hot(corridor).tolist(), dtype=np.float32)
+                )
             if not ok:
                 continue
             targets = []
@@ -99,3 +113,35 @@ def build_windows(
     if not xs:
         return np.zeros((0, LOOKBACK_DAYS, INPUT_DIM)), np.zeros((0, HORIZON_DAYS)), []
     return np.stack(xs), np.stack(ys), meta
+
+
+def build_split_windows(
+    df: pd.DataFrame,
+    split: ChronologicalSplit,
+    partition: Literal["train", "val", "test"],
+    *,
+    corridors: list[str] | None = None,
+) -> tuple[np.ndarray, np.ndarray, list[tuple[str, date]]]:
+    """Build windows for a chronological partition with leakage assertions."""
+    origin_dates: list[date] = getattr(split, f"{partition}_dates")
+    if not origin_dates:
+        return np.zeros((0, LOOKBACK_DAYS, INPUT_DIM)), np.zeros((0, HORIZON_DAYS)), []
+
+    allowed_origins = set(origin_dates)
+    min_origin = min(origin_dates)
+    xs, ys, meta = build_windows(
+        df,
+        origin_dates=origin_dates,
+        target_dates=allowed_origins,
+        corridors=corridors,
+    )
+    for _, origin in meta:
+        if origin not in allowed_origins:
+            raise ChronologicalLeakageError(
+                f"window origin {origin} not in {partition} partition"
+            )
+        if origin < min_origin:
+            raise ChronologicalLeakageError(
+                f"window origin {origin} precedes {partition} min origin {min_origin}"
+            )
+    return xs, ys, meta

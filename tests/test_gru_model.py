@@ -2,18 +2,15 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import torch
 
-from app.forecast.config import DEFAULT_CHECKPOINT_PATH, INPUT_DIM
+from app.forecast.config import INPUT_DIM
 from app.forecast.dataset import build_windows, load_features_df
 from ml.forecast.gru_model import RiskGRUForecaster
 from ml.forecast.loss import quantile_band_loss
 from ml.forecast.train import train_gru
-
-SCRATCH = Path("/tmp/grok-goal-87d4d5399344/implementer")
 
 
 def test_gru_forward_pass_no_nan_and_ordered_quantiles() -> None:
@@ -34,22 +31,12 @@ def test_quantile_loss_finite_on_random_batch() -> None:
     assert not torch.isnan(loss)
 
 
-def test_train_gru_produces_checkpoint_and_log() -> None:
-    result = train_gru(seed=42, epochs=5)
-    assert DEFAULT_CHECKPOINT_PATH.exists()
+def test_train_gru_produces_checkpoint_and_log(tmp_path: Path) -> None:
+    ckpt = tmp_path / "model.pt"
+    result = train_gru(seed=42, epochs=5, checkpoint_path=ckpt)
+    assert ckpt.exists()
+    assert (ckpt.parent / "model_meta.json").exists()
     assert result.train_loss == result.train_loss
     assert "HORMUZ" in result.eligible_corridors or result.fallback_corridors
-
-    SCRATCH.mkdir(parents=True, exist_ok=True)
-    (SCRATCH / "gru_train.log").write_text(
-        json.dumps(
-            {
-                "train_loss": result.train_loss,
-                "val_loss": result.val_loss,
-                "eligible": result.eligible_corridors,
-                "fallback": result.fallback_corridors,
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
+    state = torch.load(ckpt, map_location="cpu", weights_only=True)
+    assert len(state) > 0

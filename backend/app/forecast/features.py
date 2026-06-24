@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from app.forecast.config import FEATURE_COLUMNS
+from app.forecast.config import CORRIDOR_ORDER, FEATURE_COLUMNS
 from app.forecast.prices import load_brent_daily_series
 from app.models.generated import Corridor, SignalEvent
 from app.signals.dedup import deduplicate_events
 from app.signals.extract import extract_signal
 from app.signals.ingest_gdelt import load_backtest_cache
-from app.signals.score import CORRIDOR_ORDER, build_risk_scores
+from app.signals.score import build_risk_scores
 
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DEFAULT_CACHE = ROOT / "data" / "samples" / "gdelt_hormuz_backtest.json"
@@ -65,7 +65,8 @@ def build_daily_features(
         brent_lag = float(brent.loc[brent_lag_ts]) if brent_lag_ts in brent.index else brent_today
         price_lag = ((brent_today - brent_lag) / brent_lag * 100.0) if brent_lag else 0.0
 
-        for corridor in CORRIDOR_ORDER:
+        for corridor_str in CORRIDOR_ORDER:
+            corridor = Corridor(corridor_str)
             day_events = [
                 e
                 for e in evts
@@ -80,7 +81,7 @@ def build_daily_features(
             rows.append(
                 {
                     "date": current.isoformat(),
-                    "corridor": corridor.value,
+                    "corridor": corridor_str,
                     "risk_score": float(rs.score),
                     "goldstein_aggregate": round(goldstein_aggregate, 6),
                     "event_count": len(day_events),

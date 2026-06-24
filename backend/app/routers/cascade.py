@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.database import get_db_path, init_db
@@ -69,7 +69,7 @@ def post_cascade_simulate(body: CascadeSimulateRequest) -> dict[str, Any]:
 @router.post("/cascade/simulate/from-risk")
 def post_cascade_simulate_from_risk(
     seed: int | None = None,
-    n_simulations: int | None = None,
+    n_simulations: int | None = Query(default=None, ge=1),
 ) -> dict[str, Any]:
     scores = list_risk_scores(latest_only=True)
     if not scores:
@@ -106,7 +106,7 @@ def get_cascade_results_latest() -> list[dict[str, Any]]:
 @router.post("/cascade/simulate/from-forecast")
 def post_cascade_simulate_from_forecast(
     seed: int | None = None,
-    n_simulations: int | None = None,
+    n_simulations: int | None = Query(default=None, ge=1),
 ) -> dict[str, Any]:
     init_db()
     forecasts = list_risk_forecasts(latest_only=True)

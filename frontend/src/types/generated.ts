@@ -86,5 +86,6 @@ export interface RiskForecast {
   horizon_days: number;
   model_source: "GRU" | "TREND_FALLBACK";
   training_data_through: string;
+  feature_data_through: string;
   trajectory: TrajectoryItem[];
 }

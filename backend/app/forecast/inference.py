@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import logging
+import pickle
+from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
@@ -10,14 +14,77 @@ import numpy as np
 import pandas as pd
 import torch
 
-from app.forecast.config import DEFAULT_CHECKPOINT_PATH, HORIZON_DAYS, LOOKBACK_DAYS
-from app.forecast.config import FEATURE_COLUMNS, LOOKBACK_DAYS
+from app.forecast.config import (
+    CORRIDOR_ORDER,
+    DEFAULT_CHECKPOINT_PATH,
+    FEATURE_COLUMNS,
+    HORIZON_DAYS,
+    LOOKBACK_DAYS,
+)
 from app.forecast.dataset import corridor_one_hot, load_features_df
 from app.forecast.fallback import build_trend_forecast, latest_row_for_corridor
 from app.models.generated import Corridor, ForecastTrajectoryStep, ModelSource, PercentileBand, RiskForecast
 from ml.forecast.gru_model import RiskGRUForecaster
 
-ROOT = Path(__file__).resolve().parent.parent.parent.parent
+logger = logging.getLogger(__name__)
+
+_REQUIRED_META_KEYS = frozenset({"training_data_through", "eligible_corridors"})
+
+
+@dataclass(frozen=True)
+class LoadedCheckpoint:
+    model: RiskGRUForecaster | None
+    training_data_through: date | None
+    eligible_corridors: frozenset[str]
+    valid: bool
+
+
+def _parse_training_through(raw: object) -> date:
+    return date.fromisoformat(str(raw)[:10])
+
+
+def _load_checkpoint(path: Path) -> LoadedCheckpoint:
+    """Load checkpoint; degrade gracefully on missing or corrupt files."""
+    invalid = LoadedCheckpoint(None, None, frozenset(), False)
+    if not path.exists():
+        return invalid
+
+    meta_path = path.parent / "model_meta.json"
+    try:
+        if meta_path.exists():
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            if not _REQUIRED_META_KEYS <= meta.keys():
+                logger.warning("checkpoint metadata missing required keys: %s", meta_path)
+                return invalid
+            state = torch.load(path, map_location="cpu", weights_only=True)
+        else:
+            ckpt = torch.load(path, map_location="cpu", weights_only=False)
+            if not {"state_dict", "training_data_through", "eligible_corridors"} <= ckpt.keys():
+                logger.warning("legacy checkpoint missing required keys: %s", path)
+                return invalid
+            meta = {
+                "training_data_through": ckpt["training_data_through"],
+                "eligible_corridors": ckpt["eligible_corridors"],
+            }
+            state = ckpt["state_dict"]
+
+        model = RiskGRUForecaster()
+        model.load_state_dict(state)
+        model.eval()
+        training_through = _parse_training_through(meta["training_data_through"])
+        eligible = frozenset(str(c) for c in meta["eligible_corridors"])
+        return LoadedCheckpoint(model, training_through, eligible, True)
+    except (
+        OSError,
+        pickle.UnpicklingError,
+        KeyError,
+        RuntimeError,
+        json.JSONDecodeError,
+        ValueError,
+        TypeError,
+    ) as exc:
+        logger.warning("failed to load checkpoint %s: %s", path, exc)
+        return invalid
 
 
 def _build_inference_tensor(
@@ -47,8 +114,21 @@ def _build_inference_tensor(
     return np.stack(window_rows)
 
 
-def _load_checkpoint(path: Path) -> dict:
-    return torch.load(path, map_location="cpu", weights_only=False)
+def _trend_from_row(
+    corridor: Corridor,
+    row: pd.Series,
+    *,
+    training_data_through: date,
+) -> RiskForecast:
+    origin_date = date.fromisoformat(str(row["date"])[:10])
+    return build_trend_forecast(
+        corridor,
+        origin_date=origin_date,
+        current_score=float(row["risk_score"]),
+        trend_7d=str(row["trend_7d"]),
+        training_data_through=training_data_through,
+        feature_data_through=origin_date,
+    )
 
 
 def forecast_corridor(
@@ -56,84 +136,70 @@ def forecast_corridor(
     df: pd.DataFrame,
     *,
     checkpoint_path: Path | None = None,
+    loaded: LoadedCheckpoint | None = None,
 ) -> RiskForecast:
     ckpt_path = checkpoint_path or DEFAULT_CHECKPOINT_PATH
+    bundle = loaded if loaded is not None else _load_checkpoint(ckpt_path)
+
     sub = df[df["corridor"] == corridor.value].copy()
     if sub.empty:
-        latest_any = df.sort_values("date").iloc[-1]
-        origin_date = date.fromisoformat(str(latest_any["date"])[:10])
-        return build_trend_forecast(
-            corridor,
-            origin_date=origin_date,
-            current_score=0.0,
-            trend_7d="STABLE",
-            training_data_through=origin_date,
-        )
+        row = latest_row_for_corridor(df, corridor.value)
+        training_through = bundle.training_data_through or date.fromisoformat(str(row["date"])[:10])
+        return _trend_from_row(corridor, row, training_data_through=training_through)
 
     sub["_d"] = pd.to_datetime(sub["date"])
     sub = sub.sort_values("_d")
     origin_date = date.fromisoformat(str(sub.iloc[-1]["date"])[:10])
-    training_through = date.fromisoformat(str(sub.iloc[-1]["date"])[:10])
+    training_through = bundle.training_data_through or origin_date
 
-    if ckpt_path.exists():
-        ckpt = _load_checkpoint(ckpt_path)
-        training_through = date.fromisoformat(ckpt["training_data_through"])
-        eligible = set(ckpt.get("eligible_corridors", []))
-        if corridor.value not in eligible:
-            row = latest_row_for_corridor(df, corridor.value)
-            return build_trend_forecast(
-                corridor,
-                origin_date=origin_date,
-                current_score=float(row["risk_score"]),
-                trend_7d=str(row["trend_7d"]),
-                training_data_through=training_through,
-            )
-
-        window = _build_inference_tensor(df, corridor.value, origin_date)
-        if window is None:
-            row = latest_row_for_corridor(df, corridor.value)
-            return build_trend_forecast(
-                corridor,
-                origin_date=origin_date,
-                current_score=float(row["risk_score"]),
-                trend_7d=str(row["trend_7d"]),
-                training_data_through=training_through,
-            )
-
-        model = RiskGRUForecaster()
-        model.load_state_dict(ckpt["state_dict"])
-        model.eval()
-        with torch.no_grad():
-            pred = model(torch.from_numpy(window[np.newaxis, ...]))[0].numpy()
-
-        trajectory: list[ForecastTrajectoryStep] = []
-        for step in range(HORIZON_DAYS):
-            fd = origin_date + timedelta(days=step + 1)
-            band = PercentileBand(
-                p10=round(float(pred[step, 0]), 4),
-                p50=round(float(pred[step, 1]), 4),
-                p90=round(float(pred[step, 2]), 4),
-            )
-            trajectory.append(ForecastTrajectoryStep(forecast_date=fd, score_band=band))
-
-        fid = uuid5(NAMESPACE_URL, f"setu-forecast-gru:{corridor.value}:{origin_date}")
-        return RiskForecast(
-            forecast_id=fid,
-            corridor=corridor,
-            origin_date=origin_date,
-            horizon_days=HORIZON_DAYS,
-            model_source=ModelSource.gru,
+    if not bundle.valid or bundle.model is None:
+        row = latest_row_for_corridor(df, corridor.value)
+        return _trend_from_row(
+            corridor,
+            row,
             training_data_through=training_through,
-            trajectory=trajectory,
         )
 
-    row = latest_row_for_corridor(df, corridor.value)
-    return build_trend_forecast(
-        corridor,
+    if corridor.value not in bundle.eligible_corridors:
+        row = latest_row_for_corridor(df, corridor.value)
+        return _trend_from_row(
+            corridor,
+            row,
+            training_data_through=training_through,
+        )
+
+    window = _build_inference_tensor(df, corridor.value, origin_date)
+    if window is None:
+        row = latest_row_for_corridor(df, corridor.value)
+        return _trend_from_row(
+            corridor,
+            row,
+            training_data_through=training_through,
+        )
+
+    with torch.no_grad():
+        pred = bundle.model(torch.from_numpy(window[np.newaxis, ...]))[0].numpy()
+
+    trajectory: list[ForecastTrajectoryStep] = []
+    for step in range(HORIZON_DAYS):
+        fd = origin_date + timedelta(days=step + 1)
+        band = PercentileBand(
+            p10=round(float(pred[step, 0]), 4),
+            p50=round(float(pred[step, 1]), 4),
+            p90=round(float(pred[step, 2]), 4),
+        )
+        trajectory.append(ForecastTrajectoryStep(forecast_date=fd, score_band=band))
+
+    fid = uuid5(NAMESPACE_URL, f"setu-forecast-gru:{corridor.value}:{origin_date}")
+    return RiskForecast(
+        forecast_id=fid,
+        corridor=corridor,
         origin_date=origin_date,
-        current_score=float(row["risk_score"]),
-        trend_7d=str(row["trend_7d"]),
+        horizon_days=HORIZON_DAYS,
+        model_source=ModelSource.gru,
         training_data_through=training_through,
+        feature_data_through=origin_date,
+        trajectory=trajectory,
     )
 
 
@@ -144,23 +210,31 @@ def run_all_forecasts(
     checkpoint_path: Path | None = None,
 ) -> list[RiskForecast]:
     from app.forecast.config import DEFAULT_FEATURES_PATH
-    from app.signals.score import CORRIDOR_ORDER
 
     frame = df if df is not None else load_features_df(features_path or DEFAULT_FEATURES_PATH)
+    ckpt_path = checkpoint_path or DEFAULT_CHECKPOINT_PATH
+    bundle = _load_checkpoint(ckpt_path)
     return [
-        forecast_corridor(corridor, frame, checkpoint_path=checkpoint_path)
+        forecast_corridor(
+            Corridor(corridor),
+            frame,
+            checkpoint_path=ckpt_path,
+            loaded=bundle,
+        )
         for corridor in CORRIDOR_ORDER
     ]
 
 
 def highest_risk_forecast(forecasts: list[RiskForecast]) -> RiskForecast:
+    """Pick simulatable corridor with highest peak p50 across the 7-day horizon."""
     from app.simulation.corridors import SUPPORTED_SIMULATION_CORRIDORS
 
     simulatable = [f for f in forecasts if f.corridor in SUPPORTED_SIMULATION_CORRIDORS]
     if not simulatable:
         raise ValueError("no simulatable forecasts")
 
-    def day7_p50(fc: RiskForecast) -> float:
-        return fc.trajectory[-1].score_band.p50
+    def ranking_key(fc: RiskForecast) -> tuple[float, str]:
+        peak = max(step.score_band.p50 for step in fc.trajectory)
+        return (peak, fc.corridor.value)
 
-    return max(simulatable, key=day7_p50)
+    return max(simulatable, key=ranking_key)

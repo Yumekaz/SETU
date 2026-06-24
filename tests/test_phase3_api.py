@@ -2,16 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import sqlite3
-from pathlib import Path
 
 import pytest
 from app.database import get_db_path, init_db
 from app.main import app
 from fastapi.testclient import TestClient
-
-SCRATCH = Path("/tmp/grok-goal-87d4d5399344/implementer")
 
 
 @pytest.fixture()
@@ -28,13 +24,19 @@ def test_forecast_run_and_latest(client: TestClient) -> None:
     run = client.post("/api/forecast/run")
     assert run.status_code == 200
     body = run.json()
-    assert len(body) >= 3
+    assert len(body) >= 4
     assert all(len(f["trajectory"]) == 7 for f in body)
+    assert all("feature_data_through" in f for f in body)
 
     latest = client.get("/api/forecast/latest")
     assert latest.status_code == 200
     corridors = [r["corridor"] for r in latest.json()]
     assert len(corridors) == len(set(corridors))
+
+
+def test_forecast_invalid_corridor_returns_422(client: TestClient) -> None:
+    resp = client.get("/api/forecast", params={"corridor": "INVALID"})
+    assert resp.status_code == 422
 
 
 def test_cascade_from_forecast(client: TestClient) -> None:
@@ -47,30 +49,46 @@ def test_cascade_from_forecast(client: TestClient) -> None:
     assert "price_impact_pct" in data
 
 
-def test_verification_forecast_api_writes_scratch(client: TestClient) -> None:
+def test_cascade_from_forecast_404_without_forecasts(client: TestClient) -> None:
+    resp = client.post("/api/cascade/simulate/from-forecast", params={"seed": 42})
+    assert resp.status_code == 404
+
+
+@pytest.mark.parametrize("n_simulations", [0, -1])
+def test_cascade_from_forecast_invalid_n_simulations_returns_422(
+    client: TestClient, n_simulations: int
+) -> None:
+    client.post("/api/forecast/run")
+    resp = client.post(
+        "/api/cascade/simulate/from-forecast",
+        params={"seed": 42, "n_simulations": n_simulations},
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.parametrize("n_simulations", [0, -1])
+def test_cascade_from_risk_invalid_n_simulations_returns_422(
+    client: TestClient, n_simulations: int
+) -> None:
+    client.post("/api/pipeline/run", json={"source": "cache"})
+    resp = client.post(
+        "/api/cascade/simulate/from-risk",
+        params={"seed": 42, "n_simulations": n_simulations},
+    )
+    assert resp.status_code == 422
+
+
+def test_forecast_api_health_and_contracts(client: TestClient) -> None:
     health = client.get("/health")
     contracts = client.get("/api/contracts")
     run = client.post("/api/forecast/run")
-    latest = client.get("/api/forecast/latest")
-    list_all = client.get("/api/forecast")
     cascade = client.post("/api/cascade/simulate/from-forecast", params={"seed": 7})
 
     with sqlite3.connect(str(get_db_path())) as conn:
         count = conn.execute("SELECT COUNT(*) FROM risk_forecasts").fetchone()[0]
 
-    evidence = {
-        "health": {"status": health.status_code, "body": health.json()},
-        "contracts_keys": sorted(contracts.json().keys()),
-        "forecast_run_status": run.status_code,
-        "forecast_latest": latest.json(),
-        "forecast_list_len": len(list_all.json()),
-        "from_forecast": cascade.json(),
-        "sqlite_forecast_rows": count,
-    }
-    SCRATCH.mkdir(parents=True, exist_ok=True)
-    (SCRATCH / "forecast_api.log").write_text(json.dumps(evidence, indent=2), encoding="utf-8")
-
     assert health.json() == {"status": "ok", "version": "0.4.0", "phase": 3}
     assert "risk_forecast" in contracts.json()
     assert count >= 1
+    assert run.status_code == 200
     assert cascade.status_code == 200

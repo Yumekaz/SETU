@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from uuid import uuid5, NAMESPACE_URL, UUID
+from uuid import NAMESPACE_URL, uuid5
 
 import pandas as pd
 
@@ -30,6 +30,7 @@ def build_trend_forecast(
     current_score: float,
     trend_7d: str,
     training_data_through: date,
+    feature_data_through: date | None = None,
 ) -> RiskForecast:
     trajectory: list[ForecastTrajectoryStep] = []
     for step in range(1, HORIZON_DAYS + 1):
@@ -51,11 +52,14 @@ def build_trend_forecast(
         horizon_days=HORIZON_DAYS,
         model_source=ModelSource.trend_fallback,
         training_data_through=training_data_through,
+        feature_data_through=feature_data_through or origin_date,
         trajectory=trajectory,
     )
 
 
 def latest_row_for_corridor(df: pd.DataFrame, corridor: str) -> pd.Series:
     sub = df[df["corridor"] == corridor].copy()
+    if sub.empty:
+        raise ValueError(f"no feature rows for corridor {corridor}")
     sub["_d"] = pd.to_datetime(sub["date"])
     return sub.sort_values("_d").iloc[-1]

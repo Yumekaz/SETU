@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import sqlite3
-from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.database import get_db_path, init_db
 from app.forecast.config import DEFAULT_FEATURES_PATH
 from app.forecast.features import build_daily_features, write_features_parquet
 from app.forecast.inference import run_all_forecasts
 from app.forecast.repository import insert_risk_forecast, list_risk_forecasts
+from app.models.generated import Corridor
 
 router = APIRouter(prefix="/api", tags=["forecast"])
 
@@ -24,9 +24,10 @@ def _ensure_features() -> None:
 
 
 @router.get("/forecast")
-def get_forecasts(corridor: str | None = None) -> list[dict[str, Any]]:
+def get_forecasts(corridor: Corridor | None = None) -> list[dict[str, Any]]:
     init_db()
-    forecasts = list_risk_forecasts(corridor=corridor, latest_only=False)
+    corridor_value = corridor.value if corridor is not None else None
+    forecasts = list_risk_forecasts(corridor=corridor_value, latest_only=False)
     return [f.model_dump(mode="json") for f in forecasts]
 
 

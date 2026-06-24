@@ -17,9 +17,12 @@ from app.forecast.config import (
     DEFAULT_CHECKPOINT_PATH,
     DEFAULT_FEATURES_PATH,
     DEFAULT_REPORT_PATH,
-    MIN_TRAIN_DAYS,
 )
-from app.forecast.dataset import build_windows, eligible_corridors_for_gru, load_features_df
+from app.forecast.dataset import (
+    build_split_windows,
+    eligible_corridors_for_gru,
+    load_features_df,
+)
 from app.forecast.split import assert_no_chronological_leakage, chronological_split, unique_sorted_dates
 from ml.forecast.gru_model import RiskGRUForecaster
 from ml.forecast.loss import quantile_band_loss
@@ -56,9 +59,10 @@ def train_gru(
 
     eligible = eligible_corridors_for_gru(df)
     fallback = [c for c in CORRIDOR_ORDER if c not in eligible]
+    eligible_list = sorted(eligible)
 
-    x_train, y_train, _ = build_windows(df, dates=split.train_dates)
-    x_val, y_val, _ = build_windows(df, dates=split.val_dates)
+    x_train, y_train, _ = build_split_windows(df, split, "train", corridors=eligible_list)
+    x_val, y_val, _ = build_split_windows(df, split, "val", corridors=eligible_list)
 
     if len(x_train) == 0:
         raise ValueError("no training windows — check feature parquet")
@@ -110,23 +114,22 @@ def train_gru(
     ckpt_path = checkpoint_path or DEFAULT_CHECKPOINT_PATH
     ckpt_path.parent.mkdir(parents=True, exist_ok=True)
     training_through = max(split.train_dates).isoformat()
-    torch.save(
-        {
-            "state_dict": model.state_dict(),
-            "eligible_corridors": sorted(eligible),
-            "fallback_corridors": fallback,
-            "training_data_through": training_through,
-            "seed": seed,
-            "final_train_loss": history[-1]["train_loss"],
-            "final_val_loss": history[-1]["val_loss"],
-        },
-        ckpt_path,
-    )
+    meta = {
+        "eligible_corridors": eligible_list,
+        "fallback_corridors": fallback,
+        "training_data_through": training_through,
+        "seed": seed,
+        "final_train_loss": history[-1]["train_loss"],
+        "final_val_loss": history[-1]["val_loss"],
+    }
+    torch.save(model.state_dict(), ckpt_path)
+    meta_path = ckpt_path.parent / "model_meta.json"
+    meta_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
 
     return TrainResult(
         train_loss=history[-1]["train_loss"],
         val_loss=history[-1]["val_loss"],
-        eligible_corridors=sorted(eligible),
+        eligible_corridors=eligible_list,
         fallback_corridors=fallback,
         training_data_through=training_through,
         history=history,
@@ -175,6 +178,12 @@ def write_training_report(result: TrainResult, df: pd.DataFrame, path: Path | No
             "## Band approach",
             "",
             "Quantile pinball loss (p10/p50/p90) with sigmoid-bounded scores.",
+            "",
+            "## Validation methodology",
+            "",
+            "Validation windows use origins in the val partition with 14-day lookback "
+            "spanning the full chronological timeline (including train dates), matching "
+            "production inference semantics.",
         ]
     )
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")

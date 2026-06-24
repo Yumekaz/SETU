@@ -12,6 +12,7 @@
     "horizon_days",
     "model_source",
     "training_data_through",
+    "feature_data_through",
     "trajectory"
   ],
   "properties": {
@@ -39,7 +40,12 @@
     "training_data_through": {
       "type": "string",
       "format": "date",
-      "description": "Latest training observation date (no look-ahead audit)"
+      "description": "Last calendar date used to fit GRU weights (train partition cutoff)"
+    },
+    "feature_data_through": {
+      "type": "string",
+      "format": "date",
+      "description": "Last observed feature/score date used as forecast origin (matches origin_date)"
     },
     "trajectory": {
       "type": "array",

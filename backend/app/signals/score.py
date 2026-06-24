@@ -12,6 +12,7 @@ CORRIDOR_ORDER = (
     Corridor.hormuz,
     Corridor.bab_el_mandeb,
     Corridor.malacca,
+    Corridor.other,
 )
 
 
