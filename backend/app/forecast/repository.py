@@ -32,7 +32,9 @@ def insert_risk_forecast(conn: sqlite3.Connection, forecast: RiskForecast) -> No
     )
 
 
-def list_risk_forecasts(*, corridor: str | None = None, latest_only: bool = False) -> list[RiskForecast]:
+def list_risk_forecasts(
+    *, corridor: str | None = None, latest_only: bool = False
+) -> list[RiskForecast]:
     with _connect() as conn:
         if latest_only:
             rows = conn.execute(

@@ -25,7 +25,8 @@ def test_flow_lost_propagates_capacity_caps_to_refineries() -> None:
     assert flow_lost == 3.0
     assert node_lost["refinery_jamnagar"] > 0
     assert node_lost["refinery_mumbai"] > 0
-    assert node_lost["refinery_jamnagar"] <= ROOT_GRAPH.graph.nodes["refinery_jamnagar"]["capacity_mbpd"]
+    jam_cap = ROOT_GRAPH.graph.nodes["refinery_jamnagar"]["capacity_mbpd"]
+    assert node_lost["refinery_jamnagar"] <= jam_cap
 
 
 def test_throughput_uses_propagated_refinery_losses_not_chokepoint_only() -> None:

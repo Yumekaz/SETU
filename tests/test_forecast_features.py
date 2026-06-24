@@ -4,16 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pandas as pd
-
 from app.forecast.config import CORRIDOR_ORDER, FEATURE_COLUMNS
+from app.forecast.dataset import load_features_df
 from app.forecast.features import (
     build_daily_features,
     ensure_features_parquet,
     parquet_has_all_corridors,
     write_features_parquet,
 )
-from app.forecast.dataset import load_features_df
 
 ROOT = Path(__file__).resolve().parent.parent
 

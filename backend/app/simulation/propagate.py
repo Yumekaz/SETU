@@ -9,7 +9,7 @@ from dataclasses import dataclass
 import networkx as nx
 
 from app.models.generated import Corridor
-from app.simulation.config import SimulationConfig, SimulationParams, load_simulation_config
+from app.simulation.config import SimulationParams, load_simulation_config
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,10 @@ def _corridor_node_ids(g: nx.DiGraph, corridor: Corridor) -> list[str]:
     return [
         n
         for n, d in g.nodes(data=True)
-        if d["node_type"] == "CORRIDOR" and corridor_key.replace("_", "") in n.upper().replace("_", "")
+        if (
+            d["node_type"] == "CORRIDOR"
+            and corridor_key.replace("_", "") in n.upper().replace("_", "")
+        )
     ]
 
 

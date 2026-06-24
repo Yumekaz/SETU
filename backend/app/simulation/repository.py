@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from uuid import UUID
 
 from app.database import get_db_path
 from app.models.generated import CascadeResult
@@ -40,7 +39,9 @@ def insert_cascade_result(conn: sqlite3.Connection, result: CascadeResult, *, se
     )
 
 
-def list_cascade_results(*, corridor: str | None = None, latest_only: bool = False) -> list[CascadeResult]:
+def list_cascade_results(
+    *, corridor: str | None = None, latest_only: bool = False
+) -> list[CascadeResult]:
     with _connect() as conn:
         if latest_only:
             rows = conn.execute(

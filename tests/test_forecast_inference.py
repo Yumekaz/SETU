@@ -6,9 +6,7 @@ import json
 from datetime import date
 from pathlib import Path
 
-import pytest
 import torch
-
 from app.forecast.config import DEFAULT_CHECKPOINT_PATH, DEFAULT_FEATURES_PATH
 from app.forecast.dataset import load_features_df
 from app.forecast.features import build_daily_features
@@ -17,7 +15,13 @@ from app.forecast.inference import (
     highest_risk_forecast,
     run_all_forecasts,
 )
-from app.models.generated import Corridor, ForecastTrajectoryStep, ModelSource, PercentileBand, RiskForecast
+from app.models.generated import (
+    Corridor,
+    ForecastTrajectoryStep,
+    ModelSource,
+    PercentileBand,
+    RiskForecast,
+)
 
 
 def test_inference_returns_valid_trajectory() -> None:

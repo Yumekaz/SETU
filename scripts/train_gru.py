@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 
 from app.forecast.config import DEFAULT_FEATURES_PATH  # noqa: E402
 from app.forecast.dataset import load_features_df  # noqa: E402
+
 from ml.forecast.train import train_gru, write_training_report  # noqa: E402
 
 

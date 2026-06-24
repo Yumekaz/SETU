@@ -51,7 +51,8 @@ def main() -> int:
 
     hormuz_p50 = rows[-1]["p50"]
     direction_note = (
-        f"Hormuz p50 price impact ({hormuz_p50:.2f}%) is **positive** and within order of magnitude "
+        f"Hormuz p50 price impact ({hormuz_p50:.2f}%) is **positive** "
+        f"and within order of magnitude "
         f"of the Mar 2026 Brent anchor (~{HORMUZ_BRENT_ANCHOR_PCT}%); not an exact match by design."
     )
 
@@ -59,7 +60,10 @@ def main() -> int:
         "# Monte Carlo Convergence — Phase 2",
         "",
         "Hormuz corridor, seed=42, triangular duration distribution.",
-        f"Chosen `n_simulations`: **{chosen_n}** (first n where p50 drift vs prior step < {DRIFT_THRESHOLD_PCT}%).",
+        (
+            f"Chosen `n_simulations`: **{chosen_n}** "
+            f"(first n where p50 drift vs prior step < {DRIFT_THRESHOLD_PCT}%)."
+        ),
         "",
         "| n_simulations | p10 price % | p50 price % | p90 price % | p50 drift vs prev % |",
         "|---:|---:|---:|---:|---:|",

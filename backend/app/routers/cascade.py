@@ -9,9 +9,9 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.database import get_db_path, init_db
-from app.models.generated import Corridor
 from app.forecast.inference import highest_risk_forecast
 from app.forecast.repository import list_risk_forecasts
+from app.models.generated import Corridor
 from app.signals.repository import list_risk_scores
 from app.simulation.config import load_simulation_config
 from app.simulation.corridors import (
@@ -73,12 +73,18 @@ def post_cascade_simulate_from_risk(
 ) -> dict[str, Any]:
     scores = list_risk_scores(latest_only=True)
     if not scores:
-        raise HTTPException(status_code=404, detail="no risk scores available; run Phase 1 pipeline first")
+        raise HTTPException(
+            status_code=404,
+            detail="no risk scores available; run Phase 1 pipeline first",
+        )
     simulatable = [s for s in scores if s.corridor in SUPPORTED_SIMULATION_CORRIDORS]
     if not simulatable:
         raise HTTPException(
             status_code=422,
-            detail="no simulatable corridor in risk scores; supported: HORMUZ, BAB_EL_MANDEB, MALACCA",
+            detail=(
+                "no simulatable corridor in risk scores; "
+                "supported: HORMUZ, BAB_EL_MANDEB, MALACCA"
+            ),
         )
     trigger = max(simulatable, key=lambda s: s.score)
     body = CascadeSimulateRequest(

@@ -8,7 +8,13 @@ from uuid import NAMESPACE_URL, uuid5
 import pandas as pd
 
 from app.forecast.config import HORIZON_DAYS
-from app.models.generated import Corridor, ForecastTrajectoryStep, ModelSource, PercentileBand, RiskForecast
+from app.models.generated import (
+    Corridor,
+    ForecastTrajectoryStep,
+    ModelSource,
+    PercentileBand,
+    RiskForecast,
+)
 
 
 def _clamp_score(v: float) -> float:

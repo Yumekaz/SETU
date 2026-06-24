@@ -23,7 +23,9 @@ def sample_duration(
     return max(1, int(round(value)))
 
 
-def get_distribution(corridor: Corridor | str, config: SimulationConfig | None = None) -> TriangularDistribution:
+def get_distribution(
+    corridor: Corridor | str, config: SimulationConfig | None = None
+) -> TriangularDistribution:
     corridor_enum = corridor if isinstance(corridor, Corridor) else Corridor(corridor)
     require_simulatable_corridor(corridor_enum)
     cfg = config or load_simulation_config()

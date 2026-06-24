@@ -20,7 +20,11 @@ from app.simulation.validate import validate_network
 def _percentile_band(values: Iterable[float]) -> PercentileBand:
     arr = np.array(list(values), dtype=float)
     p10, p50, p90 = np.percentile(arr, [10, 50, 90])
-    return PercentileBand(p10=round(float(p10), 4), p50=round(float(p50), 4), p90=round(float(p90), 4))
+    return PercentileBand(
+        p10=round(float(p10), 4),
+        p50=round(float(p50), 4),
+        p90=round(float(p90), 4),
+    )
 
 
 def _scenario_uuid(corridor: Corridor, seed: int, n_simulations: int) -> uuid.UUID:

@@ -157,4 +157,6 @@ def test_verification_cascade_api_writes_scratch_evidence(client: TestClient) ->
     hormuz_latest = [r for r in latest_body if r["corridor"] == "HORMUZ"]
     assert len(hormuz_latest) == 1
     latest_ids = {r["scenario_id"] for r in latest_body}
-    assert simulate_resp.json()["scenario_id"] in latest_ids or from_risk_resp.json()["scenario_id"] in latest_ids
+    sim_id = simulate_resp.json()["scenario_id"]
+    risk_id = from_risk_resp.json()["scenario_id"]
+    assert sim_id in latest_ids or risk_id in latest_ids

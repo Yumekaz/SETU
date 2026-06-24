@@ -5,9 +5,8 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
-
 from app.forecast.config import DEFAULT_FEATURES_PATH
-from app.forecast.dataset import build_split_windows, build_windows, load_features_df
+from app.forecast.dataset import build_split_windows, load_features_df
 from app.forecast.split import (
     ChronologicalLeakageError,
     assert_no_chronological_leakage,
@@ -43,7 +42,6 @@ def test_val_windows_use_train_dates_in_lookback() -> None:
     _, _, meta = build_split_windows(df, split, "val")
     if not meta:
         pytest.skip("no validation windows in current parquet split")
-    all_dates = set(dates)
     train_dates = set(split.train_dates)
     _, _, train_meta = build_split_windows(df, split, "train")
     assert train_meta, "expected train windows"

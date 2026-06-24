@@ -119,7 +119,12 @@ def generate_cascade_results() -> list[CascadeResult]:
     results: list[CascadeResult] = []
     for i, corridor in enumerate(corridors):
         results.append(
-            run_cascade(corridor, n_simulations=200, seed=42 + i, network=load_network_graph(GRAPH_PATH))
+            run_cascade(
+                corridor,
+                n_simulations=200,
+                seed=42 + i,
+                network=load_network_graph(GRAPH_PATH),
+            )
         )
     return results
 

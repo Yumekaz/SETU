@@ -23,7 +23,13 @@ from app.forecast.config import (
 )
 from app.forecast.dataset import corridor_one_hot, load_features_df
 from app.forecast.fallback import build_trend_forecast, latest_row_for_corridor
-from app.models.generated import Corridor, ForecastTrajectoryStep, ModelSource, PercentileBand, RiskForecast
+from app.models.generated import (
+    Corridor,
+    ForecastTrajectoryStep,
+    ModelSource,
+    PercentileBand,
+    RiskForecast,
+)
 from ml.forecast.gru_model import RiskGRUForecaster
 
 logger = logging.getLogger(__name__)

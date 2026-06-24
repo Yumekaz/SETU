@@ -6,9 +6,6 @@ import json
 from pathlib import Path
 
 import pytest
-
-import pytest
-
 from app.models.generated import CascadeResult, Corridor
 from app.simulation.corridors import UnsupportedSimulationCorridorError
 from app.simulation.graph_loader import load_network_graph

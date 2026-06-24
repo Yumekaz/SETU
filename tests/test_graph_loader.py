@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from app.simulation.graph_loader import load_network_graph
 from app.simulation.validate import GraphValidationError, validate_network
 
