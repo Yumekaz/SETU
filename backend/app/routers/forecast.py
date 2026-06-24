@@ -8,19 +8,12 @@ from typing import Any
 from fastapi import APIRouter
 
 from app.database import get_db_path, init_db
-from app.forecast.config import DEFAULT_FEATURES_PATH
-from app.forecast.features import build_daily_features, write_features_parquet
+from app.forecast.features import ensure_features_parquet
 from app.forecast.inference import run_all_forecasts
 from app.forecast.repository import insert_risk_forecast, list_risk_forecasts
 from app.models.generated import Corridor
 
 router = APIRouter(prefix="/api", tags=["forecast"])
-
-
-def _ensure_features() -> None:
-    if not DEFAULT_FEATURES_PATH.exists():
-        df = build_daily_features()
-        write_features_parquet(df, DEFAULT_FEATURES_PATH)
 
 
 @router.get("/forecast")
@@ -41,7 +34,7 @@ def get_forecasts_latest() -> list[dict[str, Any]]:
 @router.post("/forecast/run")
 def post_forecast_run() -> list[dict[str, Any]]:
     init_db()
-    _ensure_features()
+    ensure_features_parquet()
     forecasts = run_all_forecasts()
     with sqlite3.connect(str(get_db_path())) as conn:
         for fc in forecasts:

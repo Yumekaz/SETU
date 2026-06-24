@@ -7,7 +7,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from app.forecast.config import CORRIDOR_ORDER, FEATURE_COLUMNS
+from app.forecast.config import CORRIDOR_ORDER, DEFAULT_FEATURES_PATH, FEATURE_COLUMNS
+from app.forecast.dataset import load_features_df
 from app.forecast.prices import load_brent_daily_series
 from app.models.generated import Corridor, SignalEvent
 from app.signals.dedup import deduplicate_events
@@ -101,3 +102,19 @@ def build_daily_features(
 def write_features_parquet(df: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(path, index=False)
+
+
+def parquet_has_all_corridors(path: Path) -> bool:
+    """Return True when parquet exists and contains every CORRIDOR_ORDER entry."""
+    if not path.exists():
+        return False
+    present = set(load_features_df(path)["corridor"].unique())
+    return set(CORRIDOR_ORDER) <= present
+
+
+def ensure_features_parquet(path: Path | None = None) -> None:
+    """Build or rebuild daily features when missing or corridor-incomplete."""
+    target = path or DEFAULT_FEATURES_PATH
+    if parquet_has_all_corridors(target):
+        return
+    write_features_parquet(build_daily_features(), target)

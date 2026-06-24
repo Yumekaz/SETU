@@ -114,6 +114,52 @@ def _build_inference_tensor(
     return np.stack(window_rows)
 
 
+def _latest_date_in_frame(df: pd.DataFrame) -> date:
+    return max(date.fromisoformat(str(d)[:10]) for d in df["date"].unique())
+
+
+def _phase1_score_for_corridor(corridor: Corridor, df: pd.DataFrame) -> tuple[date, float, str]:
+    """Resolve score/trend from Phase 1 scoring when parquet rows are absent."""
+    from app.forecast.features import extract_events_from_cache
+    from app.signals.score import build_risk_scores
+
+    origin_date = _latest_date_in_frame(df) if len(df) else date.today()
+    events = extract_events_from_cache()
+    prior_date = origin_date - timedelta(days=7)
+    prior_scores = {
+        s.corridor: s.score
+        for s in build_risk_scores(events, score_date=prior_date)
+    }
+    scores = build_risk_scores(events, score_date=origin_date, prior_scores=prior_scores)
+    for score in scores:
+        if score.corridor == corridor:
+            return origin_date, float(score.score), score.trend_7d.value
+    return origin_date, 0.0, "STABLE"
+
+
+def _trend_fallback_missing_rows(
+    corridor: Corridor,
+    df: pd.DataFrame,
+    *,
+    training_data_through: date | None,
+) -> RiskForecast:
+    """Graceful TREND_FALLBACK when a corridor has no feature parquet rows."""
+    logger.warning(
+        "no feature rows for corridor %s; using Phase 1 score fallback",
+        corridor.value,
+    )
+    origin_date, current_score, trend_7d = _phase1_score_for_corridor(corridor, df)
+    training_through = training_data_through or origin_date
+    return build_trend_forecast(
+        corridor,
+        origin_date=origin_date,
+        current_score=current_score,
+        trend_7d=trend_7d,
+        training_data_through=training_through,
+        feature_data_through=origin_date,
+    )
+
+
 def _trend_from_row(
     corridor: Corridor,
     row: pd.Series,
@@ -143,9 +189,11 @@ def forecast_corridor(
 
     sub = df[df["corridor"] == corridor.value].copy()
     if sub.empty:
-        row = latest_row_for_corridor(df, corridor.value)
-        training_through = bundle.training_data_through or date.fromisoformat(str(row["date"])[:10])
-        return _trend_from_row(corridor, row, training_data_through=training_through)
+        return _trend_fallback_missing_rows(
+            corridor,
+            df,
+            training_data_through=bundle.training_data_through,
+        )
 
     sub["_d"] = pd.to_datetime(sub["date"])
     sub = sub.sort_values("_d")

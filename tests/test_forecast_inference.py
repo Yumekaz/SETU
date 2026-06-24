@@ -59,6 +59,24 @@ def test_other_corridor_uses_trend_fallback_with_actual_scores() -> None:
         assert "OTHER" in ckpt.get("fallback_corridors", [])
 
 
+def test_missing_corridor_rows_falls_back_to_trend() -> None:
+    df = load_features_df(DEFAULT_FEATURES_PATH)
+    df_no_other = df[df["corridor"] != "OTHER"].copy()
+    fc = forecast_corridor(Corridor.other, df_no_other)
+    assert fc.model_source == ModelSource.trend_fallback
+    assert fc.corridor == Corridor.other
+    assert len(fc.trajectory) == 7
+
+
+def test_run_all_forecasts_with_partial_parquet() -> None:
+    df = load_features_df(DEFAULT_FEATURES_PATH)
+    df_no_other = df[df["corridor"] != "OTHER"]
+    forecasts = run_all_forecasts(df_no_other)
+    assert len(forecasts) == 4
+    other_fc = next(f for f in forecasts if f.corridor == Corridor.other)
+    assert other_fc.model_source == ModelSource.trend_fallback
+
+
 def test_corrupt_checkpoint_falls_back_to_trend(tmp_path: Path) -> None:
     df = load_features_df(DEFAULT_FEATURES_PATH)
     bad_ckpt = tmp_path / "model.pt"
