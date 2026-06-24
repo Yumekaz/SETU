@@ -12,6 +12,7 @@ import pandas as pd
 from app.forecast.config import (
     CORRIDOR_ORDER,
     FEATURE_COLUMNS,
+    GRU_CORRIDORS,
     HORIZON_DAYS,
     LOOKBACK_DAYS,
     MIN_SCORE_VARIANCE,
@@ -42,7 +43,12 @@ def corridor_train_eligible(df: pd.DataFrame, corridor: str) -> bool:
 
 
 def eligible_corridors_for_gru(df: pd.DataFrame) -> set[str]:
-    return {c for c in CORRIDOR_ORDER if corridor_train_eligible(df, c)}
+    """Only corridors in GRU_CORRIDORS with sufficient train days/variance."""
+    return {
+        c
+        for c in GRU_CORRIDORS
+        if c in CORRIDOR_ORDER and corridor_train_eligible(df, c)
+    }
 
 
 def build_windows(

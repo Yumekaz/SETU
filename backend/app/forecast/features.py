@@ -7,7 +7,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from app.forecast.config import CORRIDOR_ORDER, DEFAULT_FEATURES_PATH, FEATURE_COLUMNS
+from app.forecast.config import (
+    CORRIDOR_ORDER,
+    DEFAULT_FEATURES_PATH,
+    PARQUET_COLUMNS,
+)
 from app.forecast.dataset import load_features_df
 from app.forecast.prices import load_brent_daily_series
 from app.models.generated import Corridor, SignalEvent
@@ -87,21 +91,21 @@ def build_daily_features(
                     "goldstein_aggregate": round(goldstein_aggregate, 6),
                     "event_count": len(day_events),
                     "price_lag": round(price_lag, 6),
-                    "trend_7d": rs.trend_7d.value,
                 }
             )
         current += timedelta(days=1)
 
     df = pd.DataFrame(rows)
-    for col in FEATURE_COLUMNS:
+    for col in PARQUET_COLUMNS:
         if col not in df.columns:
             raise ValueError(f"missing feature column {col}")
-    return df
+    return df[list(PARQUET_COLUMNS)]
 
 
 def write_features_parquet(df: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(path, index=False)
+    cols = [c for c in PARQUET_COLUMNS if c in df.columns]
+    df[cols].to_parquet(path, index=False)
 
 
 def parquet_has_all_corridors(path: Path) -> bool:

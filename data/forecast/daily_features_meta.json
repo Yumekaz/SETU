@@ -6,8 +6,7 @@
     "risk_score",
     "goldstein_aggregate",
     "event_count",
-    "price_lag",
-    "trend_7d"
+    "price_lag"
   ],
   "date_min": "2026-02-01",
   "date_max": "2026-06-30",

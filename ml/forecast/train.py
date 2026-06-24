@@ -144,10 +144,11 @@ def write_training_report(result: TrainResult, df: pd.DataFrame, path: Path | No
         "",
         "## Data honesty (Hormuz-heavy cache)",
         "",
-        "The GDELT backtest cache contains ~55 Hormuz-window events. "
-        "BAB_EL_MANDEB and MALACCA have thin daily series; those corridors use "
-        "`TREND_FALLBACK` when below MIN_TRAIN_DAYS or variance threshold. "
-        "This is directional evidence, not statistically proven accuracy.",
+        "The GDELT backtest cache contains ~55 Hormuz-window events concentrated "
+        "in the Hormuz corridor. Only HORMUZ is routed to the shared GRU; "
+        "BAB_EL_MANDEB, MALACCA, and OTHER use `TREND_FALLBACK` (Phase 1 "
+        "RISING/FALLING/STABLE). Do not treat thin-corridor outputs as "
+        "statistically proven accuracy.",
         "",
         f"- Total feature rows: {len(df)}",
         f"- HORMUZ rows: {hormuz_rows}",

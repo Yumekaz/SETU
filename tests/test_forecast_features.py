@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from app.forecast.config import CORRIDOR_ORDER, FEATURE_COLUMNS
+from app.forecast.config import CORRIDOR_ORDER, FEATURE_COLUMNS, PARQUET_COLUMNS
 from app.forecast.dataset import load_features_df
 from app.forecast.features import (
     build_daily_features,
@@ -18,10 +18,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def test_build_daily_features_has_required_columns_and_corridors() -> None:
     df = build_daily_features()
+    assert list(df.columns) == list(PARQUET_COLUMNS)
     for col in FEATURE_COLUMNS:
         assert col in df.columns
-    assert "date" in df.columns
-    assert "corridor" in df.columns
+    assert "trend_7d" not in df.columns
     assert len(df[df["corridor"] == "HORMUZ"]) > 30
     for corridor in ("HORMUZ", "BAB_EL_MANDEB", "MALACCA", "OTHER"):
         assert corridor in set(df["corridor"])
@@ -37,7 +37,7 @@ def test_build_daily_features_other_has_scored_rows() -> None:
     df = build_daily_features()
     other = df[df["corridor"] == "OTHER"]
     assert len(other) > 30
-    assert "trend_7d" in other.columns
+    assert float(other["risk_score"].iloc[-1]) >= 0.0
 
 
 def test_parquet_has_all_corridors_detects_stale_file(tmp_path: Path) -> None:

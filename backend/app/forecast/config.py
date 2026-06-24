@@ -14,6 +14,9 @@ HORIZON_DAYS = 7
 MIN_TRAIN_DAYS = 30
 MIN_SCORE_VARIANCE = 1e-4
 FEATURE_COLUMNS = ("risk_score", "goldstein_aggregate", "event_count", "price_lag")
+PARQUET_COLUMNS = ("date", "corridor", *FEATURE_COLUMNS)
 CORRIDOR_ORDER = ("HORMUZ", "BAB_EL_MANDEB", "MALACCA", "OTHER")
+# Hormuz-heavy GDELT cache: only HORMUZ has enough signal for GRU training.
+GRU_CORRIDORS = frozenset({"HORMUZ"})
 N_CORRIDORS = len(CORRIDOR_ORDER)
 INPUT_DIM = len(FEATURE_COLUMNS) + N_CORRIDORS

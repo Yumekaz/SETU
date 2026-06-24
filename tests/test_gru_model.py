@@ -36,6 +36,7 @@ def test_train_gru_produces_checkpoint_and_log(tmp_path: Path) -> None:
     assert ckpt.exists()
     assert (ckpt.parent / "model_meta.json").exists()
     assert result.train_loss == result.train_loss
-    assert "HORMUZ" in result.eligible_corridors or result.fallback_corridors
+    assert result.eligible_corridors == ["HORMUZ"]
+    assert set(result.fallback_corridors) == {"BAB_EL_MANDEB", "MALACCA", "OTHER"}
     state = torch.load(ckpt, map_location="cpu", weights_only=True)
     assert len(state) > 0

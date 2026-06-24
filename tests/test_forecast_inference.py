@@ -6,6 +6,7 @@ import json
 from datetime import date
 from pathlib import Path
 
+import pytest
 import torch
 from app.forecast.config import DEFAULT_CHECKPOINT_PATH, DEFAULT_FEATURES_PATH
 from app.forecast.dataset import load_features_df
@@ -44,6 +45,33 @@ def test_run_all_forecasts_includes_other() -> None:
     df = load_features_df(DEFAULT_FEATURES_PATH)
     corridors = {f.corridor for f in run_all_forecasts(df)}
     assert Corridor.other in corridors
+
+
+@pytest.mark.parametrize(
+    "corridor",
+    [Corridor.bab_el_mandeb, Corridor.malacca, Corridor.other],
+)
+def test_sparse_corridors_use_trend_fallback(corridor: Corridor) -> None:
+    df = load_features_df(DEFAULT_FEATURES_PATH)
+    fc = forecast_corridor(corridor, df)
+    assert fc.model_source == ModelSource.trend_fallback
+    assert fc.corridor == corridor
+    assert len(fc.trajectory) == 7
+    for step in fc.trajectory:
+        assert step.score_band.p10 <= step.score_band.p50 <= step.score_band.p90
+    meta_path = DEFAULT_CHECKPOINT_PATH.parent / "model_meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert corridor.value in meta.get("fallback_corridors", [])
+    assert corridor.value not in meta.get("eligible_corridors", [])
+
+
+def test_hormuz_corridor_uses_gru() -> None:
+    df = load_features_df(DEFAULT_FEATURES_PATH)
+    fc = forecast_corridor(Corridor.hormuz, df)
+    assert fc.model_source == ModelSource.gru
+    meta_path = DEFAULT_CHECKPOINT_PATH.parent / "model_meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert "HORMUZ" in meta.get("eligible_corridors", [])
 
 
 def test_other_corridor_uses_trend_fallback_with_actual_scores() -> None:

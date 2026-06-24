@@ -124,23 +124,29 @@ def _latest_date_in_frame(df: pd.DataFrame) -> date:
     return max(date.fromisoformat(str(d)[:10]) for d in df["date"].unique())
 
 
-def _phase1_score_for_corridor(corridor: Corridor, df: pd.DataFrame) -> tuple[date, float, str]:
-    """Resolve score/trend from Phase 1 scoring when parquet rows are absent."""
+def _phase1_score_at_date(corridor: Corridor, score_date: date) -> tuple[float, str]:
+    """Resolve score/trend from Phase 1 scoring replay at a calendar date."""
     from app.forecast.features import extract_events_from_cache
     from app.signals.score import build_risk_scores
 
-    origin_date = _latest_date_in_frame(df) if len(df) else date.today()
     events = extract_events_from_cache()
-    prior_date = origin_date - timedelta(days=7)
+    prior_date = score_date - timedelta(days=7)
     prior_scores = {
         s.corridor: s.score
         for s in build_risk_scores(events, score_date=prior_date)
     }
-    scores = build_risk_scores(events, score_date=origin_date, prior_scores=prior_scores)
+    scores = build_risk_scores(events, score_date=score_date, prior_scores=prior_scores)
     for score in scores:
         if score.corridor == corridor:
-            return origin_date, float(score.score), score.trend_7d.value
-    return origin_date, 0.0, "STABLE"
+            return float(score.score), score.trend_7d.value
+    return 0.0, "STABLE"
+
+
+def _phase1_score_for_corridor(corridor: Corridor, df: pd.DataFrame) -> tuple[date, float, str]:
+    """Resolve score/trend from Phase 1 scoring when parquet rows are absent."""
+    origin_date = _latest_date_in_frame(df) if len(df) else date.today()
+    current_score, trend_7d = _phase1_score_at_date(corridor, origin_date)
+    return origin_date, current_score, trend_7d
 
 
 def _trend_fallback_missing_rows(
@@ -173,11 +179,12 @@ def _trend_from_row(
     training_data_through: date,
 ) -> RiskForecast:
     origin_date = date.fromisoformat(str(row["date"])[:10])
+    _, trend_7d = _phase1_score_at_date(corridor, origin_date)
     return build_trend_forecast(
         corridor,
         origin_date=origin_date,
         current_score=float(row["risk_score"]),
-        trend_7d=str(row["trend_7d"]),
+        trend_7d=trend_7d,
         training_data_through=training_data_through,
         feature_data_through=origin_date,
     )
