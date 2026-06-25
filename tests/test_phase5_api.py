@@ -50,4 +50,4 @@ def test_backtest_latest_after_run(client: TestClient) -> None:
 
 def test_health_phase5(client: TestClient) -> None:
     health = client.get("/health")
-    assert health.json() == {"status": "ok", "version": "0.6.0", "phase": 5}
+    assert health.json() == {"status": "ok", "version": "0.7.0", "phase": 6}

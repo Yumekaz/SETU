@@ -33,8 +33,8 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="SETU API",
-    description="Strategic Energy Trade Uncertainty — Phase 5",
-    version="0.6.0",
+    description="Strategic Energy Trade Uncertainty — Phase 6",
+    version="0.7.0",
     lifespan=lifespan,
 )
 
@@ -60,7 +60,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health() -> dict[str, str | int]:
-    return {"status": "ok", "version": "0.6.0", "phase": 5}
+    return {"status": "ok", "version": "0.7.0", "phase": 6}
 
 
 @app.get("/api/contracts")

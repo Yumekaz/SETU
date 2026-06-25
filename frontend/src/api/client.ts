@@ -63,6 +63,12 @@ export async function fetchRiskScores(): Promise<RiskScore[]> {
   return response.json() as Promise<RiskScore[]>;
 }
 
+export async function fetchRiskScoresLatest(): Promise<RiskScore[]> {
+  const response = await fetch(`${API_URL}/api/risk-scores/latest`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<RiskScore[]>;
+}
+
 export async function runPipeline(): Promise<unknown> {
   const response = await fetch(`${API_URL}/api/pipeline/run`, {
     method: "POST",
@@ -219,4 +225,88 @@ export async function rejectRecommendation(
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json() as Promise<Recommendation>;
+}
+
+export interface BacktestConfig {
+  window_start: string;
+  window_end: string;
+  corridor: string;
+  risk_threshold: number;
+  reference_point_date: string;
+  reference_point_label: string;
+  seed: number;
+  n_simulations: number;
+  ground_truth_compare_date: string;
+}
+
+export interface BacktestTrajectoryPoint {
+  date: string;
+  score: number;
+}
+
+export interface BacktestTrajectory {
+  corridor: string;
+  window_start: string;
+  window_end: string;
+  points: BacktestTrajectoryPoint[];
+}
+
+export interface TimelineEvent {
+  date: string;
+  event_type: string;
+  description: string;
+  source_url: string;
+  brent_usd?: string;
+  notes?: string;
+}
+
+export interface BacktestRunResult {
+  status: string;
+  lead_time_days: number | null;
+  reference_point_date: string;
+  risk_threshold: number;
+  trajectory_peak?: { peak_date: string; peak_score: number };
+  orchestrator_summary?: {
+    chain_date: string;
+    status: string;
+    option_ids: string[];
+  };
+  [key: string]: unknown;
+}
+
+export async function fetchBacktestConfig(): Promise<BacktestConfig> {
+  const response = await fetch(`${API_URL}/api/backtest/config`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<BacktestConfig>;
+}
+
+export async function fetchBacktestTrajectory(): Promise<BacktestTrajectory> {
+  const response = await fetch(`${API_URL}/api/backtest/trajectory`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<BacktestTrajectory>;
+}
+
+export async function fetchBacktestTimeline(): Promise<TimelineEvent[]> {
+  const response = await fetch(`${API_URL}/api/backtest/timeline`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<TimelineEvent[]>;
+}
+
+export async function fetchBacktestLatest(): Promise<BacktestRunResult> {
+  const response = await fetch(`${API_URL}/api/backtest/latest`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<BacktestRunResult>;
+}
+
+export async function runBacktest(): Promise<BacktestRunResult> {
+  const response = await fetch(`${API_URL}/api/backtest/run`, { method: "POST" });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<BacktestRunResult>;
+}
+
+export async function ensureBaselineData(): Promise<void> {
+  const scores = await fetchRiskScores();
+  if (scores.length === 0) {
+    await runPipeline();
+  }
 }
