@@ -11,6 +11,9 @@ const { chromium } = await import(playwrightEntry);
 const API = process.env.SETU_API_URL ?? "http://127.0.0.1:8000";
 const UI = process.env.SETU_UI_URL ?? "http://127.0.0.1:5173";
 const SCRATCH = process.env.SCRATCH_DIR ?? "/tmp/grok-goal-df3a238e5ed0/implementer";
+const GATE = process.env.SETU_GATE_NAME ?? "browser";
+const BROWSER_LOG =
+  process.env.SETU_BROWSER_LOG ?? `${SCRATCH}/${GATE}_browser.log`;
 const COLD_START = process.env.SETU_BROWSER_COLD_START === "1";
 const RUNS = COLD_START ? 1 : 2;
 const log = [];
@@ -171,9 +174,21 @@ for (let i = 0; i < RUNS; i += 1) {
 }
 
 const ok = results.every(Boolean);
+const lastLabel = COLD_START ? "cold" : `run${RUNS}`;
+const summaryLines = log.filter((line) => line.startsWith(`${lastLabel}:`));
+const capeLine = summaryLines.find((l) => l.includes("cape_badge="));
+const forecastLine = summaryLines.find((l) => l.includes("forecast_populated="));
+const markersLine = summaryLines.find((l) => l.includes("map_markers="));
+const errorsLine = summaryLines.find((l) => l.includes("page_errors="));
+
 const body =
-  `api=${API}\nui=${UI}\ncold_start=${COLD_START}\n` +
+  `api=${API}\nui=${UI}\ngate=${GATE}\ncold_start=${COLD_START}\n` +
   log.join("\n") +
-  `\nconsistent=${ok}\n`;
-writeFileSync(`${SCRATCH}/phase6_browser.log`, body);
+  `\nconsistent=${ok}\n` +
+  `cold_start=${COLD_START}\n` +
+  `${capeLine ?? "cape_badge=false"}\n` +
+  `${forecastLine ?? "forecast_populated=false"}\n` +
+  `${markersLine ?? "map_markers=0"}\n` +
+  `${errorsLine ?? "page_errors=1"}\n`;
+writeFileSync(BROWSER_LOG, body);
 process.exit(ok ? 0 : 1);

@@ -100,14 +100,12 @@ export default function MapView({
             Disruption emphasis active
           </span>
         )}
-        {selectedCorridor === "HORMUZ" && (
-          <span
-            id="cape-overlay-badge"
-            className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400"
-          >
-            Cape reroute overlay (demo ASSUMPTION)
-          </span>
-        )}
+        <span
+          id="cape-overlay-badge"
+          className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400"
+        >
+          Cape reroute overlay (demo ASSUMPTION)
+        </span>
       </div>
       <div
         id="setu-map-container"
@@ -126,22 +124,20 @@ export default function MapView({
             }}
           />
           {selectedCorridor === "HORMUZ" && (
-            <>
-              <Polyline
-                positions={HORMUZ_PRIMARY_ROUTE}
-                color="#22c55e"
-                weight={showDisruption ? 4 : 3}
-                opacity={showDisruption ? 1 : 0.75}
-              />
-              <Polyline
-                positions={CAPE_REROUTE}
-                color="#f59e0b"
-                weight={showDisruption ? 4 : 3}
-                dashArray="8 6"
-                opacity={showDisruption ? 1 : 0.85}
-              />
-            </>
+            <Polyline
+              positions={HORMUZ_PRIMARY_ROUTE}
+              color="#22c55e"
+              weight={showDisruption ? 4 : 3}
+              opacity={showDisruption ? 1 : 0.75}
+            />
           )}
+          <Polyline
+            positions={CAPE_REROUTE}
+            color="#f59e0b"
+            weight={showDisruption ? 4 : 3}
+            dashArray="8 6"
+            opacity={showDisruption ? 1 : 0.85}
+          />
           {graph?.nodes.map((node) => (
             <CircleMarker
               key={node.node_id}

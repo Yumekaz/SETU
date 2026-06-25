@@ -209,159 +209,55 @@ def verify_frontend() -> tuple[int, int]:
     return passed, test.returncode
 
 
-def wait_http(url: str, timeout: float = 60.0) -> bool:
-    import urllib.error
-    import urllib.request
-
-    deadline = time.time() + timeout
-    while time.time() < deadline:
+def _browser_log_ok(gate_name: str, *, cold_start: bool) -> tuple[bool, str]:
+    log_path = SCRATCH / f"{gate_name}_browser.log"
+    run_path = SCRATCH / f"{gate_name}_run.log"
+    if not log_path.exists() or log_path.stat().st_size < 50:
+        return False, f"{log_path.name} missing or empty"
+    if not run_path.exists() or run_path.stat().st_size < 10:
+        return False, f"{run_path.name} missing or empty"
+    text = log_path.read_text(encoding="utf-8", errors="replace")
+    for needle in ("cape_badge=true", "forecast_populated=true", "page_errors=0"):
+        if needle not in text:
+            return False, f"missing {needle} in {log_path.name}"
+    if cold_start and "cold_start=true" not in text:
+        return False, "missing cold_start=true"
+    markers_line = next((ln for ln in text.splitlines() if "map_markers=" in ln), "")
+    if markers_line:
         try:
-            with urllib.request.urlopen(url, timeout=2) as resp:
-                if resp.status < 500:
-                    return True
-        except (urllib.error.URLError, TimeoutError, OSError):
-            time.sleep(0.5)
-    return False
-
-
-def _run_browser_gate(
-    gate_name: str,
-    *,
-    db_path: Path,
-    seed: bool,
-    cold_start: bool,
-    api_port: str = "8765",
-    ui_port: str = "4173",
-) -> None:
-    node = shutil.which("node")
-    npm = shutil.which("npm")
-    if not node or not npm:
-        gate(gate_name, False, "node/npm unavailable")
-        return
-
-    api_url = f"http://127.0.0.1:{api_port}"
-    ui_url = f"http://127.0.0.1:{ui_port}"
-    backend_proc: subprocess.Popen[str] | None = None
-    frontend_proc: subprocess.Popen[str] | None = None
-    backend_log = SCRATCH / f"{gate_name}_backend.log"
+            count = int(markers_line.split("map_markers=")[1].split()[0])
+            if count < 5:
+                return False, f"map_markers={count}"
+        except (IndexError, ValueError):
+            return False, "unparseable map_markers"
     frontend_log = SCRATCH / f"{gate_name}_frontend.log"
+    if frontend_log.exists():
+        flog = frontend_log.read_text(encoding="utf-8", errors="replace").lower()
+        if "already in use" in flog:
+            return False, "frontend port conflict in log"
+    return True, "ok"
 
-    try:
-        backend_env = os.environ.copy()
-        backend_env.update(
-            {
-                "DATABASE_URL": f"sqlite:////{db_path}",
-                "SETU_MC_N_SIMULATIONS": "50",
-                "SETU_EXTRACTOR_MODE": "rules",
-                "CORS_ORIGINS": f"http://127.0.0.1:{ui_port},http://localhost:{ui_port}",
-            }
-        )
-        backend_log.parent.mkdir(parents=True, exist_ok=True)
-        backend_proc = subprocess.Popen(
-            [
-                sys.executable,
-                "-m",
-                "uvicorn",
-                "app.main:app",
-                "--host",
-                "127.0.0.1",
-                "--port",
-                api_port,
-            ],
-            cwd=ROOT / "backend",
-            env=backend_env,
-            stdout=backend_log.open("w", encoding="utf-8"),
-            stderr=subprocess.STDOUT,
-        )
-        if not wait_http(f"{api_url}/health", timeout=90):
-            gate(gate_name, False, "backend health timeout")
-            return
-        if backend_proc.poll() is not None:
-            gate(gate_name, False, "backend exited early")
-            return
 
-        if seed:
-            seed_proc = run_cmd(
-                [
-                    sys.executable,
-                    "-c",
-                    f"""
-import urllib.request, json
-api = "{api_url}"
-def post(path, body=None):
-    data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(
-        api + path,
-        data=data,
-        headers={{"Content-Type": "application/json"}} if body else {{}},
-        method="POST",
+def _invoke_browser_gate(gate_name: str) -> None:
+    """Run one browser gate in an isolated subprocess (ephemeral ports)."""
+    gate_script = ROOT / "scripts" / "phase6_browser_gate.py"
+    proc = run_cmd(
+        [sys.executable, str(gate_script), "--gate", gate_name],
+        env={"SCRATCH_DIR": str(SCRATCH)},
+        timeout=600,
     )
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return r.status
-post("/api/pipeline/run", {{"source": "cache"}})
-post("/api/forecast/run")
-print("seeded")
-""",
-                ],
-                timeout=180,
-            )
-            (SCRATCH / f"{gate_name}_seed.log").write_text(
-                seed_proc.stdout + seed_proc.stderr, encoding="utf-8"
-            )
-            if seed_proc.returncode != 0:
-                gate(gate_name, False, "baseline seed failed")
-                return
+    run_log = SCRATCH / f"{gate_name}_run.log"
+    if proc.stdout or proc.stderr:
+        existing = run_log.read_text(encoding="utf-8") if run_log.exists() else ""
+        run_log.write_text(existing + proc.stdout + proc.stderr, encoding="utf-8")
 
-        frontend_env = os.environ.copy()
-        frontend_env["VITE_API_URL"] = api_url
-        frontend_proc = subprocess.Popen(
-            [
-                npm,
-                "run",
-                "preview",
-                "--",
-                "--host",
-                "127.0.0.1",
-                "--port",
-                ui_port,
-                "--strictPort",
-            ],
-            cwd=FRONTEND,
-            env=frontend_env,
-            stdout=frontend_log.open("w", encoding="utf-8"),
-            stderr=subprocess.STDOUT,
-        )
-        if not wait_http(ui_url, timeout=90):
-            gate(gate_name, False, "frontend timeout")
-            return
-
-        browser_env = os.environ.copy()
-        browser_env["SETU_API_URL"] = api_url
-        browser_env["SETU_UI_URL"] = ui_url
-        browser_env["SCRATCH_DIR"] = str(SCRATCH)
-        if cold_start:
-            browser_env["SETU_BROWSER_COLD_START"] = "1"
-        browser = run_cmd(
-            ["node", str(ROOT / "scripts" / "phase6_browser_check.mjs")],
-            cwd=FRONTEND,
-            env=browser_env,
-            timeout=420 if cold_start else 300,
-        )
-        (SCRATCH / f"{gate_name}_run.log").write_text(
-            browser.stdout + browser.stderr, encoding="utf-8"
-        )
-        detail = f"exit={browser.returncode}"
-        if gate_name == "browser_check_seeded":
-            detail += " internal_runs=2"
-        gate(gate_name, browser.returncode == 0, detail)
-    finally:
-        for proc in (frontend_proc, backend_proc):
-            if proc and proc.poll() is None:
-                proc.terminate()
-                try:
-                    proc.wait(timeout=10)
-                except subprocess.TimeoutExpired:
-                    proc.kill()
+    cold = gate_name == "browser_cold_start"
+    log_ok, log_reason = _browser_log_ok(gate_name, cold_start=cold)
+    ok = proc.returncode == 0 and log_ok
+    detail = f"exit={proc.returncode} log={log_reason}"
+    if gate_name == "browser_check_seeded":
+        detail += " internal_runs=2"
+    gate(gate_name, ok, detail)
 
 
 def verify_browser() -> None:
@@ -383,38 +279,13 @@ def verify_browser() -> None:
         )
         return
 
-    api_url = "http://127.0.0.1:8765"
-    npm = shutil.which("npm")
-    if not npm:
+    if not shutil.which("npm"):
         gate("browser_cold_start", False, "npm unavailable")
         gate("browser_check_seeded", False, "npm unavailable")
         return
-    browser_build = run_cmd(
-        [npm, "run", "build"],
-        cwd=FRONTEND,
-        env={**os.environ, "VITE_API_URL": api_url},
-        timeout=180,
-    )
-    (SCRATCH / "phase6_browser_build.log").write_text(
-        browser_build.stdout + browser_build.stderr, encoding="utf-8"
-    )
-    if browser_build.returncode != 0:
-        gate("browser_cold_start", False, "browser build failed")
-        gate("browser_check_seeded", False, "browser build failed")
-        return
 
-    _run_browser_gate(
-        "browser_cold_start",
-        db_path=SCRATCH / "phase6_browser_cold.db",
-        seed=False,
-        cold_start=True,
-    )
-    _run_browser_gate(
-        "browser_check_seeded",
-        db_path=SCRATCH / "phase6_browser.db",
-        seed=True,
-        cold_start=False,
-    )
+    _invoke_browser_gate("browser_cold_start")
+    _invoke_browser_gate("browser_check_seeded")
 def run_pytest_twice() -> tuple[int, int, str, str]:
     env = {
         "SETU_MC_N_SIMULATIONS": "50",
