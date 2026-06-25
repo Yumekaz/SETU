@@ -31,14 +31,14 @@ EXPECTED_FIXTURES = {
 }
 
 
-def test_hormuz_timeline_has_five_cited_rows() -> None:
-    """Verification plan: header + >=5 rows each with source_url."""
+def test_hormuz_timeline_has_eight_to_twelve_cited_rows() -> None:
+    """Phase 5: 8–12 cited timeline rows for backtest ground truth."""
     assert HORMUZ_CSV.exists()
     with HORMUZ_CSV.open(newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
 
-    assert len(rows) >= 5, f"expected >=5 data rows, got {len(rows)}"
+    assert 8 <= len(rows) <= 12, f"expected 8-12 data rows, got {len(rows)}"
     for i, row in enumerate(rows, start=1):
         assert row.get("source_url", "").startswith("http"), f"row {i} missing source_url"
         assert row.get("date"), f"row {i} missing date"

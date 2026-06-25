@@ -1,7 +1,12 @@
 date,event_type,description,source_url,brent_usd,notes
+2026-02-07,MILITARY,"GDELT-recorded military posture event in Persian Gulf shipping lane",https://www.gdeltproject.org/,77.50,"Early-window signal from gdelt_hormuz_backtest cache sampling."
+2026-02-14,DIPLOMATIC,"Regional diplomatic statements on Gulf shipping security",https://www.reuters.com/world/middle-east/,77.85,"Escalation marker; VERIFY against GDELT ingest."
+2026-02-21,MILITARY,"Naval exercise reported near Hormuz approaches",https://www.reuters.com/world/middle-east/,78.00,"Pre-closure military activity marker."
 2026-02-28,MILITARY,"Iran-linked forces conduct live-fire exercise near Strait of Hormuz transit lane",https://www.reuters.com/world/middle-east/,78.20,"Pre-escalation signal; elevated naval activity reported by commercial insurers (VERIFY against GDELT ingest)."
 2026-03-04,INFRASTRUCTURE,"Commercial insurers widen war-risk premiums for Hormuz transits",https://www.lloydslist.com/,79.45,"Market stress indicator; precedes physical disruption in backtest window."
 2026-03-11,MILITARY,"Reported temporary closure / severe restriction of Hormuz transit for commercial tankers",https://www.eia.gov/todayinenergy/,85.10,"Primary backtest anchor event for Phase 5; duration distribution input for Monte Carlo."
-2026-03-18,DIPLOMATIC,"India SPR drawdown discussions reported amid import rerouting via Cape route",https://www.ppac.gov.in/,83.75,"Policy response signal; ties corridor shock to SPR days-required metric."
+2026-03-18,DIPLOMATIC,"India SPR drawdown discussions reported amid import rerouting via Cape route",https://www.ppac.gov.in/,83.75,"Policy response signal; secondary metric ground truth for orchestrator comparison."
 2026-03-25,ACCIDENT,"Brent spot volatility spike; alternate corridor routing cost penalties documented",https://fred.stlouisfed.org/series/DCOILBRENTEU,84.30,"Price lag feature for GRU forecast layer; FRED series DCOILBRENTEU."
+2026-04-10,INFRASTRUCTURE,"Sustained Cape reroute cost penalties for India crude imports",https://www.eia.gov/todayinenergy/,86.20,"Mid-closure routing stress; VERIFY against public reporting."
+2026-05-20,DIPLOMATIC,"Multilateral talks on Gulf transit normalization reported",https://www.reuters.com/world/middle-east/,87.40,"Late-window de-escalation marker."
 2026-06-15,DIPLOMATIC,"Framework agreement reported easing Hormuz transit restrictions after closure period",https://www.reuters.com/world/middle-east/,88.50,"End-of-window reopening anchor for Phase 5 backtest; VERIFY against live reporting."

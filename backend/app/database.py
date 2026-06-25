@@ -127,15 +127,21 @@ def init_db() -> None:
                 computed_at TEXT DEFAULT (datetime('now'))
             );
 
+            CREATE TABLE IF NOT EXISTS backtest_runs (
+                run_id TEXT PRIMARY KEY,
+                payload_json TEXT NOT NULL,
+                computed_at TEXT DEFAULT (datetime('now'))
+            );
+
             INSERT OR IGNORE INTO schema_meta (key, value)
-            VALUES ('phase', '4'), ('version', '0.5.0');
+            VALUES ('phase', '5'), ('version', '0.6.0');
             """
         )
         conn.execute(
-            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('phase', '4')"
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('phase', '5')"
         )
         conn.execute(
-            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.5.0')"
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.6.0')"
         )
         migrate_recommendations_computed_at(conn)
         conn.commit()
