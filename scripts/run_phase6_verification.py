@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
-import json
+import hashlib
 import os
+import re
 import shutil
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -18,6 +20,17 @@ SCRATCH.mkdir(parents=True, exist_ok=True)
 
 SUMMARY_PATH = SCRATCH / "phase6_verification.txt"
 gates: dict[str, str] = {}
+
+
+@contextmanager
+def env_snapshot():
+    """Snapshot and restore os.environ around probe blocks."""
+    saved = os.environ.copy()
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(saved)
 
 
 def run_cmd(
@@ -63,113 +76,29 @@ def write_summary(extra: list[str] | None = None) -> None:
     print(f"\nWrote {SUMMARY_PATH}")
 
 
-def verify_phase6_api_twice() -> None:
+def normalize_pytest_log(content: str) -> str:
+    """Strip wall-clock duration from summary so identical runs hash equally."""
+    return re.sub(r" in [\d.]+s.*$", "", content, flags=re.MULTILINE)
+
+
+def run_phase6_api_pytest() -> None:
+    """Delegate API/dashboard probes to tests/test_phase6_api.py (single source of truth)."""
     env = {
-        "DATABASE_URL": f"sqlite:////{SCRATCH / 'phase6_verify.db'}",
         "SETU_MC_N_SIMULATIONS": "50",
         "SETU_EXTRACTOR_MODE": "rules",
     }
-    log_path = SCRATCH / "phase6_backend_feeds.log"
-    log_lines: list[str] = []
-
-    sys.path.insert(0, str(ROOT / "backend"))
-    sys.path.insert(0, str(ROOT))
-    from app.database import init_db
-    from app.main import app
-    from fastapi.testclient import TestClient
-
-    os.environ.update(env)
-    init_db()
-    client = TestClient(app)
-
-    health = client.get("/health").json()
-    log_lines.append(f"health={json.dumps(health)}")
-    health_ok = health == {"status": "ok", "version": "0.7.0", "phase": 6}
-    gate("backend_health", health_ok, json.dumps(health))
-
-    t1 = client.get("/api/backtest/trajectory").json()
-    t2 = client.get("/api/backtest/trajectory").json()
-    log_lines.append(f"trajectory_points={len(t1.get('points', []))}")
-    traj_ok = (
-        len(t1.get("points", [])) >= 140
-        and t1.get("points", [{}])[0].get("date") == "2026-02-01"
-        and t1 == t2
+    proc = run_cmd(
+        ["python3", "-m", "pytest", "tests/test_phase6_api.py", "-q", "--tb=line"],
+        env=env,
+        timeout=300,
     )
-    gate("backend_trajectory_twice", traj_ok, f"points={len(t1.get('points', []))}")
-
-    tl1 = client.get("/api/backtest/timeline").json()
-    tl2 = client.get("/api/backtest/timeline").json()
-    log_lines.append(f"timeline_rows={len(tl1)}")
-    tl_ok = (
-        8 <= len(tl1) <= 12
-        and all(r.get("source_url", "").strip() for r in tl1)
-        and tl1 == tl2
+    log_path = SCRATCH / "phase6_api_pytest.log"
+    log_path.write_text(proc.stdout + proc.stderr, encoding="utf-8")
+    gate(
+        "phase6_api_pytest",
+        proc.returncode == 0,
+        f"exit={proc.returncode}",
     )
-    gate("backend_timeline_twice", tl_ok, f"rows={len(tl1)}")
-
-    log_path.write_text("\n".join(log_lines) + "\n", encoding="utf-8")
-
-
-def probe_default_dashboard() -> None:
-    sys.path.insert(0, str(ROOT / "backend"))
-    sys.path.insert(0, str(ROOT))
-    from app.database import init_db
-    from app.main import app
-    from fastapi.testclient import TestClient
-
-    db = SCRATCH / "phase6_default.db"
-    os.environ["DATABASE_URL"] = f"sqlite:////{db}"
-    os.environ.setdefault("SETU_MC_N_SIMULATIONS", "50")
-    os.environ.setdefault("SETU_EXTRACTOR_MODE", "rules")
-    init_db()
-    client = TestClient(app)
-
-    log_path = SCRATCH / "phase6_default_and_unrehearsed.log"
-    log: list[str] = []
-
-    pipe = client.post("/api/pipeline/run", json={"source": "cache"})
-    log.append(f"pipeline_status={pipe.status_code}")
-    forecasts = client.get("/api/forecast/latest").json()
-    if len(forecasts) == 0:
-        fc_run = client.post("/api/forecast/run")
-        log.append(f"forecast_run_status={fc_run.status_code}")
-        forecasts = client.get("/api/forecast/latest").json()
-    scores = client.get("/api/risk-scores/latest").json()
-    log.append(f"forecast_count={len(forecasts)} score_count={len(scores)}")
-
-    corridors = {s["corridor"] for s in scores}
-    ok = (
-        pipe.status_code == 200
-        and len(forecasts) >= 1
-        and bool(forecasts[0].get("trajectory"))
-        and len(forecasts[0]["trajectory"]) >= 1
-        and len(scores) >= 3
-        and {"HORMUZ", "BAB_EL_MANDEB", "MALACCA"} <= corridors
-    )
-    gate("default_dashboard_populated", ok)
-
-    cascade = client.post(
-        "/api/cascade/simulate",
-        json={"corridor": "MALACCA", "n_simulations": 50},
-    )
-    fc_after = client.post("/api/forecast/run")
-    log.append(f"post_cascade_forecast={fc_after.status_code}")
-    rec = client.post("/api/recommendations/run?force=true")
-    log.append(f"malacca_cascade={cascade.status_code} recs={rec.status_code}")
-    if cascade.status_code == 200:
-        log.append(f"cascade_corridor={cascade.json().get('corridor')}")
-    if rec.status_code == 200:
-        log.append(f"rec_options={len(rec.json().get('options', []))}")
-
-    unrehearsed_ok = (
-        cascade.status_code == 200
-        and cascade.json().get("corridor") == "MALACCA"
-        and fc_after.status_code == 200
-        and rec.status_code == 200
-        and len(rec.json().get("options", [])) >= 1
-    )
-    gate("unrehearsed_malacca_flow", unrehearsed_ok)
-    log_path.write_text("\n".join(log) + "\n", encoding="utf-8")
 
 
 def verify_frontend() -> tuple[int, int]:
@@ -343,7 +272,10 @@ print("seeded")
         (SCRATCH / f"{gate_name}_run.log").write_text(
             browser.stdout + browser.stderr, encoding="utf-8"
         )
-        gate(gate_name, browser.returncode == 0, f"exit={browser.returncode}")
+        detail = f"exit={browser.returncode}"
+        if gate_name == "browser_check_seeded":
+            detail += " internal_runs=2"
+        gate(gate_name, browser.returncode == 0, detail)
     finally:
         for proc in (frontend_proc, backend_proc):
             if proc and proc.poll() is None:
@@ -358,7 +290,7 @@ def verify_browser() -> None:
     npx = shutil.which("npx")
     if not npx:
         gate("browser_cold_start", False, "npx unavailable")
-        gate("browser_check_twice", False, "npx unavailable")
+        gate("browser_check_seeded", False, "npx unavailable")
         (SCRATCH / "phase6_browser_fallback.log").write_text(
             "npx not available — browser check skipped\n", encoding="utf-8"
         )
@@ -367,7 +299,7 @@ def verify_browser() -> None:
     pw_check = run_cmd([npx, "playwright", "--version"], cwd=FRONTEND, timeout=30)
     if pw_check.returncode != 0:
         gate("browser_cold_start", False, "playwright unavailable")
-        gate("browser_check_twice", False, "playwright unavailable")
+        gate("browser_check_seeded", False, "playwright unavailable")
         (SCRATCH / "phase6_browser_fallback.log").write_text(
             pw_check.stdout + pw_check.stderr, encoding="utf-8"
         )
@@ -377,7 +309,7 @@ def verify_browser() -> None:
     npm = shutil.which("npm")
     if not npm:
         gate("browser_cold_start", False, "npm unavailable")
-        gate("browser_check_twice", False, "npm unavailable")
+        gate("browser_check_seeded", False, "npm unavailable")
         return
     browser_build = run_cmd(
         [npm, "run", "build"],
@@ -390,7 +322,7 @@ def verify_browser() -> None:
     )
     if browser_build.returncode != 0:
         gate("browser_cold_start", False, "browser build failed")
-        gate("browser_check_twice", False, "browser build failed")
+        gate("browser_check_seeded", False, "browser build failed")
         return
 
     _run_browser_gate(
@@ -400,19 +332,18 @@ def verify_browser() -> None:
         cold_start=True,
     )
     _run_browser_gate(
-        "browser_check_twice",
+        "browser_check_seeded",
         db_path=SCRATCH / "phase6_browser.db",
         seed=True,
         cold_start=False,
     )
-
-
-def run_pytest_twice() -> tuple[int, int]:
+def run_pytest_twice() -> tuple[int, int, str, str]:
     env = {
         "SETU_MC_N_SIMULATIONS": "50",
         "SETU_EXTRACTOR_MODE": "rules",
     }
     counts: list[int] = []
+    hashes: list[str] = []
     for i in (1, 2):
         proc = run_cmd(
             ["python3", "-m", "pytest", "tests/", "-q", "--tb=line"],
@@ -420,7 +351,10 @@ def run_pytest_twice() -> tuple[int, int]:
             timeout=900,
         )
         log = SCRATCH / f"phase6_pytest_run{i}.log"
-        log.write_text(proc.stdout + proc.stderr, encoding="utf-8")
+        content = proc.stdout + proc.stderr
+        log.write_text(content, encoding="utf-8")
+        normalized = normalize_pytest_log(content)
+        hashes.append(hashlib.sha256(normalized.encode("utf-8")).hexdigest())
         ok = proc.returncode == 0
         passed = 0
         for line in proc.stdout.splitlines():
@@ -431,22 +365,28 @@ def run_pytest_twice() -> tuple[int, int]:
                     pass
         counts.append(passed)
         gate(f"pytest_full_run{i}", ok, f"passed={passed} exit={proc.returncode}")
-    identical = counts[0] == counts[1] and counts[0] > 0
-    gate("pytest_runs_identical", identical, f"run1={counts[0]} run2={counts[1]}")
-    return counts[0], counts[1]
+    identical = counts[0] == counts[1] and counts[0] > 0 and hashes[0] == hashes[1]
+    gate(
+        "pytest_runs_identical",
+        identical,
+        f"run1={counts[0]} run2={counts[1]} hash_match={hashes[0] == hashes[1]}",
+    )
+    return counts[0], counts[1], hashes[0], hashes[1]
 
 
 def main() -> int:
     print(f"Phase 6 verification — scratch={SCRATCH}")
-    pytest1, pytest2 = run_pytest_twice()
-    vitest_passed, _ = verify_frontend()
-    verify_phase6_api_twice()
-    probe_default_dashboard()
-    verify_browser()
+    with env_snapshot():
+        pytest1, pytest2, hash1, hash2 = run_pytest_twice()
+        vitest_passed, _ = verify_frontend()
+        run_phase6_api_pytest()
+        verify_browser()
 
     extra = [
         f"pytest_run1_passed={pytest1}",
         f"pytest_run2_passed={pytest2}",
+        f"pytest_run1_sha256={hash1}",
+        f"pytest_run2_sha256={hash2}",
         f"vitest_passed={vitest_passed}",
     ]
     write_summary(extra)

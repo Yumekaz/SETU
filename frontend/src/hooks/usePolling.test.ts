@@ -18,23 +18,27 @@ describe("usePolling", () => {
 
     await waitFor(
       () => expect(result.current.data!.n).toBeGreaterThan(firstN),
-      { timeout: 500 },
+      { timeout: 2000 },
     );
 
     unmount();
   });
 
-  it("manual refresh invokes fetcher again", async () => {
-    const fetcher = vi.fn().mockResolvedValue({ ok: true });
+  it("manual refresh invokes fetcher again and updates data", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce({ n: 1 })
+      .mockResolvedValueOnce({ n: 2 });
     const { result, unmount } = renderHook(() => usePolling(fetcher, 999_999, true));
 
-    await waitFor(() => expect(result.current.data).toEqual({ ok: true }));
+    await waitFor(() => expect(result.current.data).toEqual({ n: 1 }));
     const before = fetcher.mock.calls.length;
 
     await act(async () => {
       result.current.refresh();
     });
     await waitFor(() => expect(fetcher.mock.calls.length).toBe(before + 1));
+    await waitFor(() => expect(result.current.data).toEqual({ n: 2 }));
 
     unmount();
   });

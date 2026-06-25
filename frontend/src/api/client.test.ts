@@ -21,20 +21,20 @@ const TIMELINE_PAYLOAD = [
   },
 ];
 
+let fetchMock: ReturnType<typeof vi.fn>;
+
 function mockFetch(handlers: Record<string, () => Promise<unknown>>) {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (url: string, init?: RequestInit) => {
-      const method = init?.method ?? "GET";
-      const key = `${method} ${url}`;
-      for (const [pattern, handler] of Object.entries(handlers)) {
-        if (key.includes(pattern) || url.endsWith(pattern)) {
-          return handler();
-        }
+  fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+    const method = init?.method ?? "GET";
+    const key = `${method} ${url}`;
+    for (const [pattern, handler] of Object.entries(handlers)) {
+      if (key.includes(pattern) || url.endsWith(pattern)) {
+        return handler();
       }
-      throw new Error(`unexpected fetch ${key}`);
-    }),
-  );
+    }
+    throw new Error(`unexpected fetch ${key}`);
+  });
+  vi.stubGlobal("fetch", fetchMock);
 }
 
 describe("fetchBacktestTrajectory", () => {
@@ -53,6 +53,9 @@ describe("fetchBacktestTrajectory", () => {
 
   it("returns trajectory shape from API", async () => {
     const result = await fetchBacktestTrajectory();
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/backtest/trajectory"),
+    );
     expect(result.corridor).toBe("HORMUZ");
     expect(result.points).toHaveLength(2);
     expect(result.points[1].score).toBe(0.1);
@@ -82,6 +85,9 @@ describe("fetchBacktestTimeline", () => {
 
   it("returns cited timeline rows", async () => {
     const rows = await fetchBacktestTimeline();
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/backtest/timeline"),
+    );
     expect(rows).toHaveLength(1);
     expect(rows[0].source_url).toContain("eia.gov");
     expect(rows[0].date).toBe("2026-03-11");
@@ -127,6 +133,32 @@ describe("ensureBaselineData", () => {
     expect(calls).toEqual(["scores", "pipeline", "forecast-latest", "forecast-run"]);
   });
 
+  it("runs forecast only when scores exist but forecasts empty", async () => {
+    const calls: string[] = [];
+    mockFetch({
+      "/api/risk-scores": async () => {
+        calls.push("scores");
+        return {
+          ok: true,
+          json: async () => [{ corridor: "HORMUZ", score: 0.1 }],
+        };
+      },
+      "/api/forecast/latest": async () => {
+        calls.push("forecast-latest");
+        return { ok: true, json: async () => [] };
+      },
+      "/api/forecast/run": async () => {
+        calls.push("forecast-run");
+        return { ok: true, json: async () => [{ corridor: "HORMUZ" }] };
+      },
+    });
+
+    const mod = await import("./client");
+    await mod.ensureBaselineData();
+    expect(calls).toEqual(["scores", "forecast-latest", "forecast-run"]);
+    expect(calls).not.toContain("pipeline");
+  });
+
   it("skips pipeline and forecast when data already present", async () => {
     const calls: string[] = [];
     mockFetch({
@@ -149,6 +181,31 @@ describe("ensureBaselineData", () => {
     const mod = await import("./client");
     await mod.ensureBaselineData();
     expect(calls).toEqual(["scores", "forecast-latest"]);
+  });
+
+  it("retries bootstrap after failure clears promise", async () => {
+    let scoreAttempts = 0;
+    mockFetch({
+      "/api/risk-scores": async () => {
+        scoreAttempts += 1;
+        if (scoreAttempts === 1) {
+          return { ok: false, status: 503 };
+        }
+        return {
+          ok: true,
+          json: async () => [{ corridor: "HORMUZ", score: 0.1 }],
+        };
+      },
+      "/api/forecast/latest": async () => ({
+        ok: true,
+        json: async () => [{ corridor: "HORMUZ", trajectory: [] }],
+      }),
+    });
+
+    const mod = await import("./client");
+    await expect(mod.ensureBaselineData()).rejects.toThrow("HTTP 503");
+    await mod.ensureBaselineData();
+    expect(scoreAttempts).toBe(2);
   });
 
   it("deduplicates concurrent bootstrap calls", async () => {

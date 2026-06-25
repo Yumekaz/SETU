@@ -57,7 +57,9 @@ export default function Dashboard({
   useEffect(() => {
     ensureBaselineData()
       .then(() => setBootstrapped(true))
-      .catch((err: Error) => setBootstrapError(err.message));
+      .catch((err: unknown) =>
+        setBootstrapError(err instanceof Error ? err.message : String(err)),
+      );
   }, []);
 
   const fetcher = useCallback(() => loadDashboard(), []);
