@@ -309,4 +309,8 @@ export async function ensureBaselineData(): Promise<void> {
   if (scores.length === 0) {
     await runPipeline();
   }
+  const forecasts = await fetchForecastsLatest();
+  if (forecasts.length === 0) {
+    await runForecast();
+  }
 }

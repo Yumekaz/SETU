@@ -96,9 +96,12 @@ export default function MapView({
         </select>
         {showDisruption && (
           <span className="rounded-full bg-amber-900/50 px-3 py-1 text-xs text-amber-200">
-            Disruption overlay active
+            Disruption emphasis active
           </span>
         )}
+        <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400">
+          Cape reroute overlay (demo ASSUMPTION)
+        </span>
       </div>
       <div
         id="setu-map-container"
@@ -116,14 +119,20 @@ export default function MapView({
               tileerror: () => setUseOfflineTiles(true),
             }}
           />
-          {showDisruption && selectedCorridor === "HORMUZ" && (
+          {selectedCorridor === "HORMUZ" && (
             <>
-              <Polyline positions={HORMUZ_PRIMARY_ROUTE} color="#22c55e" weight={3} />
+              <Polyline
+                positions={HORMUZ_PRIMARY_ROUTE}
+                color="#22c55e"
+                weight={showDisruption ? 4 : 3}
+                opacity={showDisruption ? 1 : 0.75}
+              />
               <Polyline
                 positions={CAPE_REROUTE}
                 color="#f59e0b"
-                weight={3}
+                weight={showDisruption ? 4 : 3}
                 dashArray="8 6"
+                opacity={showDisruption ? 1 : 0.85}
               />
             </>
           )}

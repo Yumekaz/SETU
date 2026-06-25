@@ -43,6 +43,35 @@ def test_backtest_trajectory_full_window(client: TestClient) -> None:
     assert first.json() == second.json()
 
 
+def test_default_dashboard_populated(client: TestClient) -> None:
+    client.post("/api/pipeline/run", json={"source": "cache"})
+    forecasts = client.get("/api/forecast/latest").json()
+    if len(forecasts) == 0:
+        client.post("/api/forecast/run")
+        forecasts = client.get("/api/forecast/latest").json()
+    assert len(forecasts) >= 1
+    assert forecasts[0]["trajectory"]
+    scores = client.get("/api/risk-scores/latest").json()
+    assert len(scores) >= 1
+
+
+def test_unrehearsed_malacca_cascade_and_recs(client: TestClient) -> None:
+    client.post("/api/pipeline/run", json={"source": "cache"})
+    client.post("/api/forecast/run")
+    cascade = client.post(
+        "/api/cascade/simulate",
+        json={"corridor": "MALACCA", "n_simulations": 50},
+    )
+    assert cascade.status_code == 200
+    body = cascade.json()
+    assert body["corridor"] == "MALACCA"
+    assert body.get("scenario_id")
+    rec = client.post("/api/recommendations/run?force=true")
+    assert rec.status_code == 200
+    rec_body = rec.json()
+    assert len(rec_body.get("options", [])) >= 1
+
+
 def test_backtest_timeline_cited_rows(client: TestClient) -> None:
     first = client.get("/api/backtest/timeline")
     second = client.get("/api/backtest/timeline")

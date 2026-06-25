@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Corridor } from "../types/generated";
-import { runRecommendations, simulateCascade } from "../api/client";
+import { runForecast, runRecommendations, simulateCascade } from "../api/client";
 
 interface Props {
   corridor: Corridor;
@@ -18,6 +18,7 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
     setError(null);
     try {
       const cascade = await simulateCascade({ corridor, n_simulations: 50 });
+      await runForecast();
       const rec = await runRecommendations(true);
       setMessage(
         `Scenario ${corridor}: cascade ${cascade.scenario_id.slice(0, 8)}… → ${rec.options.length} options`,
