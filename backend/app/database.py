@@ -11,6 +11,30 @@ DATA_DIR = ROOT / "data"
 DEFAULT_DB_PATH = DATA_DIR / "setu.db"
 
 
+def migrate_recommendations_computed_at(conn: sqlite3.Connection) -> bool:
+    """Add computed_at to legacy recommendations tables and backfill existing rows.
+
+    SQLite rejects non-constant DEFAULT expressions when altering a populated table,
+    so the column is added without a default and existing rows are updated in place.
+    """
+    if conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='recommendations'"
+    ).fetchone() is None:
+        return False
+
+    rec_cols = {
+        row[1] for row in conn.execute("PRAGMA table_info(recommendations)").fetchall()
+    }
+    if "computed_at" in rec_cols:
+        return False
+
+    conn.execute("ALTER TABLE recommendations ADD COLUMN computed_at TEXT")
+    conn.execute(
+        "UPDATE recommendations SET computed_at = datetime('now') WHERE computed_at IS NULL"
+    )
+    return True
+
+
 def get_db_path() -> Path:
     url = os.getenv("DATABASE_URL", "sqlite:///data/setu.db")
     if url.startswith("sqlite:////"):
@@ -113,14 +137,7 @@ def init_db() -> None:
         conn.execute(
             "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.5.0')"
         )
-        rec_cols = {
-            row[1] for row in conn.execute("PRAGMA table_info(recommendations)").fetchall()
-        }
-        if rec_cols and "computed_at" not in rec_cols:
-            conn.execute(
-                "ALTER TABLE recommendations ADD COLUMN computed_at TEXT "
-                "DEFAULT (datetime('now'))"
-            )
+        migrate_recommendations_computed_at(conn)
         conn.commit()
     finally:
         conn.close()

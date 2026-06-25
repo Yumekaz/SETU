@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from pathlib import Path
 
 import pytest
 from app.database import get_db_path, init_db
@@ -163,8 +164,14 @@ def test_expire_stale_pending_on_list(client: TestClient) -> None:
     assert "Expired" in match[0]["operator_note"]
 
 
-def test_recommendations_table_migration_adds_computed_at(tmp_path) -> None:
-    db_file = tmp_path / "legacy.db"
+def _legacy_recommendations_payload() -> dict:
+    rows = json.loads((ROOT / "data/fixtures/recommendations.json").read_text())
+    return rows[0]
+
+
+def _create_populated_legacy_recommendations_db(db_file: Path) -> str:
+    """Create a pre-Phase-4 recommendations table with one pending row."""
+    payload = _legacy_recommendations_payload()
     conn = sqlite3.connect(str(db_file))
     conn.execute(
         """
@@ -177,14 +184,92 @@ def test_recommendations_table_migration_adds_computed_at(tmp_path) -> None:
         )
         """
     )
+    conn.execute(
+        """
+        INSERT INTO recommendations (
+            recommendation_id, trigger_corridor, status, source_cascade_id, payload_json
+        ) VALUES (?, ?, ?, ?, ?)
+        """,
+        (
+            payload["recommendation_id"],
+            payload["trigger_corridor"],
+            payload["status"],
+            payload["source_cascade_id"],
+            json.dumps(payload),
+        ),
+    )
     conn.commit()
     conn.close()
+    return payload["recommendation_id"]
 
-    import os
 
-    os.environ["DATABASE_URL"] = f"sqlite:////{db_file}"
+def test_recommendations_migration_on_populated_legacy_table(
+    tmp_path, monkeypatch
+) -> None:
+    """ALTER succeeds on a legacy table that already has recommendation rows."""
+    from app.database import migrate_recommendations_computed_at
+
+    db_file = tmp_path / "legacy_populated.db"
+    rec_id = _create_populated_legacy_recommendations_db(db_file)
+
+    conn = sqlite3.connect(str(db_file))
+    migrated = migrate_recommendations_computed_at(conn)
+    conn.commit()
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(recommendations)")}
+    computed_at = conn.execute(
+        "SELECT computed_at FROM recommendations WHERE recommendation_id = ?",
+        (rec_id,),
+    ).fetchone()[0]
+    conn.close()
+
+    assert migrated is True
+    assert "computed_at" in cols
+    assert computed_at is not None
+
+
+def test_init_db_migrates_populated_legacy_recommendations_table(
+    tmp_path, monkeypatch
+) -> None:
+    db_file = tmp_path / "legacy_init.db"
+    rec_id = _create_populated_legacy_recommendations_db(db_file)
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:////{db_file}")
+
     init_db()
 
-    with sqlite3.connect(str(db_file)) as migrated:
-        cols = {row[1] for row in migrated.execute("PRAGMA table_info(recommendations)")}
+    with sqlite3.connect(str(db_file)) as conn:
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(recommendations)")}
+        computed_at = conn.execute(
+            "SELECT computed_at FROM recommendations WHERE recommendation_id = ?",
+            (rec_id,),
+        ).fetchone()[0]
     assert "computed_at" in cols
+    assert computed_at is not None
+
+
+def test_expire_works_after_legacy_migration(tmp_path, monkeypatch) -> None:
+    """Expire path works on rows migrated from a populated legacy table."""
+    db_file = tmp_path / "legacy_expire.db"
+    rec_id = _create_populated_legacy_recommendations_db(db_file)
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:////{db_file}")
+    monkeypatch.setenv("SETU_MC_N_SIMULATIONS", "50")
+    monkeypatch.setenv("SETU_EXTRACTOR_MODE", "rules")
+    init_db()
+
+    with sqlite3.connect(str(db_file)) as conn:
+        conn.execute(
+            """
+            UPDATE recommendations
+            SET computed_at = datetime('now', '-48 hours')
+            WHERE recommendation_id = ?
+            """,
+            (rec_id,),
+        )
+        conn.commit()
+
+    client = TestClient(app)
+    listing = client.get("/api/recommendations")
+    assert listing.status_code == 200
+    match = [r for r in listing.json() if r["recommendation_id"] == rec_id]
+    assert len(match) == 1
+    assert match[0]["status"] == Status.expired.value
+    assert "Expired" in match[0]["operator_note"]
