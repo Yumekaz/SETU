@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -81,6 +82,81 @@ def normalize_pytest_log(content: str) -> str:
     return re.sub(r" in [\d.]+s.*$", "", content, flags=re.MULTILINE)
 
 
+def _phase6_test_client(db_name: str) -> object:
+    """Build a TestClient on an isolated scratch DB for evidence capture."""
+    sys.path.insert(0, str(ROOT / "backend"))
+    sys.path.insert(0, str(ROOT))
+    from app.database import init_db
+    from app.main import app
+    from fastapi.testclient import TestClient
+
+    os.environ["DATABASE_URL"] = f"sqlite:////{SCRATCH / db_name}"
+    os.environ.setdefault("SETU_MC_N_SIMULATIONS", "50")
+    os.environ.setdefault("SETU_EXTRACTOR_MODE", "rules")
+    init_db()
+    return TestClient(app)
+
+
+def write_backend_feeds_log() -> None:
+    """Capture health + backtest feeds to phase6_backend_feeds.log (plan step 2)."""
+    client = _phase6_test_client("phase6_verify.db")
+    health = client.get("/health").json()
+    t1 = client.get("/api/backtest/trajectory").json()
+    t2 = client.get("/api/backtest/trajectory").json()
+    tl1 = client.get("/api/backtest/timeline").json()
+    tl2 = client.get("/api/backtest/timeline").json()
+    lines = [
+        f"health={json.dumps(health)}",
+        f"trajectory_points={len(t1.get('points', []))}",
+        f"trajectory_bit_identical={t1 == t2}",
+        f"timeline_rows={len(tl1)}",
+        f"timeline_bit_identical={tl1 == tl2}",
+    ]
+    (SCRATCH / "phase6_backend_feeds.log").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def write_default_and_unrehearsed_log() -> None:
+    """Capture dashboard + MALACCA probe outcomes (plan step 5)."""
+    client = _phase6_test_client("phase6_default.db")
+    log: list[str] = []
+
+    pipe = client.post("/api/pipeline/run", json={"source": "cache"})
+    log.append(f"pipeline_status={pipe.status_code}")
+    forecasts = client.get("/api/forecast/latest").json()
+    if len(forecasts) == 0:
+        fc_run = client.post("/api/forecast/run")
+        log.append(f"forecast_run_status={fc_run.status_code}")
+        forecasts = client.get("/api/forecast/latest").json()
+    scores = client.get("/api/risk-scores/latest").json()
+    corridors = {s["corridor"] for s in scores}
+    log.append(f"forecast_count={len(forecasts)} score_count={len(scores)}")
+    log.append(f"corridors={sorted(corridors)}")
+
+    cascade = client.post(
+        "/api/cascade/simulate",
+        json={"corridor": "MALACCA", "n_simulations": 50},
+    )
+    fc_after = client.post("/api/forecast/run")
+    rec = client.post("/api/recommendations/run?force=true")
+    log.append(f"malacca_cascade={cascade.status_code} post_cascade_forecast={fc_after.status_code}")
+    log.append(f"recs={rec.status_code}")
+    if cascade.status_code == 200:
+        body = cascade.json()
+        log.append(f"cascade_corridor={body.get('corridor')}")
+        impact = body.get("price_impact_pct", {})
+        log.append(
+            "price_impact_pct="
+            f"p10={impact.get('p10')} p50={impact.get('p50')} p90={impact.get('p90')}"
+        )
+    if rec.status_code == 200:
+        log.append(f"rec_options={len(rec.json().get('options', []))}")
+
+    (SCRATCH / "phase6_default_and_unrehearsed.log").write_text(
+        "\n".join(log) + "\n",
+        encoding="utf-8",
+    )
+
+
 def run_phase6_api_pytest() -> None:
     """Delegate API/dashboard probes to tests/test_phase6_api.py (single source of truth)."""
     env = {
@@ -99,6 +175,8 @@ def run_phase6_api_pytest() -> None:
         proc.returncode == 0,
         f"exit={proc.returncode}",
     )
+    write_backend_feeds_log()
+    write_default_and_unrehearsed_log()
 
 
 def verify_frontend() -> tuple[int, int]:

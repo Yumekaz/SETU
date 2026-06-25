@@ -60,6 +60,17 @@ def test_default_dashboard_populated(client: TestClient) -> None:
     assert {"HORMUZ", "BAB_EL_MANDEB", "MALACCA"} <= corridors
 
 
+def _assert_percentile_band_ordered(band: dict) -> None:
+    assert "p10" in band
+    assert "p50" in band
+    assert "p90" in band
+    p10, p50, p90 = band["p10"], band["p50"], band["p90"]
+    assert isinstance(p10, (int, float))
+    assert isinstance(p50, (int, float))
+    assert isinstance(p90, (int, float))
+    assert p10 <= p50 <= p90
+
+
 def test_unrehearsed_malacca_cascade_and_recs(client: TestClient) -> None:
     client.post("/api/pipeline/run", json={"source": "cache"})
     client.post("/api/forecast/run")
@@ -71,6 +82,9 @@ def test_unrehearsed_malacca_cascade_and_recs(client: TestClient) -> None:
     body = cascade.json()
     assert body["corridor"] == "MALACCA"
     assert body.get("scenario_id")
+    _assert_percentile_band_ordered(body["price_impact_pct"])
+    _assert_percentile_band_ordered(body["refinery_throughput_impact_pct"])
+    _assert_percentile_band_ordered(body["spr_days_required"])
     fc_after = client.post("/api/forecast/run")
     assert fc_after.status_code == 200
     rec = client.post("/api/recommendations/run?force=true")
