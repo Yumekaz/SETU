@@ -84,6 +84,7 @@ export default function MapView({
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-sm text-slate-300">Corridor</label>
         <select
+          id="map-corridor-select"
           className="rounded bg-slate-800 px-3 py-2 text-sm"
           value={selectedCorridor}
           onChange={(e) => onCorridorChange(e.target.value as Corridor)}
@@ -99,9 +100,14 @@ export default function MapView({
             Disruption emphasis active
           </span>
         )}
-        <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400">
-          Cape reroute overlay (demo ASSUMPTION)
-        </span>
+        {selectedCorridor === "HORMUZ" && (
+          <span
+            id="cape-overlay-badge"
+            className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400"
+          >
+            Cape reroute overlay (demo ASSUMPTION)
+          </span>
+        )}
       </div>
       <div
         id="setu-map-container"

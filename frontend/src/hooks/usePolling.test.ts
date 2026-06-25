@@ -38,4 +38,82 @@ describe("usePolling", () => {
 
     unmount();
   });
+
+  it("does not fetch when disabled, then fetches when enabled", async () => {
+    const fetcher = vi.fn().mockResolvedValue({ ready: true });
+    const { result, rerender, unmount } = renderHook(
+      ({ enabled }) => usePolling(fetcher, 60_000, enabled),
+      { initialProps: { enabled: false } },
+    );
+
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(result.current.data).toBeNull();
+
+    rerender({ enabled: true });
+    await waitFor(() => expect(result.current.data).toEqual({ ready: true }));
+    expect(fetcher).toHaveBeenCalled();
+
+    unmount();
+  });
+
+  it("surfaces fetch errors and clears loading", async () => {
+    const fetcher = vi.fn().mockRejectedValue(new Error("network down"));
+    const { result, unmount } = renderHook(() => usePolling(fetcher, 999_999, true));
+
+    await waitFor(() => expect(result.current.error).toBe("network down"));
+    expect(result.current.loading).toBe(false);
+    expect(result.current.data).toBeNull();
+
+    unmount();
+  });
+
+  it("sets loading during manual refresh", async () => {
+    let resolveFetch: (v: { ok: boolean }) => void = () => {};
+    const fetcher = vi.fn(
+      () =>
+        new Promise<{ ok: boolean }>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+    const { result, unmount } = renderHook(() => usePolling(fetcher, 999_999, true));
+
+    await waitFor(() => expect(fetcher).toHaveBeenCalled());
+    resolveFetch({ ok: true });
+    await waitFor(() => expect(result.current.data).toEqual({ ok: true }));
+
+    const pending = new Promise<{ ok: boolean }>((resolve) => {
+      resolveFetch = resolve;
+    });
+    fetcher.mockReturnValueOnce(pending);
+
+    act(() => {
+      result.current.refresh();
+    });
+    expect(result.current.loading).toBe(true);
+
+    await act(async () => {
+      resolveFetch({ ok: true });
+      await pending;
+    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    unmount();
+  });
+
+  it("stops interval polling after unmount", async () => {
+    const fetcher = vi.fn().mockResolvedValue({ tick: 1 });
+    const { unmount } = renderHook(() => usePolling(fetcher, 40, true));
+
+    await waitFor(() => expect(fetcher.mock.calls.length).toBeGreaterThanOrEqual(1));
+    const callsAtUnmount = fetcher.mock.calls.length;
+    unmount();
+
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 120));
+    });
+    expect(fetcher.mock.calls.length).toBe(callsAtUnmount);
+  });
 });

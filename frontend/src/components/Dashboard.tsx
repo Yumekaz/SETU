@@ -52,11 +52,12 @@ export default function Dashboard({
   onScenarioComplete,
 }: Props) {
   const [bootstrapped, setBootstrapped] = useState(false);
+  const [bootstrapError, setBootstrapError] = useState<string | null>(null);
 
   useEffect(() => {
     ensureBaselineData()
       .then(() => setBootstrapped(true))
-      .catch(() => setBootstrapped(true));
+      .catch((err: Error) => setBootstrapError(err.message));
   }, []);
 
   const fetcher = useCallback(() => loadDashboard(), []);
@@ -66,6 +67,14 @@ export default function Dashboard({
     refresh();
     onScenarioComplete();
   };
+
+  if (bootstrapError) {
+    return (
+      <p id="dashboard-bootstrap-error" className="text-red-300">
+        Dashboard bootstrap failed: {bootstrapError}
+      </p>
+    );
+  }
 
   if (!bootstrapped || (loading && !data)) {
     return <p className="text-slate-400">Loading dashboard baseline…</p>;
@@ -111,6 +120,7 @@ export default function Dashboard({
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-sm text-slate-400">Scenario corridor</label>
         <select
+          id="scenario-corridor-select"
           className="rounded bg-slate-800 px-3 py-2 text-sm"
           value={selectedCorridor}
           onChange={(e) => onCorridorChange(e.target.value as Corridor)}

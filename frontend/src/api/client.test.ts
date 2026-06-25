@@ -21,20 +21,30 @@ const TIMELINE_PAYLOAD = [
   },
 ];
 
+function mockFetch(handlers: Record<string, () => Promise<unknown>>) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init?: RequestInit) => {
+      const method = init?.method ?? "GET";
+      const key = `${method} ${url}`;
+      for (const [pattern, handler] of Object.entries(handlers)) {
+        if (key.includes(pattern) || url.endsWith(pattern)) {
+          return handler();
+        }
+      }
+      throw new Error(`unexpected fetch ${key}`);
+    }),
+  );
+}
+
 describe("fetchBacktestTrajectory", () => {
   beforeEach(() => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string) => {
-        if (url.endsWith("/api/backtest/trajectory")) {
-          return {
-            ok: true,
-            json: async () => TRAJECTORY_PAYLOAD,
-          };
-        }
-        throw new Error(`unexpected url ${url}`);
+    mockFetch({
+      "/api/backtest/trajectory": async () => ({
+        ok: true,
+        json: async () => TRAJECTORY_PAYLOAD,
       }),
-    );
+    });
   });
 
   afterEach(() => {
@@ -47,22 +57,23 @@ describe("fetchBacktestTrajectory", () => {
     expect(result.points).toHaveLength(2);
     expect(result.points[1].score).toBe(0.1);
   });
+
+  it("throws on HTTP error", async () => {
+    mockFetch({
+      "/api/backtest/trajectory": async () => ({ ok: false, status: 503 }),
+    });
+    await expect(fetchBacktestTrajectory()).rejects.toThrow("HTTP 503");
+  });
 });
 
 describe("fetchBacktestTimeline", () => {
   beforeEach(() => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string) => {
-        if (url.endsWith("/api/backtest/timeline")) {
-          return {
-            ok: true,
-            json: async () => TIMELINE_PAYLOAD,
-          };
-        }
-        throw new Error(`unexpected url ${url}`);
+    mockFetch({
+      "/api/backtest/timeline": async () => ({
+        ok: true,
+        json: async () => TIMELINE_PAYLOAD,
       }),
-    );
+    });
   });
 
   afterEach(() => {
@@ -74,5 +85,90 @@ describe("fetchBacktestTimeline", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].source_url).toContain("eia.gov");
     expect(rows[0].date).toBe("2026-03-11");
+  });
+
+  it("throws on HTTP error", async () => {
+    mockFetch({
+      "/api/backtest/timeline": async () => ({ ok: false, status: 500 }),
+    });
+    await expect(fetchBacktestTimeline()).rejects.toThrow("HTTP 500");
+  });
+});
+
+describe("ensureBaselineData", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it("runs pipeline then forecast when both are empty", async () => {
+    const calls: string[] = [];
+    mockFetch({
+      "/api/risk-scores": async () => {
+        calls.push("scores");
+        return { ok: true, json: async () => [] };
+      },
+      "/api/pipeline/run": async () => {
+        calls.push("pipeline");
+        return { ok: true, json: async () => ({}) };
+      },
+      "/api/forecast/latest": async () => {
+        calls.push("forecast-latest");
+        return { ok: true, json: async () => [] };
+      },
+      "/api/forecast/run": async () => {
+        calls.push("forecast-run");
+        return { ok: true, json: async () => [{ corridor: "HORMUZ" }] };
+      },
+    });
+
+    const mod = await import("./client");
+    await mod.ensureBaselineData();
+    expect(calls).toEqual(["scores", "pipeline", "forecast-latest", "forecast-run"]);
+  });
+
+  it("skips pipeline and forecast when data already present", async () => {
+    const calls: string[] = [];
+    mockFetch({
+      "/api/risk-scores": async () => {
+        calls.push("scores");
+        return {
+          ok: true,
+          json: async () => [{ corridor: "HORMUZ", score: 0.1 }],
+        };
+      },
+      "/api/forecast/latest": async () => {
+        calls.push("forecast-latest");
+        return {
+          ok: true,
+          json: async () => [{ corridor: "HORMUZ", trajectory: [] }],
+        };
+      },
+    });
+
+    const mod = await import("./client");
+    await mod.ensureBaselineData();
+    expect(calls).toEqual(["scores", "forecast-latest"]);
+  });
+
+  it("deduplicates concurrent bootstrap calls", async () => {
+    let scoreCalls = 0;
+    mockFetch({
+      "/api/risk-scores": async () => {
+        scoreCalls += 1;
+        return {
+          ok: true,
+          json: async () => [{ corridor: "HORMUZ", score: 0.1 }],
+        };
+      },
+      "/api/forecast/latest": async () => ({
+        ok: true,
+        json: async () => [{ corridor: "HORMUZ", trajectory: [] }],
+      }),
+    });
+
+    const mod = await import("./client");
+    await Promise.all([mod.ensureBaselineData(), mod.ensureBaselineData()]);
+    expect(scoreCalls).toBe(1);
   });
 });

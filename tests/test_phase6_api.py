@@ -44,15 +44,20 @@ def test_backtest_trajectory_full_window(client: TestClient) -> None:
 
 
 def test_default_dashboard_populated(client: TestClient) -> None:
-    client.post("/api/pipeline/run", json={"source": "cache"})
+    pipe = client.post("/api/pipeline/run", json={"source": "cache"})
+    assert pipe.status_code == 200
     forecasts = client.get("/api/forecast/latest").json()
     if len(forecasts) == 0:
-        client.post("/api/forecast/run")
+        fc = client.post("/api/forecast/run")
+        assert fc.status_code == 200
         forecasts = client.get("/api/forecast/latest").json()
     assert len(forecasts) >= 1
     assert forecasts[0]["trajectory"]
+    assert len(forecasts[0]["trajectory"]) >= 1
     scores = client.get("/api/risk-scores/latest").json()
-    assert len(scores) >= 1
+    assert len(scores) >= 3
+    corridors = {s["corridor"] for s in scores}
+    assert {"HORMUZ", "BAB_EL_MANDEB", "MALACCA"} <= corridors
 
 
 def test_unrehearsed_malacca_cascade_and_recs(client: TestClient) -> None:
@@ -66,6 +71,8 @@ def test_unrehearsed_malacca_cascade_and_recs(client: TestClient) -> None:
     body = cascade.json()
     assert body["corridor"] == "MALACCA"
     assert body.get("scenario_id")
+    fc_after = client.post("/api/forecast/run")
+    assert fc_after.status_code == 200
     rec = client.post("/api/recommendations/run?force=true")
     assert rec.status_code == 200
     rec_body = rec.json()

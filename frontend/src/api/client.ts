@@ -304,13 +304,26 @@ export async function runBacktest(): Promise<BacktestRunResult> {
   return response.json() as Promise<BacktestRunResult>;
 }
 
+let baselinePromise: Promise<void> | null = null;
+
 export async function ensureBaselineData(): Promise<void> {
-  const scores = await fetchRiskScores();
-  if (scores.length === 0) {
-    await runPipeline();
+  if (baselinePromise) {
+    return baselinePromise;
   }
-  const forecasts = await fetchForecastsLatest();
-  if (forecasts.length === 0) {
-    await runForecast();
+  baselinePromise = (async () => {
+    const scores = await fetchRiskScores();
+    if (scores.length === 0) {
+      await runPipeline();
+    }
+    const forecasts = await fetchForecastsLatest();
+    if (forecasts.length === 0) {
+      await runForecast();
+    }
+  })();
+  try {
+    await baselinePromise;
+  } catch (err) {
+    baselinePromise = null;
+    throw err;
   }
 }

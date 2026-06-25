@@ -8,7 +8,6 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 
@@ -57,9 +56,7 @@ def write_summary(extra: list[str] | None = None) -> None:
         lines.append(f"{name}={status}")
     if extra:
         lines.extend(["", *extra])
-    all_pass = all(v == "PASS" for v in gates.values()) and all(
-        v != "SKIP_FAIL" for v in gates.values()
-    )
+    all_pass = all(v == "PASS" for v in gates.values())
     lines.append("")
     lines.append(f"overall={'PASS' if all_pass else 'FAIL'}")
     SUMMARY_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -140,19 +137,23 @@ def probe_default_dashboard() -> None:
     scores = client.get("/api/risk-scores/latest").json()
     log.append(f"forecast_count={len(forecasts)} score_count={len(scores)}")
 
+    corridors = {s["corridor"] for s in scores}
     ok = (
         pipe.status_code == 200
         and len(forecasts) >= 1
         and bool(forecasts[0].get("trajectory"))
-        and len(scores) >= 1
+        and len(forecasts[0]["trajectory"]) >= 1
+        and len(scores) >= 3
+        and {"HORMUZ", "BAB_EL_MANDEB", "MALACCA"} <= corridors
     )
     gate("default_dashboard_populated", ok)
 
-    client.post("/api/forecast/run")
     cascade = client.post(
         "/api/cascade/simulate",
         json={"corridor": "MALACCA", "n_simulations": 50},
     )
+    fc_after = client.post("/api/forecast/run")
+    log.append(f"post_cascade_forecast={fc_after.status_code}")
     rec = client.post("/api/recommendations/run?force=true")
     log.append(f"malacca_cascade={cascade.status_code} recs={rec.status_code}")
     if cascade.status_code == 200:
@@ -163,6 +164,7 @@ def probe_default_dashboard() -> None:
     unrehearsed_ok = (
         cascade.status_code == 200
         and cascade.json().get("corridor") == "MALACCA"
+        and fc_after.status_code == 200
         and rec.status_code == 200
         and len(rec.json().get("options", [])) >= 1
     )
@@ -215,47 +217,39 @@ def wait_http(url: str, timeout: float = 60.0) -> bool:
     return False
 
 
-def verify_browser() -> None:
+def _run_browser_gate(
+    gate_name: str,
+    *,
+    db_path: Path,
+    seed: bool,
+    cold_start: bool,
+    api_port: str = "8765",
+    ui_port: str = "4173",
+) -> None:
     node = shutil.which("node")
     npm = shutil.which("npm")
-    npx = shutil.which("npx")
-    if not node or not npm or not npx:
-        gate("browser_check_twice", False, "node/npm unavailable")
-        (SCRATCH / "phase6_browser_fallback.log").write_text(
-            "node/npm not available — browser check skipped\n", encoding="utf-8"
-        )
+    if not node or not npm:
+        gate(gate_name, False, "node/npm unavailable")
         return
 
-    pw_check = run_cmd([npx, "playwright", "--version"], cwd=FRONTEND, timeout=30)
-    if pw_check.returncode != 0:
-        gate("browser_check_twice", False, "playwright unavailable")
-        (SCRATCH / "phase6_browser_fallback.log").write_text(
-            pw_check.stdout + pw_check.stderr, encoding="utf-8"
-        )
-        return
-
-    dist = FRONTEND / "dist"
-    if not dist.exists():
-        gate("browser_check_twice", False, "frontend dist missing — run build first")
-        return
-
-    backend_proc: subprocess.Popen[str] | None = None
-    frontend_proc: subprocess.Popen[str] | None = None
-    api_port = "8765"
-    ui_port = "5173"
     api_url = f"http://127.0.0.1:{api_port}"
     ui_url = f"http://127.0.0.1:{ui_port}"
+    backend_proc: subprocess.Popen[str] | None = None
+    frontend_proc: subprocess.Popen[str] | None = None
+    backend_log = SCRATCH / f"{gate_name}_backend.log"
+    frontend_log = SCRATCH / f"{gate_name}_frontend.log"
 
     try:
-        db = SCRATCH / "phase6_browser.db"
         backend_env = os.environ.copy()
         backend_env.update(
             {
-                "DATABASE_URL": f"sqlite:////{db}",
+                "DATABASE_URL": f"sqlite:////{db_path}",
                 "SETU_MC_N_SIMULATIONS": "50",
                 "SETU_EXTRACTOR_MODE": "rules",
+                "CORS_ORIGINS": f"http://127.0.0.1:{ui_port},http://localhost:{ui_port}",
             }
         )
+        backend_log.parent.mkdir(parents=True, exist_ok=True)
         backend_proc = subprocess.Popen(
             [
                 sys.executable,
@@ -269,23 +263,22 @@ def verify_browser() -> None:
             ],
             cwd=ROOT / "backend",
             env=backend_env,
-            stdout=subprocess.PIPE,
+            stdout=backend_log.open("w", encoding="utf-8"),
             stderr=subprocess.STDOUT,
-            text=True,
         )
         if not wait_http(f"{api_url}/health", timeout=90):
-            gate("browser_check_twice", False, "backend health timeout")
+            gate(gate_name, False, "backend health timeout")
             return
-
         if backend_proc.poll() is not None:
-            gate("browser_check_twice", False, "backend exited early")
+            gate(gate_name, False, "backend exited early")
             return
 
-        seed = run_cmd(
-            [
-                sys.executable,
-                "-c",
-                f"""
+        if seed:
+            seed_proc = run_cmd(
+                [
+                    sys.executable,
+                    "-c",
+                    f"""
 import urllib.request, json
 api = "{api_url}"
 def post(path, body=None):
@@ -302,49 +295,55 @@ post("/api/pipeline/run", {{"source": "cache"}})
 post("/api/forecast/run")
 print("seeded")
 """,
-            ],
-            timeout=180,
-        )
-        (SCRATCH / "phase6_browser_seed.log").write_text(
-            seed.stdout + seed.stderr, encoding="utf-8"
-        )
-        if seed.returncode != 0:
-            gate("browser_check_twice", False, "baseline seed failed")
-            return
+                ],
+                timeout=180,
+            )
+            (SCRATCH / f"{gate_name}_seed.log").write_text(
+                seed_proc.stdout + seed_proc.stderr, encoding="utf-8"
+            )
+            if seed_proc.returncode != 0:
+                gate(gate_name, False, "baseline seed failed")
+                return
 
         frontend_env = os.environ.copy()
         frontend_env["VITE_API_URL"] = api_url
         frontend_proc = subprocess.Popen(
-            [npm, "run", "preview", "--", "--host", "127.0.0.1", "--port", ui_port],
+            [
+                npm,
+                "run",
+                "preview",
+                "--",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                ui_port,
+                "--strictPort",
+            ],
             cwd=FRONTEND,
             env=frontend_env,
-            stdout=subprocess.PIPE,
+            stdout=frontend_log.open("w", encoding="utf-8"),
             stderr=subprocess.STDOUT,
-            text=True,
         )
-
         if not wait_http(ui_url, timeout=90):
-            gate("browser_check_twice", False, "frontend timeout")
+            gate(gate_name, False, "frontend timeout")
             return
 
         browser_env = os.environ.copy()
         browser_env["SETU_API_URL"] = api_url
         browser_env["SETU_UI_URL"] = ui_url
         browser_env["SCRATCH_DIR"] = str(SCRATCH)
+        if cold_start:
+            browser_env["SETU_BROWSER_COLD_START"] = "1"
         browser = run_cmd(
             ["node", str(ROOT / "scripts" / "phase6_browser_check.mjs")],
             cwd=FRONTEND,
             env=browser_env,
-            timeout=300,
+            timeout=420 if cold_start else 300,
         )
-        (SCRATCH / "phase6_browser_run.log").write_text(
+        (SCRATCH / f"{gate_name}_run.log").write_text(
             browser.stdout + browser.stderr, encoding="utf-8"
         )
-        gate(
-            "browser_check_twice",
-            browser.returncode == 0,
-            f"exit={browser.returncode}",
-        )
+        gate(gate_name, browser.returncode == 0, f"exit={browser.returncode}")
     finally:
         for proc in (frontend_proc, backend_proc):
             if proc and proc.poll() is None:
@@ -353,6 +352,59 @@ print("seeded")
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+
+
+def verify_browser() -> None:
+    npx = shutil.which("npx")
+    if not npx:
+        gate("browser_cold_start", False, "npx unavailable")
+        gate("browser_check_twice", False, "npx unavailable")
+        (SCRATCH / "phase6_browser_fallback.log").write_text(
+            "npx not available — browser check skipped\n", encoding="utf-8"
+        )
+        return
+
+    pw_check = run_cmd([npx, "playwright", "--version"], cwd=FRONTEND, timeout=30)
+    if pw_check.returncode != 0:
+        gate("browser_cold_start", False, "playwright unavailable")
+        gate("browser_check_twice", False, "playwright unavailable")
+        (SCRATCH / "phase6_browser_fallback.log").write_text(
+            pw_check.stdout + pw_check.stderr, encoding="utf-8"
+        )
+        return
+
+    api_url = "http://127.0.0.1:8765"
+    npm = shutil.which("npm")
+    if not npm:
+        gate("browser_cold_start", False, "npm unavailable")
+        gate("browser_check_twice", False, "npm unavailable")
+        return
+    browser_build = run_cmd(
+        [npm, "run", "build"],
+        cwd=FRONTEND,
+        env={**os.environ, "VITE_API_URL": api_url},
+        timeout=180,
+    )
+    (SCRATCH / "phase6_browser_build.log").write_text(
+        browser_build.stdout + browser_build.stderr, encoding="utf-8"
+    )
+    if browser_build.returncode != 0:
+        gate("browser_cold_start", False, "browser build failed")
+        gate("browser_check_twice", False, "browser build failed")
+        return
+
+    _run_browser_gate(
+        "browser_cold_start",
+        db_path=SCRATCH / "phase6_browser_cold.db",
+        seed=False,
+        cold_start=True,
+    )
+    _run_browser_gate(
+        "browser_check_twice",
+        db_path=SCRATCH / "phase6_browser.db",
+        seed=True,
+        cold_start=False,
+    )
 
 
 def run_pytest_twice() -> tuple[int, int]:
@@ -379,6 +431,8 @@ def run_pytest_twice() -> tuple[int, int]:
                     pass
         counts.append(passed)
         gate(f"pytest_full_run{i}", ok, f"passed={passed} exit={proc.returncode}")
+    identical = counts[0] == counts[1] and counts[0] > 0
+    gate("pytest_runs_identical", identical, f"run1={counts[0]} run2={counts[1]}")
     return counts[0], counts[1]
 
 

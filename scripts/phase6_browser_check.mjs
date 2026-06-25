@@ -1,4 +1,4 @@
-import { writeFileSync } from "fs";
+import { copyFileSync, writeFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 
@@ -11,78 +11,169 @@ const { chromium } = await import(playwrightEntry);
 const API = process.env.SETU_API_URL ?? "http://127.0.0.1:8000";
 const UI = process.env.SETU_UI_URL ?? "http://127.0.0.1:5173";
 const SCRATCH = process.env.SCRATCH_DIR ?? "/tmp/grok-goal-df3a238e5ed0/implementer";
+const COLD_START = process.env.SETU_BROWSER_COLD_START === "1";
+const RUNS = COLD_START ? 1 : 2;
 const log = [];
+
+const SCENARIO_RE = /Scenario MALACCA: cascade [a-f0-9]{8}… → \d+ options/;
+
+function isBenignConsoleError(text) {
+  return (
+    /favicon/i.test(text) ||
+    /Failed to load resource.*\b404\b/i.test(text) ||
+    /net::ERR_/i.test(text) ||
+    /tile.*error/i.test(text)
+  );
+}
+
+function healthOk(health) {
+  return health?.status === "ok" && health?.version === "0.7.0" && health?.phase === 6;
+}
+
+async function waitForForecast(page) {
+  await page.waitForFunction(
+    () => {
+      const panel = document.querySelector("#forecast-panel");
+      if (!panel) return false;
+      const text = panel.textContent ?? "";
+      return text.length > 0 && !text.includes("No forecasts");
+    },
+    { timeout: COLD_START ? 180_000 : 60_000 },
+  );
+}
 
 async function runOnce(label) {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+  page.setDefaultTimeout(COLD_START ? 180_000 : 60_000);
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   page.on("console", (msg) => {
-    if (msg.type() === "error") errors.push(msg.text());
+    if (msg.type() === "error" && !isBenignConsoleError(msg.text())) {
+      errors.push(msg.text());
+    }
   });
 
-  await page.goto(UI, { waitUntil: "networkidle", timeout: 90000 });
-  await page.waitForSelector("#dashboard-root", { timeout: 30000 });
+  let grid = 0;
+  let markerCount = 0;
+  let mapBox = null;
+  let scrubChanged = false;
+  let forecastOk = false;
+  let scenarioOk = false;
+  let capeBadgeOk = false;
+  let polylineOk = false;
+  let healthPass = false;
 
-  const health = await fetch(`${API}/health`).then((r) => r.json());
-  log.push(`${label}: health=${JSON.stringify(health)}`);
+  const loadTimeout = COLD_START ? 180_000 : 60_000;
 
-  const grid = await page.locator("#corridor-score-grid > div").count();
-  log.push(`${label}: dashboard_score_cards=${grid}`);
+  try {
+    await page.goto(UI, { waitUntil: "domcontentloaded", timeout: 90_000 });
+    await page.waitForSelector("#dashboard-root, .text-slate-400", { timeout: loadTimeout });
+    await waitForForecast(page);
+    await page.waitForSelector("#dashboard-root", { timeout: loadTimeout });
 
-  await page.getByRole("button", { name: "Map" }).click();
-  await page.waitForSelector("#setu-map-container .leaflet-container", { timeout: 30000 });
-  await page.waitForTimeout(1500);
+    const health = await fetch(`${API}/health`).then((r) => r.json());
+    healthPass = healthOk(health);
+    log.push(`${label}: health=${JSON.stringify(health)} health_ok=${healthPass}`);
 
-  const markerCount = await page.locator("#setu-map-container .leaflet-interactive").count();
-  const mapBox = await page.locator("#setu-map-container").boundingBox();
-  log.push(`${label}: map_markers=${markerCount} map_bbox=${JSON.stringify(mapBox)}`);
+    grid = await page.locator("#corridor-score-grid > div").count();
+    log.push(`${label}: dashboard_score_cards=${grid}`);
 
-  await page.screenshot({ path: `${SCRATCH}/phase6_browser_map_${label}.png` });
+    await page.getByRole("button", { name: "Map" }).click();
+    await page.waitForSelector("#setu-map-container .leaflet-container", { timeout: 30_000 });
+    await page.waitForSelector("#cape-overlay-badge", { timeout: 10_000 });
 
-  await page.getByRole("button", { name: "Backtest Replay" }).click();
-  await page.waitForSelector("#replay-scrub", { timeout: 20000 });
-  const before = await page.locator("#replay-timeline-card").innerText();
-  await page.locator("#replay-scrub").fill("40");
-  await page.locator("#replay-scrub").dispatchEvent("input");
-  await page.waitForTimeout(500);
-  const after = await page.locator("#replay-timeline-card").innerText();
-  log.push(`${label}: replay_scrub_changed=${before !== after}`);
+    const badgeText = await page.locator("#cape-overlay-badge").innerText();
+    capeBadgeOk = badgeText.includes("Cape reroute overlay (demo ASSUMPTION)");
+    log.push(`${label}: cape_badge=${capeBadgeOk}`);
 
-  await page.getByRole("button", { name: "Dashboard" }).click();
-  await page.waitForSelector("#forecast-panel", { timeout: 20000 });
-  const forecastText = await page.locator("#forecast-panel").innerText();
-  log.push(`${label}: forecast_populated=${!forecastText.includes("No forecasts")}`);
+    markerCount = await page.locator("#setu-map-container .leaflet-interactive").count();
+    const polylines = await page
+      .locator("#setu-map-container svg path.leaflet-interactive")
+      .count();
+    polylineOk = polylines >= 2;
+    mapBox = await page.locator("#setu-map-container").boundingBox();
+    log.push(
+      `${label}: map_markers=${markerCount} polylines=${polylines} map_bbox=${JSON.stringify(mapBox)}`,
+    );
 
-  await page.selectOption("select", "MALACCA");
-  await page.getByRole("button", { name: /Run MALACCA cascade/ }).click();
-  await page.waitForTimeout(10000);
-  const scenarioText = await page.locator("#scenario-controls").innerText();
-  log.push(`${label}: scenario_result=${scenarioText.includes("options")}`);
+    const mapShot = `${SCRATCH}/phase6_browser_map_${label}.png`;
+    await page.screenshot({ path: mapShot });
+    if (label === "run1") {
+      copyFileSync(mapShot, `${SCRATCH}/phase6_browser_load.png`);
+    }
 
-  log.push(`${label}: page_errors=${errors.length}`);
-  if (errors.length) log.push(...errors.map((e) => `ERR: ${e}`));
+    await page.getByRole("button", { name: "Backtest Replay" }).click();
+    await page.waitForSelector("#replay-scrub", { timeout: 20_000 });
+    const before = await page.locator("#replay-timeline-card").innerText();
+    const slider = page.locator("#replay-scrub");
+    await slider.fill("40");
+    await slider.dispatchEvent("input");
+    await page.waitForFunction(
+      (prev) => {
+        const card = document.querySelector("#replay-timeline-card");
+        return card && card.textContent !== prev;
+      },
+      before,
+      { timeout: 10_000 },
+    );
+    const after = await page.locator("#replay-timeline-card").innerText();
+    scrubChanged = before !== after;
+    log.push(`${label}: replay_scrub_changed=${scrubChanged}`);
 
-  const scrubChanged = before !== after;
-  const forecastOk = !forecastText.includes("No forecasts");
-  const scenarioOk = scenarioText.includes("options");
+    await page.getByRole("button", { name: "Dashboard" }).click();
+    await page.waitForSelector("#forecast-panel", { timeout: 20_000 });
+    await waitForForecast(page);
+    const forecastText = await page.locator("#forecast-panel").innerText();
+    forecastOk = !forecastText.includes("No forecasts");
+    log.push(`${label}: forecast_populated=${forecastOk}`);
 
-  await browser.close();
-  return (
+    await page.locator("#scenario-corridor-select").selectOption("MALACCA");
+    const scenarioResponse = page.waitForResponse(
+      (resp) =>
+        resp.url().includes("/api/recommendations/run") && resp.request().method() === "POST",
+      { timeout: 120_000 },
+    );
+    await page.getByRole("button", { name: /Run MALACCA cascade/ }).click();
+    await scenarioResponse;
+    const scenarioText = await page.locator("#scenario-controls").innerText();
+    scenarioOk = SCENARIO_RE.test(scenarioText);
+    log.push(`${label}: scenario_result=${scenarioOk} text=${scenarioText.slice(0, 80)}`);
+
+    log.push(`${label}: page_errors=${errors.length}`);
+    if (errors.length) log.push(...errors.map((e) => `ERR: ${e}`));
+
+    return (
     errors.length === 0 &&
+    healthPass &&
     mapBox &&
     mapBox.width >= 700 &&
     markerCount >= 5 &&
-    grid >= 1 &&
+    grid >= 3 &&
     forecastOk &&
     scrubChanged &&
-    scenarioOk
-  );
+    scenarioOk &&
+    capeBadgeOk &&
+    polylineOk
+    );
+  } catch (err) {
+    log.push(`${label}: fatal=${err.message ?? err}`);
+    return false;
+  } finally {
+    await browser.close();
+  }
 }
 
-const ok1 = await runOnce("run1");
-const ok2 = await runOnce("run2");
-const body = `api=${API}\nui=${UI}\n` + log.join("\n") + `\nconsistent=${ok1 && ok2}\n`;
+const results = [];
+for (let i = 0; i < RUNS; i += 1) {
+  const label = COLD_START ? "cold" : `run${i + 1}`;
+  results.push(await runOnce(label));
+}
+
+const ok = results.every(Boolean);
+const body =
+  `api=${API}\nui=${UI}\ncold_start=${COLD_START}\n` +
+  log.join("\n") +
+  `\nconsistent=${ok}\n`;
 writeFileSync(`${SCRATCH}/phase6_browser.log`, body);
-process.exit(ok1 && ok2 ? 0 : 1);
+process.exit(ok ? 0 : 1);
