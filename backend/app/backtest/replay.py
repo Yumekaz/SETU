@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 from app.backtest.config import BacktestConfig
-from app.backtest.integrity import assert_no_future_events, filter_events_up_to
+from app.backtest.integrity import assert_events_visible_at, filter_events_up_to, pit_diagnostics
 from app.forecast.features import extract_events_from_cache
 from app.signals.score import build_risk_scores
 
@@ -26,14 +26,18 @@ def build_pit_daily_scores(
     trajectory: list[DailyScore] = []
     current = config.window_start
     while current <= config.window_end:
-        visible = filter_events_up_to(events, current)
-        assert_no_future_events(visible, current)
+        visible_current = filter_events_up_to(events, current)
+        assert_events_visible_at(visible_current, current)
         prior_date = current - timedelta(days=7)
+        visible_prior = filter_events_up_to(events, prior_date)
+        assert_events_visible_at(visible_prior, prior_date)
         prior_scores = {
             s.corridor: s.score
-            for s in build_risk_scores(visible, score_date=prior_date)
+            for s in build_risk_scores(visible_prior, score_date=prior_date)
         }
-        scores = build_risk_scores(visible, score_date=current, prior_scores=prior_scores)
+        scores = build_risk_scores(
+            visible_current, score_date=current, prior_scores=prior_scores
+        )
         hormuz = next((s for s in scores if s.corridor == config.corridor), None)
         trajectory.append(
             DailyScore(
@@ -57,3 +61,24 @@ def find_first_crossing(
         if point.score >= threshold:
             return point
     return None
+
+
+def find_peak_score(trajectory: list[DailyScore]) -> DailyScore:
+    return max(trajectory, key=lambda point: point.score)
+
+
+def trajectory_summary(trajectory: list[DailyScore], *, head: int = 5) -> dict:
+    peak = find_peak_score(trajectory)
+    return {
+        "length": len(trajectory),
+        "peak_date": peak.score_date.isoformat(),
+        "peak_score": peak.score,
+        "first_scores": [
+            {"date": p.score_date.isoformat(), "score": p.score} for p in trajectory[:head]
+        ],
+        "scores_near_reference": [
+            {"date": p.score_date.isoformat(), "score": p.score}
+            for p in trajectory
+            if p.score_date.month == 3 and p.score_date.day <= 15
+        ],
+    }

@@ -34,6 +34,8 @@
 
 **Interpretation:** On the committed offline GDELT cache, the deterministic Hormuz risk score does not reach the locked 0.35 threshold before the 2026-03-11 reference anchor. This is reported honestly — not tuned post-hoc. Sparse early-window signal density (see `docs/gru_training_report.md`) likely caps scores below the threshold.
 
-**Secondary metric:** Not applicable (`no_crossing` — orchestrator chain not invoked).
+**Chain proof at peak (not a crossing claim):** Because `status=no_crossing`, the harness runs forecast → cascade → orchestrator at the trajectory peak (2026-02-14, score 0.25). PIT integrity diagnostics confirm all contributing events have `event_date ≤ 2026-02-14`. Orchestrator output is populated in `orchestrator_at_peak` / `orchestrator_summary`; headline `lead_time_days` remains null.
 
-**Reproducibility:** Two consecutive `run_backtest()` calls return identical `status`, `lead_time_days`, and `crossing_summary`.
+**Secondary metric:** Not applicable for headline lead time (`no_crossing`). Ground-truth comparison runs only when threshold is crossed.
+
+**Reproducibility:** Two consecutive `run_backtest()` calls return identical `status`, `lead_time_days`, `trajectory_peak`, and `orchestrator_at_peak`.
