@@ -34,7 +34,9 @@
 
 **Interpretation:** On the committed offline GDELT cache, the deterministic Hormuz risk score does not reach the locked 0.35 threshold before the 2026-03-11 reference anchor. This is reported honestly — not tuned post-hoc. Sparse early-window signal density (see `docs/gru_training_report.md`) likely caps scores below the threshold.
 
-**Chain proof at peak (not a crossing claim):** Because `status=no_crossing`, the harness runs forecast → cascade → orchestrator at the trajectory peak (2026-02-14, score 0.25). PIT integrity diagnostics confirm all contributing events have `event_date ≤ 2026-02-14`. Orchestrator output is populated in `orchestrator_at_peak` / `orchestrator_summary`; headline `lead_time_days` remains null.
+**Chain proof at peak (not a crossing claim):** Because `status=no_crossing`, the harness runs forecast → cascade → orchestrator at the trajectory peak (2026-02-14, score 0.25). Response fields: `orchestrator_at_peak`, `orchestrator_summary`, `pit_integrity`, `trajectory_peak`. PIT diagnostics at peak: `pit_ok=true`; committed cache max `event_date` is 2026-02-14 so `excluded_future_events=0` on real data — lookahead exclusion within the replay window is proven separately by `test_replay_excludes_injected_future_events` (synthetic future event injection). Headline `lead_time_days` remains null.
+
+**Chain-at-crossing proof (sub-test only):** `test_run_backtest_with_lower_threshold_invokes_chain` uses threshold 0.2 (not in config) to prove full chain at crossing: `status=crossed`, `orchestrator_at_crossing` populated, `lead_time_days` computed.
 
 **Secondary metric:** Not applicable for headline lead time (`no_crossing`). Ground-truth comparison runs only when threshold is crossed.
 
