@@ -20,9 +20,8 @@ def expire_stale_pending(conn: sqlite3.Connection, config: OrchestratorConfig) -
         (Status.pending_approval.value, f"-{config.pending_ttl_hours} hours"),
     ).fetchall()
     count = 0
-    for row in rows:
-        payload = json.loads(row["payload_json"])
-        rec = Recommendation.model_validate(payload)
+    for rec_id, payload_json in rows:
+        rec = Recommendation.model_validate(json.loads(payload_json))
         updated = rec.model_copy(
             update={"status": Status.expired, "operator_note": "Expired: pending review timeout"}
         )
@@ -35,7 +34,7 @@ def expire_stale_pending(conn: sqlite3.Connection, config: OrchestratorConfig) -
             (
                 Status.expired.value,
                 json.dumps(updated.model_dump(mode="json")),
-                str(row["recommendation_id"]),
+                str(rec_id),
             ),
         )
         count += 1

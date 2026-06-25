@@ -16,7 +16,7 @@ from app.orchestrator.config import load_orchestrator_config
 from app.orchestrator.expire import expire_stale_pending
 from app.orchestrator.hysteresis import should_supersede_pending
 from app.orchestrator.options import trigger_risk_score
-from app.orchestrator.orchestrate import run_orchestrator
+from app.orchestrator.orchestrate import recommendation_trigger_risk, run_orchestrator
 from app.orchestrator.repository import (
     get_recommendation,
     insert_recommendation,
@@ -33,6 +33,20 @@ router = APIRouter(prefix="/api", tags=["recommendations"])
 
 class OperatorNoteBody(BaseModel):
     operator_note: str = Field(..., min_length=1)
+
+
+def _hysteresis_conflict_detail(
+    corridor: str,
+    new_risk: float,
+    pending: Recommendation | None,
+    cfg: OrchestratorConfig,
+) -> str:
+    prior = recommendation_trigger_risk(pending, cfg) if pending else 0.0
+    delta = abs(new_risk - prior)
+    return (
+        f"pending recommendation exists for {corridor}; "
+        f"risk delta {delta:.4f} < hysteresis {cfg.hysteresis_risk_delta}"
+    )
 
 
 def _persist_recommendation(rec: Recommendation) -> dict[str, Any]:
@@ -108,16 +122,13 @@ def post_recommendations_run(
     forecast = (
         RiskForecast.model_validate(forecast_payload) if forecast_payload else None
     )
-    new_risk = trigger_risk_score(cascade, cfg)
+    new_risk = trigger_risk_score(cascade, network, cfg)
     pending = latest_pending_for_corridor(cascade.corridor.value)
     if not should_supersede_pending(new_risk, pending, cfg, force=force):
-        prior = pending.options[0].risk_score if pending and pending.options else 0.0
-        delta = abs(new_risk - prior)
         raise HTTPException(
             status_code=409,
-            detail=(
-                f"pending recommendation exists for {cascade.corridor.value}; "
-                f"risk delta {delta:.4f} < hysteresis {cfg.hysteresis_risk_delta}"
+            detail=_hysteresis_conflict_detail(
+                cascade.corridor.value, new_risk, pending, cfg
             ),
         )
 
@@ -136,12 +147,14 @@ def post_recommendations_from_cascade(
     if cascade is None:
         raise HTTPException(status_code=404, detail=f"cascade not found: {scenario_id}")
     network = load_network_graph()
-    new_risk = trigger_risk_score(cascade, cfg)
+    new_risk = trigger_risk_score(cascade, network, cfg)
     pending = latest_pending_for_corridor(cascade.corridor.value)
     if not should_supersede_pending(new_risk, pending, cfg, force=force):
         raise HTTPException(
             status_code=409,
-            detail="pending recommendation; risk delta below hysteresis threshold",
+            detail=_hysteresis_conflict_detail(
+                cascade.corridor.value, new_risk, pending, cfg
+            ),
         )
 
     rec = run_orchestrator(cascade, network, config=cfg)

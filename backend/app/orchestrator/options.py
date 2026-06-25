@@ -154,6 +154,13 @@ def generate_candidate_options(
     return candidates
 
 
-def trigger_risk_score(cascade: CascadeResult, config: OrchestratorConfig) -> float:
-    """Normalized trigger risk used for hysteresis comparisons."""
-    return _normalize(cascade.price_impact_pct.p50, config.max_price_impact_cap_pct)
+def trigger_risk_score(
+    cascade: CascadeResult,
+    network: NetworkGraph,
+    config: OrchestratorConfig,
+) -> float:
+    """Risk proxy for hysteresis; matches min option risk_score on the same inputs."""
+    options = generate_candidate_options(cascade, network, config=config)
+    if options:
+        return min(o.risk_score for o in options)
+    return 0.0

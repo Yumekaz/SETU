@@ -113,6 +113,14 @@ def init_db() -> None:
         conn.execute(
             "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.5.0')"
         )
+        rec_cols = {
+            row[1] for row in conn.execute("PRAGMA table_info(recommendations)").fetchall()
+        }
+        if rec_cols and "computed_at" not in rec_cols:
+            conn.execute(
+                "ALTER TABLE recommendations ADD COLUMN computed_at TEXT "
+                "DEFAULT (datetime('now'))"
+            )
         conn.commit()
     finally:
         conn.close()

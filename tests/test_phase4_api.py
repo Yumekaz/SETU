@@ -113,3 +113,78 @@ def test_list_latest_after_generate(client: TestClient) -> None:
     latest = client.get("/api/recommendations/latest")
     assert latest.status_code == 200
     assert len(latest.json()) == 1
+
+
+def test_list_recommendations_history(client: TestClient) -> None:
+    cascade = _seed_cascade(client)
+    client.post(
+        "/api/recommendations/generate/from-cascade",
+        params={"scenario_id": str(cascade.scenario_id)},
+    )
+    history = client.get("/api/recommendations")
+    assert history.status_code == 200
+    rows = history.json()
+    assert len(rows) == 1
+    assert rows[0]["source_cascade_id"] == str(cascade.scenario_id)
+
+
+def test_recommendations_run_resolves_seeded_cascade(client: TestClient) -> None:
+    cascade = _seed_cascade(client)
+    run = client.post("/api/recommendations/run")
+    assert run.status_code == 200
+    body = run.json()
+    assert body["source_cascade_id"] == str(cascade.scenario_id)
+    assert body["status"] == Status.pending_approval.value
+
+
+def test_expire_stale_pending_on_list(client: TestClient) -> None:
+    cascade = _seed_cascade(client)
+    gen = client.post(
+        "/api/recommendations/generate/from-cascade",
+        params={"scenario_id": str(cascade.scenario_id)},
+    )
+    assert gen.status_code == 200
+    rec_id = gen.json()["recommendation_id"]
+    with sqlite3.connect(str(get_db_path())) as conn:
+        conn.execute(
+            """
+            UPDATE recommendations
+            SET computed_at = datetime('now', '-48 hours')
+            WHERE recommendation_id = ?
+            """,
+            (rec_id,),
+        )
+        conn.commit()
+    listing = client.get("/api/recommendations")
+    assert listing.status_code == 200
+    match = [r for r in listing.json() if r["recommendation_id"] == rec_id]
+    assert len(match) == 1
+    assert match[0]["status"] == Status.expired.value
+    assert "Expired" in match[0]["operator_note"]
+
+
+def test_recommendations_table_migration_adds_computed_at(tmp_path) -> None:
+    db_file = tmp_path / "legacy.db"
+    conn = sqlite3.connect(str(db_file))
+    conn.execute(
+        """
+        CREATE TABLE recommendations (
+            recommendation_id TEXT PRIMARY KEY,
+            trigger_corridor TEXT NOT NULL,
+            status TEXT NOT NULL,
+            source_cascade_id TEXT NOT NULL,
+            payload_json TEXT NOT NULL
+        )
+        """
+    )
+    conn.commit()
+    conn.close()
+
+    import os
+
+    os.environ["DATABASE_URL"] = f"sqlite:////{db_file}"
+    init_db()
+
+    with sqlite3.connect(str(db_file)) as migrated:
+        cols = {row[1] for row in migrated.execute("PRAGMA table_info(recommendations)")}
+    assert "computed_at" in cols

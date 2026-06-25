@@ -27,7 +27,7 @@ When zero candidates pass hard constraints → `status: NO_FEASIBLE_OPTION`, `op
 
 ## Hysteresis
 
-New recommendation blocked (HTTP 409) when a `PENDING_APPROVAL` exists for the same corridor and `|new_risk - prior_risk| < hysteresis_risk_delta`. Use `?force=true` for demo rehearsal only.
+Both `new_risk` (from `trigger_risk_score`) and `prior_risk` (from stored recommendation) use `min(option.risk_score)` over feasible candidates on the same cascade inputs. New recommendation blocked (HTTP 409) when a `PENDING_APPROVAL` exists for the same corridor and `|new_risk - prior_risk| < hysteresis_risk_delta`. Use `?force=true` for demo rehearsal only.
 
 ## Expiry
 

@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 from uuid import uuid4
 
 from app.models.generated import Corridor, Option, Recommendation, Status
-from app.orchestrator.config import OrchestratorConfig
+from app.orchestrator.config import OrchestratorConfig, load_orchestrator_config
 from app.orchestrator.hysteresis import should_supersede_pending
+from app.orchestrator.options import trigger_risk_score
+from app.orchestrator.orchestrate import recommendation_trigger_risk, run_orchestrator
+from app.simulation.graph_loader import load_network_graph
+
+ROOT = Path(__file__).resolve().parent.parent
 
 
 def _pending_rec(risk: float) -> Recommendation:
@@ -76,3 +83,18 @@ def test_force_bypasses_hysteresis() -> None:
     )
     pending = _pending_rec(0.20)
     assert should_supersede_pending(0.21, pending, cfg, force=True)
+
+
+def test_trigger_risk_matches_stored_recommendation_min_option_risk() -> None:
+    """New-run and pending risk proxies use the same min option risk_score."""
+    from app.models.generated import CascadeResult
+
+    rows = json.loads((ROOT / "data/fixtures/cascade_results.json").read_text())
+    cascade = CascadeResult.model_validate(rows[0])
+    network = load_network_graph()
+    cfg = load_orchestrator_config()
+    rec = run_orchestrator(cascade, network, config=cfg)
+    new_risk = trigger_risk_score(cascade, network, cfg)
+    prior_risk = recommendation_trigger_risk(rec, cfg)
+    assert new_risk == prior_risk
+    assert new_risk == min(o.risk_score for o in rec.options)
