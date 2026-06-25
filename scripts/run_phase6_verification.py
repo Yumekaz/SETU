@@ -220,8 +220,24 @@ def _browser_log_ok(gate_name: str, *, cold_start: bool) -> tuple[bool, str]:
     for needle in ("cape_badge=true", "forecast_populated=true", "page_errors=0"):
         if needle not in text:
             return False, f"missing {needle} in {log_path.name}"
-    if cold_start and "cold_start=true" not in text:
-        return False, "missing cold_start=true"
+    if cold_start:
+        for needle in (
+            "db_empty_before_load=true",
+            "bootstrap_pipeline_post=true",
+            "bootstrap_forecast_post=true",
+            "bootstrap_from_empty_db=true",
+        ):
+            if needle not in text:
+                return False, f"missing {needle}"
+        backend_log = SCRATCH / f"{gate_name}_backend.log"
+        if backend_log.exists():
+            blog = backend_log.read_text(encoding="utf-8", errors="replace")
+            if "POST /api/pipeline/run" not in blog:
+                return False, "backend missing pipeline POST"
+            if "POST /api/forecast/run" not in blog:
+                return False, "backend missing forecast POST"
+        else:
+            return False, "backend log missing for cold gate"
     markers_line = next((ln for ln in text.splitlines() if "map_markers=" in ln), "")
     if markers_line:
         try:

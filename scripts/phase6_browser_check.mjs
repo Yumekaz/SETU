@@ -49,6 +49,9 @@ async function runOnce(label) {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
   page.setDefaultTimeout(COLD_START ? 180_000 : 60_000);
+  let bootstrapPipelinePost = false;
+  let bootstrapForecastPost = false;
+  let dbEmptyBeforeLoad = false;
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   page.on("console", (msg) => {
@@ -70,6 +73,30 @@ async function runOnce(label) {
   const loadTimeout = COLD_START ? 180_000 : 60_000;
 
   try {
+    if (COLD_START) {
+      const [scoresRes, forecastsRes] = await Promise.all([
+        fetch(`${API}/api/risk-scores/latest`),
+        fetch(`${API}/api/forecast/latest`),
+      ]);
+      const scores = await scoresRes.json();
+      const forecasts = await forecastsRes.json();
+      dbEmptyBeforeLoad = scores.length === 0 && forecasts.length === 0;
+      log.push(
+        `${label}: pre_load_scores=${scores.length} pre_load_forecasts=${forecasts.length} db_empty_before_load=${dbEmptyBeforeLoad}`,
+      );
+
+      page.on("request", (req) => {
+        const url = req.url();
+        const method = req.method();
+        if (method === "POST" && url.includes("/api/pipeline/run")) {
+          bootstrapPipelinePost = true;
+        }
+        if (method === "POST" && url.includes("/api/forecast/run")) {
+          bootstrapForecastPost = true;
+        }
+      });
+    }
+
     await page.goto(UI, { waitUntil: "domcontentloaded", timeout: 90_000 });
     await page.waitForSelector("#dashboard-root, .text-slate-400", { timeout: loadTimeout });
     await waitForForecast(page);
@@ -146,6 +173,18 @@ async function runOnce(label) {
     log.push(`${label}: page_errors=${errors.length}`);
     if (errors.length) log.push(...errors.map((e) => `ERR: ${e}`));
 
+    if (COLD_START) {
+      log.push(`${label}: bootstrap_pipeline_post=${bootstrapPipelinePost}`);
+      log.push(`${label}: bootstrap_forecast_post=${bootstrapForecastPost}`);
+      const bootstrapFromEmpty =
+        dbEmptyBeforeLoad && bootstrapPipelinePost && bootstrapForecastPost;
+      log.push(`${label}: bootstrap_from_empty_db=${bootstrapFromEmpty}`);
+    }
+
+    const coldBootstrapOk =
+      !COLD_START ||
+      (dbEmptyBeforeLoad && bootstrapPipelinePost && bootstrapForecastPost);
+
     return (
     errors.length === 0 &&
     healthPass &&
@@ -157,7 +196,8 @@ async function runOnce(label) {
     scrubChanged &&
     scenarioOk &&
     capeBadgeOk &&
-    polylineOk
+    polylineOk &&
+    coldBootstrapOk
     );
   } catch (err) {
     log.push(`${label}: fatal=${err.message ?? err}`);
@@ -181,14 +221,28 @@ const forecastLine = summaryLines.find((l) => l.includes("forecast_populated="))
 const markersLine = summaryLines.find((l) => l.includes("map_markers="));
 const errorsLine = summaryLines.find((l) => l.includes("page_errors="));
 
+const bootstrapLines = COLD_START
+  ? log.filter(
+      (line) =>
+        line.includes("db_empty_before_load=") ||
+        line.includes("bootstrap_pipeline_post=") ||
+        line.includes("bootstrap_forecast_post=") ||
+        line.includes("bootstrap_from_empty_db="),
+    )
+  : [];
+
 const body =
   `api=${API}\nui=${UI}\ngate=${GATE}\ncold_start=${COLD_START}\n` +
   log.join("\n") +
   `\nconsistent=${ok}\n` +
-  `cold_start=${COLD_START}\n` +
   `${capeLine ?? "cape_badge=false"}\n` +
   `${forecastLine ?? "forecast_populated=false"}\n` +
   `${markersLine ?? "map_markers=0"}\n` +
-  `${errorsLine ?? "page_errors=1"}\n`;
+  `${errorsLine ?? "page_errors=1"}\n` +
+  (COLD_START
+    ? bootstrapLines
+        .map((line) => line.replace(/^cold: /, ""))
+        .join("\n") + "\n"
+    : "");
 writeFileSync(BROWSER_LOG, body);
 process.exit(ok ? 0 : 1);

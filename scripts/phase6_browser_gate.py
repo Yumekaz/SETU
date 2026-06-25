@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import signal
@@ -62,6 +63,46 @@ def wait_http(url: str, timeout: float = 90.0) -> bool:
     return False
 
 
+def remove_sqlite_db(db_path: Path) -> None:
+    """Remove SQLite DB and WAL/SHM sidecars so cold gate starts from empty state."""
+    for suffix in ("", "-wal", "-shm"):
+        target = Path(f"{db_path}{suffix}") if suffix else db_path
+        if target.exists():
+            target.unlink()
+
+
+def probe_empty_api(api_url: str) -> tuple[bool, str]:
+    """Confirm risk scores and forecasts are empty before UI load."""
+    import urllib.error
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen(f"{api_url}/api/risk-scores/latest", timeout=10) as resp:
+            scores = json.loads(resp.read().decode())
+        with urllib.request.urlopen(f"{api_url}/api/forecast/latest", timeout=10) as resp:
+            forecasts = json.loads(resp.read().decode())
+    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
+        return False, f"probe failed: {exc}"
+
+    if len(scores) != 0 or len(forecasts) != 0:
+        return False, f"db not empty scores={len(scores)} forecasts={len(forecasts)}"
+    return True, "scores=0 forecasts=0"
+
+
+def backend_log_has_bootstrap(backend_log: Path) -> tuple[bool, str]:
+    """Cold gate must show UI-driven pipeline + forecast POSTs in uvicorn access log."""
+    if not backend_log.exists():
+        return False, "backend log missing"
+    text = backend_log.read_text(encoding="utf-8", errors="replace")
+    has_pipeline = "POST /api/pipeline/run" in text
+    has_forecast = "POST /api/forecast/run" in text
+    if not has_pipeline:
+        return False, "missing POST /api/pipeline/run in backend log"
+    if not has_forecast:
+        return False, "missing POST /api/forecast/run in backend log"
+    return True, "pipeline+forecast POSTs present"
+
+
 def frontend_log_ok(log_path: Path) -> tuple[bool, str]:
     if not log_path.exists():
         return False, "frontend log missing"
@@ -86,7 +127,14 @@ def validate_browser_log(log_path: Path, *, cold_start: bool) -> tuple[bool, str
         "page_errors=0",
     ]
     if cold_start:
-        required.append("cold_start=true")
+        required.extend(
+            [
+                "db_empty_before_load=true",
+                "bootstrap_pipeline_post=true",
+                "bootstrap_forecast_post=true",
+                "bootstrap_from_empty_db=true",
+            ]
+        )
     for needle in required:
         if needle not in text:
             return False, f"missing {needle}"
@@ -155,6 +203,11 @@ def run_gate(gate_name: str) -> int:
         ensure_port_free(api_port)
         ensure_port_free(ui_port)
 
+        if cold_start:
+            remove_sqlite_db(db_path)
+            lines.append(f"db_path={db_path}")
+            lines.append("db_removed_before_start=true")
+
         backend_env = os.environ.copy()
         backend_env.update(
             {
@@ -189,6 +242,13 @@ def run_gate(gate_name: str) -> int:
             lines.append("FAIL=backend exited early")
             run_log.write_text("\n".join(lines) + "\n", encoding="utf-8")
             return 1
+
+        if cold_start:
+            empty_ok, empty_detail = probe_empty_api(api_url)
+            lines.append(f"db_empty_at_server_start={empty_ok} ({empty_detail})")
+            if not empty_ok:
+                run_log.write_text("\n".join(lines) + "\n", encoding="utf-8")
+                return 1
 
         build_proc = subprocess.run(
             [npm, "run", "build"],
@@ -315,6 +375,20 @@ print("seeded")
         )
         if browser.returncode != 0:
             return 1
+
+        if cold_start:
+            boot_ok, boot_reason = backend_log_has_bootstrap(backend_log)
+            lines.append(f"backend_bootstrap_posts={boot_ok} ({boot_reason})")
+            run_log.write_text(
+                run_log.read_text(encoding="utf-8") + "\n".join(lines[-2:]) + "\n",
+                encoding="utf-8",
+            )
+            if not boot_ok:
+                run_log.write_text(
+                    run_log.read_text(encoding="utf-8") + f"FAIL={boot_reason}\n",
+                    encoding="utf-8",
+                )
+                return 1
 
         valid, reason = validate_browser_log(browser_log, cold_start=cold_start)
         if not valid:
