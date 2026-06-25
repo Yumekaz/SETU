@@ -2,10 +2,17 @@ import type {
   CascadeResult,
   ForecastTrajectoryStep,
   PercentileBand,
+  Recommendation,
   RiskForecast,
 } from "../types/generated";
 
-export type { CascadeResult, ForecastTrajectoryStep, PercentileBand, RiskForecast };
+export type {
+  CascadeResult,
+  ForecastTrajectoryStep,
+  PercentileBand,
+  Recommendation,
+  RiskForecast,
+};
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -160,4 +167,56 @@ export async function simulateCascadeFromForecast(params?: {
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json() as Promise<CascadeResult & { trigger_forecast: RiskForecast }>;
+}
+
+export async function fetchRecommendations(
+  corridor?: string,
+): Promise<Recommendation[]> {
+  const url = corridor
+    ? `${API_URL}/api/recommendations?corridor=${encodeURIComponent(corridor)}`
+    : `${API_URL}/api/recommendations`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<Recommendation[]>;
+}
+
+export async function fetchRecommendationsLatest(): Promise<Recommendation[]> {
+  const response = await fetch(`${API_URL}/api/recommendations/latest`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<Recommendation[]>;
+}
+
+export async function runRecommendations(force?: boolean): Promise<Recommendation> {
+  const qs = force ? "?force=true" : "";
+  const response = await fetch(`${API_URL}/api/recommendations/run${qs}`, {
+    method: "POST",
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<Recommendation>;
+}
+
+export async function approveRecommendation(
+  id: string,
+  operatorNote: string,
+): Promise<Recommendation> {
+  const response = await fetch(`${API_URL}/api/recommendations/${id}/approve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ operator_note: operatorNote }),
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<Recommendation>;
+}
+
+export async function rejectRecommendation(
+  id: string,
+  operatorNote: string,
+): Promise<Recommendation> {
+  const response = await fetch(`${API_URL}/api/recommendations/${id}/reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ operator_note: operatorNote }),
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<Recommendation>;
 }

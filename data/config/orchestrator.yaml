@@ -1,0 +1,12 @@
+# Phase 4 procurement orchestrator parameters.
+# Documented in docs/orchestrator_model.md
+
+orchestrator:
+  spr_reserve_days_available: 90
+  max_penalty_days_cap: 30.0
+  max_price_impact_cap_pct: 50.0
+  max_throughput_impact_cap_pct: 100.0
+  spr_unit_cost_proxy: 0.35
+  mix_shift_cost_proxy: 0.45
+  hysteresis_risk_delta: 0.05
+  pending_ttl_hours: 24

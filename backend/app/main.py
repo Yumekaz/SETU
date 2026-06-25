@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
 from app.routers import cascade as cascade_router
 from app.routers import forecast as forecast_router
+from app.routers import recommendations as recommendations_router
 from app.routers import signals as signals_router
 
 load_dotenv()
@@ -31,14 +32,15 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="SETU API",
-    description="Strategic Energy Trade Uncertainty — Phase 3",
-    version="0.4.0",
+    description="Strategic Energy Trade Uncertainty — Phase 4",
+    version="0.5.0",
     lifespan=lifespan,
 )
 
 app.include_router(signals_router.router)
 app.include_router(cascade_router.router)
 app.include_router(forecast_router.router)
+app.include_router(recommendations_router.router)
 
 cors_origins = os.getenv(
     "CORS_ORIGINS",
@@ -56,7 +58,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health() -> dict[str, str | int]:
-    return {"status": "ok", "version": "0.4.0", "phase": 3}
+    return {"status": "ok", "version": "0.5.0", "phase": 4}
 
 
 @app.get("/api/contracts")

@@ -70,8 +70,11 @@ export interface Recommendation {
   recommendation_id: string;
   generated_at: string;
   trigger_corridor: Corridor;
+  source_cascade_id: string;
+  source_forecast_id?: string | null;
+  inputs_as_of: string;
   options: RecommendationOption[];
-  status: "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "EXPIRED";
+  status: "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "EXPIRED" | "NO_FEASIBLE_OPTION";
   operator_note: string | null;
 }
 

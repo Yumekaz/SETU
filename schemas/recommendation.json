@@ -9,6 +9,8 @@
     "recommendation_id",
     "generated_at",
     "trigger_corridor",
+    "source_cascade_id",
+    "inputs_as_of",
     "options",
     "status",
     "operator_note"
@@ -25,6 +27,21 @@
     },
     "trigger_corridor": {
       "$ref": "corridor.json"
+    },
+    "source_cascade_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "CascadeResult scenario that triggered this recommendation"
+    },
+    "source_forecast_id": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "Optional RiskForecast that informed corridor selection"
+    },
+    "inputs_as_of": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of upstream inputs used for generation"
     },
     "options": {
       "type": "array",
@@ -72,7 +89,13 @@
     },
     "status": {
       "type": "string",
-      "enum": ["PENDING_APPROVAL", "APPROVED", "REJECTED", "EXPIRED"]
+      "enum": [
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "REJECTED",
+        "EXPIRED",
+        "NO_FEASIBLE_OPTION"
+      ]
     },
     "operator_note": {
       "type": ["string", "null"]

@@ -87,7 +87,7 @@ def test_forecast_api_health_and_contracts(client: TestClient) -> None:
     with sqlite3.connect(str(get_db_path())) as conn:
         count = conn.execute("SELECT COUNT(*) FROM risk_forecasts").fetchone()[0]
 
-    assert health.json() == {"status": "ok", "version": "0.4.0", "phase": 3}
+    assert health.json() == {"status": "ok", "version": "0.5.0", "phase": 4}
     assert "risk_forecast" in contracts.json()
     assert count >= 1
     assert run.status_code == 200

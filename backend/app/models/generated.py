@@ -10,7 +10,6 @@ from uuid import UUID
 
 from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field
 
-
 class Corridor(StrEnum):
     hormuz = 'HORMUZ'
     bab_el_mandeb = 'BAB_EL_MANDEB'
@@ -130,6 +129,7 @@ class Status(StrEnum):
     approved = 'APPROVED'
     rejected = 'REJECTED'
     expired = 'EXPIRED'
+    no_feasible_option = 'NO_FEASIBLE_OPTION'
 
 
 class Recommendation(BaseModel):
@@ -139,6 +139,15 @@ class Recommendation(BaseModel):
     recommendation_id: UUID
     generated_at: AwareDatetime = Field(..., description='ISO 8601 datetime')
     trigger_corridor: Corridor
+    source_cascade_id: UUID = Field(
+        ..., description='CascadeResult scenario that triggered this recommendation'
+    )
+    source_forecast_id: UUID | None = Field(
+        None, description='Optional RiskForecast that informed corridor selection'
+    )
+    inputs_as_of: AwareDatetime = Field(
+        ..., description='Timestamp of upstream inputs used for generation'
+    )
     options: list[Option]
     status: Status
     operator_note: str | None

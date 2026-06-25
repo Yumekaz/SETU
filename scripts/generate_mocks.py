@@ -47,7 +47,7 @@ EVENT_TYPES = [
     "UNKNOWN",
 ]
 TRENDS = ["RISING", "FALLING", "STABLE"]
-STATUSES = ["PENDING_APPROVAL", "APPROVED", "REJECTED", "EXPIRED"]
+
 
 SIGNAL_EVENT_COUNT = 24
 GRAPH_PATH = ROOT / "data" / "graph" / "india_crude_network.json"
@@ -147,34 +147,22 @@ def generate_risk_forecasts() -> list[RiskForecast]:
     return run_all_forecasts()
 
 
-def generate_recommendations(n: int = 2) -> list[Recommendation]:
-    recs = []
-    for i in range(n):
-        corridor = CORRIDORS[i % 3]
-        options = []
-        for j in range(3):
-            options.append(
-                {
-                    "option_id": f"opt_{i + 1}_{j + 1}",
-                    "description": (
-                        f"Option {j + 1}: reroute / reserve / supplier mix "
-                        f"response for {corridor}"
-                    ),
-                    "cost_score": round(RNG.uniform(0.1, 0.9), 3),
-                    "time_score": round(RNG.uniform(0.1, 0.9), 3),
-                    "risk_score": round(RNG.uniform(0.1, 0.9), 3),
-                    "is_pareto_optimal": j < 2,
-                }
-            )
-        recs.append(
-            Recommendation(
-                recommendation_id=_uid(),
-                generated_at=_datetime(0),
-                trigger_corridor=corridor,
-                options=options,
-                status=RNG.choice(STATUSES[:2]),
-                operator_note=None if i == 0 else "Mock operator review note",
-            )
+def generate_recommendations() -> list[Recommendation]:
+    from app.orchestrator.orchestrate import run_orchestrator
+
+    network = load_network_graph(GRAPH_PATH)
+    cascades = generate_cascade_results()
+    recs: list[Recommendation] = []
+    for cascade in cascades:
+        recs.append(run_orchestrator(cascade, network))
+    from app.models.generated import Status
+
+    if len(recs) > 1:
+        recs[1] = recs[1].model_copy(
+            update={
+                "status": Status.approved,
+                "operator_note": "Mock operator review note",
+            }
         )
     return recs
 

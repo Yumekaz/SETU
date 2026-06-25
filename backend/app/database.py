@@ -94,15 +94,24 @@ def init_db() -> None:
                 computed_at TEXT DEFAULT (datetime('now'))
             );
 
+            CREATE TABLE IF NOT EXISTS recommendations (
+                recommendation_id TEXT PRIMARY KEY,
+                trigger_corridor TEXT NOT NULL,
+                status TEXT NOT NULL,
+                source_cascade_id TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                computed_at TEXT DEFAULT (datetime('now'))
+            );
+
             INSERT OR IGNORE INTO schema_meta (key, value)
-            VALUES ('phase', '3'), ('version', '0.4.0');
+            VALUES ('phase', '4'), ('version', '0.5.0');
             """
         )
         conn.execute(
-            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('phase', '3')"
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('phase', '4')"
         )
         conn.execute(
-            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.4.0')"
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.5.0')"
         )
         conn.commit()
     finally:
