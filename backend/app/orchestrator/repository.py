@@ -16,13 +16,17 @@ def _connect() -> sqlite3.Connection:
 
 
 def insert_recommendation(conn: sqlite3.Connection, rec: Recommendation) -> None:
-    """Append a new recommendation row (never upsert)."""
+    """Append a new recommendation row (never upsert).
+
+    computed_at is always set explicitly so rows remain valid after legacy
+    ALTER migrations that cannot attach a non-constant DEFAULT.
+    """
     conn.execute(
         """
         INSERT INTO recommendations (
             recommendation_id, trigger_corridor, status,
-            source_cascade_id, payload_json
-        ) VALUES (?, ?, ?, ?, ?)
+            source_cascade_id, payload_json, computed_at
+        ) VALUES (?, ?, ?, ?, ?, datetime('now'))
         """,
         (
             str(rec.recommendation_id),

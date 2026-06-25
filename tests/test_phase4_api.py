@@ -246,30 +246,54 @@ def test_init_db_migrates_populated_legacy_recommendations_table(
     assert computed_at is not None
 
 
-def test_expire_works_after_legacy_migration(tmp_path, monkeypatch) -> None:
-    """Expire path works on rows migrated from a populated legacy table."""
-    db_file = tmp_path / "legacy_expire.db"
-    rec_id = _create_populated_legacy_recommendations_db(db_file)
+def test_migrated_legacy_db_new_insert_computed_at_and_expire(
+    tmp_path, monkeypatch
+) -> None:
+    """Full migrated write path: legacy table → init_db → new insert → expire."""
+    db_file = tmp_path / "legacy_new_insert.db"
+    legacy_rec_id = _create_populated_legacy_recommendations_db(db_file)
     monkeypatch.setenv("DATABASE_URL", f"sqlite:////{db_file}")
     monkeypatch.setenv("SETU_MC_N_SIMULATIONS", "50")
     monkeypatch.setenv("SETU_EXTRACTOR_MODE", "rules")
     init_db()
 
+    rows = json.loads((ROOT / "data/fixtures/cascade_results.json").read_text())
+    legacy_cascade = CascadeResult.model_validate(rows[0])
+    new_cascade = CascadeResult.model_validate(rows[1])
+    assert legacy_cascade.corridor != new_cascade.corridor
+    with sqlite3.connect(str(get_db_path())) as conn:
+        insert_cascade_result(conn, new_cascade, seed=43)
+        conn.commit()
+
+    client = TestClient(app)
+    gen = client.post(
+        "/api/recommendations/generate/from-cascade",
+        params={"scenario_id": str(new_cascade.scenario_id)},
+    )
+    assert gen.status_code == 200
+    new_rec_id = gen.json()["recommendation_id"]
+    assert new_rec_id != legacy_rec_id
+
     with sqlite3.connect(str(db_file)) as conn:
+        new_computed_at = conn.execute(
+            "SELECT computed_at FROM recommendations WHERE recommendation_id = ?",
+            (new_rec_id,),
+        ).fetchone()[0]
         conn.execute(
             """
             UPDATE recommendations
             SET computed_at = datetime('now', '-48 hours')
             WHERE recommendation_id = ?
             """,
-            (rec_id,),
+            (new_rec_id,),
         )
         conn.commit()
 
-    client = TestClient(app)
+    assert new_computed_at is not None
+
     listing = client.get("/api/recommendations")
     assert listing.status_code == 200
-    match = [r for r in listing.json() if r["recommendation_id"] == rec_id]
-    assert len(match) == 1
-    assert match[0]["status"] == Status.expired.value
-    assert "Expired" in match[0]["operator_note"]
+    by_id = {r["recommendation_id"]: r for r in listing.json()}
+    assert by_id[new_rec_id]["status"] == Status.expired.value
+    assert "Expired" in by_id[new_rec_id]["operator_note"]
+    assert by_id[legacy_rec_id]["status"] == Status.pending_approval.value
