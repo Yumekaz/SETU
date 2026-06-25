@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from app.database import get_db_path, init_db
 from app.forecast.repository import list_risk_forecasts
 from app.models.generated import Corridor, Recommendation, Status
-from app.orchestrator.config import load_orchestrator_config
+from app.orchestrator.config import OrchestratorConfig, load_orchestrator_config
 from app.orchestrator.expire import expire_stale_pending
 from app.orchestrator.hysteresis import should_supersede_pending
 from app.orchestrator.options import trigger_risk_score
