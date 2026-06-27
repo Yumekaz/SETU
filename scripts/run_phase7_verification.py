@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import hashlib
-import importlib.util
 import re
 import shutil
 import subprocess
@@ -119,7 +118,14 @@ def run_pytest_twice() -> tuple[int, int, str, str]:
 
 def run_phase7_tests() -> None:
     proc = run_cmd(
-        ["python3", "-m", "pytest", "tests/test_phase7_edge_cases.py", "tests/test_phase7_chaos.py", "-q"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "tests/test_phase7_edge_cases.py",
+            "tests/test_phase7_chaos.py",
+            "-q",
+        ],
         timeout=300,
     )
     (SCRATCH / "phase7_chaos.log").write_text(proc.stdout + proc.stderr, encoding="utf-8")
@@ -184,7 +190,9 @@ def run_bab_unrehearsed_twice() -> None:
         and bodies[0]["options"] >= 1
         and bodies[1]["options"] >= 1
     )
-    (SCRATCH / "phase7_unrehearsed_bab.log").write_text("\n".join(log_lines) + "\n", encoding="utf-8")
+    (SCRATCH / "phase7_unrehearsed_bab.log").write_text(
+        "\n".join(log_lines) + "\n", encoding="utf-8"
+    )
     gate("unrehearsed_bab_twice", ok, f"run1={bodies[0]} run2={bodies[1]}")
 
 
@@ -239,7 +247,9 @@ def run_phase6_regression() -> None:
         timeout=1200,
         env={"SCRATCH_DIR": str(SCRATCH)},
     )
-    (SCRATCH / "phase6_regression_invoke.log").write_text(proc.stdout + proc.stderr, encoding="utf-8")
+    (SCRATCH / "phase6_regression_invoke.log").write_text(
+        proc.stdout + proc.stderr, encoding="utf-8"
+    )
     phase6_summary = SCRATCH / "phase6_verification.txt"
     ok = proc.returncode == 0
     if phase6_summary.exists():
@@ -251,7 +261,9 @@ def run_frontend() -> int:
     npm = shutil.which("npm")
     node = shutil.which("node")
     if not npm or not node:
-        (SCRATCH / "phase7_frontend_test.log").write_text("npm/node unavailable\n", encoding="utf-8")
+        (SCRATCH / "phase7_frontend_test.log").write_text(
+            "npm/node unavailable\n", encoding="utf-8"
+        )
         gate("frontend_npm_test", True, "skipped unavailable")
         gate("frontend_build", True, "skipped unavailable")
         return 0
@@ -275,21 +287,23 @@ def write_summary(extra: list[str]) -> None:
     lines = [f"scratch={SCRATCH}", f"root={ROOT}", ""]
     for name, status in gates.items():
         lines.append(f"{name}={status}")
-    lines.extend(["", *extra, "", f"overall={'PASS' if all(v == 'PASS' for v in gates.values()) else 'FAIL'}"])
+    overall = "PASS" if all(v == "PASS" for v in gates.values()) else "FAIL"
+    lines.extend(["", *extra, "", f"overall={overall}"])
     SUMMARY_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"\nWrote {SUMMARY_PATH}")
 
 
 def write_plan_review() -> None:
     srs = ROOT / "docs" / "SETU_SRS_Phased_Build_Plan.md"
-    plan = Path("/home/yumekaz/.grok/sessions/%2Fhome%2Fyumekaz%2FDesktop%2FSETU/019ef478-d9c9-7950-9cfd-f2d4bc44889e/goal/plan.md")
-    lines = ["phase7_plan_srs_review=PASS", "srs_section=17 HARDENING", "health_target=1.0.0 phase 8"]
+    lines = [
+        "phase7_plan_srs_review=PASS",
+        "srs_section=17 HARDENING",
+        "health_target=1.0.0 phase 8",
+    ]
     if srs.exists():
         text = srs.read_text(encoding="utf-8")
         if "PHASE 7 — HARDENING" in text:
             lines.append("srs_phase7_found=true")
-    if plan.exists():
-        lines.append(f"session_plan={plan}")
     (SCRATCH / "phase7_plan_srs_review.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

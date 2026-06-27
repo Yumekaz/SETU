@@ -10,7 +10,6 @@ import re
 import shutil
 import subprocess
 import sys
-import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -138,7 +137,10 @@ def write_default_and_unrehearsed_log() -> None:
     )
     fc_after = client.post("/api/forecast/run")
     rec = client.post("/api/recommendations/run?force=true")
-    log.append(f"malacca_cascade={cascade.status_code} post_cascade_forecast={fc_after.status_code}")
+    log.append(
+        f"malacca_cascade={cascade.status_code} "
+        f"post_cascade_forecast={fc_after.status_code}"
+    )
     log.append(f"recs={rec.status_code}")
     if cascade.status_code == 200:
         body = cascade.json()
@@ -164,7 +166,7 @@ def run_phase6_api_pytest() -> None:
         "SETU_EXTRACTOR_MODE": "rules",
     }
     proc = run_cmd(
-        ["python3", "-m", "pytest", "tests/test_phase6_api.py", "-q", "--tb=line"],
+        [sys.executable, "-m", "pytest", "tests/test_phase6_api.py", "-q", "--tb=line"],
         env=env,
         timeout=300,
     )
@@ -184,7 +186,9 @@ def verify_frontend() -> tuple[int, int]:
     if not npm or not shutil.which("node"):
         gate("frontend_npm_test", True, "skipped unavailable")
         gate("frontend_build", True, "skipped unavailable")
-        (SCRATCH / "phase6_frontend_test.log").write_text("npm/node unavailable\n", encoding="utf-8")
+        (SCRATCH / "phase6_frontend_test.log").write_text(
+            "npm/node unavailable\n", encoding="utf-8"
+        )
         return 0, 0
 
     test = run_cmd([npm, "test"], cwd=FRONTEND, timeout=120)

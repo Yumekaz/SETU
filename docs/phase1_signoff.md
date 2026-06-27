@@ -13,7 +13,7 @@
 | Metric | Result |
 |---|---|
 | Backtest cache | `data/samples/gdelt_hormuz_backtest.json` (55 rows) |
-| Accepted extractions | 55/55 (100%) via rules fallback |
+| Auditable extractions | 54/55 (98.2%) via rules fallback; one malformed shifted row rejected |
 | Low-confidence handling | Rejected rows logged to `extraction_log` (tested in `test_extraction.py`) |
 
 ### 2. Deterministic risk scoring + documented formula
@@ -41,7 +41,9 @@
 | Config | `data/config/corridors.yaml` |
 | Model download | `scripts/download_model.py` → gitignored `data/models/` |
 
-CI uses `SETU_EXTRACTOR_MODE=rules`. Local LLM path: set `SETU_LLM_MODEL_PATH` after `python scripts/download_model.py`.
+CI uses `SETU_EXTRACTOR_MODE=rules`. This proves deterministic schema-valid extraction,
+not semantic article understanding; bbox-only GDELT matches can still be noisy. Local LLM
+path: set `SETU_LLM_MODEL_PATH` after `python scripts/download_model.py`.
 
 ---
 

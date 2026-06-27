@@ -7,8 +7,7 @@ import sqlite3
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import ValidationError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from app.database import get_db_path, init_db
 from app.forecast.repository import list_risk_forecasts

@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import re
 import shutil
 import subprocess
 import sys
@@ -42,7 +41,12 @@ def gate(name: str, ok: bool, detail: str = "") -> None:
     print(line)
 
 
-def run_cmd(cmd: list[str], *, timeout: int = 900, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+def run_cmd(
+    cmd: list[str],
+    *,
+    timeout: int = 900,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     import os
 
     merged = os.environ.copy()
@@ -63,7 +67,9 @@ def check_docs() -> None:
     missing = [p for p in REQUIRED_DOCS if not p.exists()]
     gate("phase8_docs_present", not missing, f"missing={len(missing)}")
     demo = ROOT / "docs" / "phase8_demo_script.md"
-    ok_markers = demo.exists() and all(m in demo.read_text(encoding="utf-8") for m in DEMO_SCRIPT_MARKERS)
+    ok_markers = demo.exists() and all(
+        marker in demo.read_text(encoding="utf-8") for marker in DEMO_SCRIPT_MARKERS
+    )
     gate("demo_script_markers", ok_markers)
 
 
@@ -71,7 +77,8 @@ def check_submission_verify() -> None:
     path = ROOT / "docs" / "phase8_submission_verify.md"
     text = path.read_text(encoding="utf-8") if path.exists() else ""
     confirmed = "confirmed_on=" in text and "PENDING" not in text.split("confirmed_on=")[-1][:40]
-    gate("submission_verify_doc", path.exists(), "confirmed" if confirmed else "template_ok")
+    detail = "confirmed" if confirmed else "still_pending"
+    gate("submission_verify_doc", path.exists() and confirmed, detail)
 
 
 def check_rehearsal_log() -> None:
@@ -80,13 +87,28 @@ def check_rehearsal_log() -> None:
         gate("rehearsal_log", False, "missing")
         return
     text = path.read_text(encoding="utf-8")
-    rows = [ln for ln in text.splitlines() if ln.strip().startswith("|") and "---" not in ln and "Date" not in ln]
-    gate("rehearsal_log", len(rows) >= 3, f"rows={len(rows)}")
+    rows = [
+        ln
+        for ln in text.splitlines()
+        if ln.strip().startswith("|")
+        and "---" not in ln
+        and "Date" not in ln
+        and "PENDING" not in ln.upper()
+    ]
+    completed_full = [
+        ln for ln in rows
+        if "| full |" in ln.lower() and "| automated |" not in ln.lower()
+    ]
+    gate(
+        "rehearsal_log",
+        len(completed_full) >= 3,
+        f"completed_full_human_runs={len(completed_full)}",
+    )
 
 
 def run_phase8_tests() -> None:
     proc = run_cmd(
-        ["python3", "-m", "pytest", "tests/test_phase8_api.py", "-q", "--tb=line"],
+        [sys.executable, "-m", "pytest", "tests/test_phase8_api.py", "-q", "--tb=line"],
         timeout=120,
         env={"SETU_MC_N_SIMULATIONS": "50", "SETU_EXTRACTOR_MODE": "rules"},
     )
@@ -143,7 +165,9 @@ def run_phase7_regression() -> None:
         timeout=1800,
         env={"SCRATCH_DIR": str(SCRATCH / "phase7_regression")},
     )
-    (SCRATCH / "phase7_regression_invoke.log").write_text(proc.stdout + proc.stderr, encoding="utf-8")
+    (SCRATCH / "phase7_regression_invoke.log").write_text(
+        proc.stdout + proc.stderr, encoding="utf-8"
+    )
     summary = SCRATCH / "phase7_regression" / "phase7_verification.txt"
     ok = proc.returncode == 0
     if summary.exists():

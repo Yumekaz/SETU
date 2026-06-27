@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 from app.backtest.config import BacktestConfig
-from app.backtest.integrity import assert_events_visible_at, filter_events_up_to, pit_diagnostics
+from app.backtest.integrity import assert_events_visible_at, filter_events_up_to
 from app.forecast.features import extract_events_from_cache
 from app.signals.score import build_risk_scores
 

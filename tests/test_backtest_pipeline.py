@@ -18,7 +18,7 @@ def test_run_backtest_reproducible_twice() -> None:
     assert first.first_crossing_date == second.first_crossing_date
     assert first.crossing_score == second.crossing_score
     assert first.crossing_summary == second.crossing_summary
-    assert first.reference_point_date.isoformat() == "2026-03-11"
+    assert first.reference_point_date.isoformat() == "2026-03-02"
     assert first.risk_threshold == 0.35
 
 

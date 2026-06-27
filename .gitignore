@@ -7,6 +7,8 @@ __pycache__/
 dist/
 build/
 .venv/
+.venv-audit/
+SETU_SRS_Phased_Build_Plan.md
 venv/
 env/
 .pytest_cache/

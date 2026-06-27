@@ -4,14 +4,14 @@
 
 | Parameter | Locked value |
 |-----------|--------------|
-| Reference point date | 2026-03-11 |
-| Reference point label | Reported Hormuz transit restriction (EIA anchor) |
+| Reference point date | 2026-03-02 |
+| Reference point label | EIA-dated closure of the Strait of Hormuz |
 | Risk threshold | 0.35 |
 | Window | 2026-02-01 → 2026-06-30 |
 | Seed / simulations | 42 / 200 |
 | Headline formula | `lead_time_days = reference_point_date − first_threshold_crossing_date` |
 
-**Hypothesis:** SETU's deterministic Hormuz risk score crosses the 0.35 threshold before the 2026-03-11 public closure anchor, yielding a positive `lead_time_days` on reproducible offline replay of the committed GDELT cache.
+**Hypothesis:** SETU's deterministic Hormuz risk score crosses the 0.35 threshold before the 2026-03-02 public closure anchor, yielding a positive `lead_time_days` on reproducible offline replay of the committed GDELT cache.
 
 **Limitations (explicit):**
 
@@ -26,7 +26,7 @@
 | status | `no_crossing` |
 | first_threshold_crossing_date | *(none — max Hormuz score 0.25 < threshold 0.35)* |
 | lead_time_days | *(null)* |
-| reference_point_date | 2026-03-11 |
+| reference_point_date | 2026-03-02 |
 | risk_threshold | 0.35 |
 | max_observed_hormuz_score | 0.25 on 2026-02-14 |
 | trajectory_days | 150 |
