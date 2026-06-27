@@ -5,10 +5,18 @@
 from __future__ import annotations
 
 from datetime import date
-from enum import StrEnum
+
+try:
+    from enum import StrEnum
+except ImportError:  # Python 3.10 compatibility
+    from enum import Enum
+
+    class StrEnum(str, Enum):
+        pass
 from uuid import UUID
 
 from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field
+
 
 class Corridor(StrEnum):
     hormuz = 'HORMUZ'

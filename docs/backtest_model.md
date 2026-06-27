@@ -13,7 +13,7 @@ No shared `daily_features.parquet` or SQLite score tables are written during rep
 
 ## Headline metric
 
-- **Reference point (locked):** `2026-03-11` — reported Hormuz transit restriction (EIA anchor).
+- **Reference point (source-verified):** `2026-03-02` — EIA-dated closure of the Strait of Hormuz.
 - **Threshold (locked):** `0.35` in `data/config/backtest.yaml`.
 - **First crossing:** earliest date where Hormuz score ≥ threshold.
 - **Lead time:** `reference_point_date - first_crossing_date` (integer days). **Null when no crossing.**

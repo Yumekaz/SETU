@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import urlparse
 
 from app.signals.config import AppConfig, load_config
 
@@ -75,6 +76,13 @@ def is_english_source(row: dict[str, str]) -> bool:
     return ascii_chars / max(len(snippet), 1) >= 0.85
 
 
+def has_valid_source_url(row: dict[str, str]) -> bool:
+    """Reject shifted/malformed GDELT rows that cannot provide an audit source."""
+    value = str(row.get("SOURCEURL", "") or "").strip()
+    parsed = urlparse(value)
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+
 def build_raw_snippet(row: dict[str, str], max_len: int = 500) -> str:
     geo = row.get("ActionGeo_FullName") or row.get("Actor1Geo_FullName") or ""
     actors = " | ".join(
@@ -96,5 +104,7 @@ def passes_ingest_filter(row: dict[str, str], config: AppConfig | None = None) -
     if not is_relevant_cameo(str(row.get("EventCode", "")), cfg):
         return False
     if classify_corridor(row, cfg) is None:
+        return False
+    if not has_valid_source_url(row):
         return False
     return is_english_source(row)

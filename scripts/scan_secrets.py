@@ -11,7 +11,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 PATTERNS = [
-    (re.compile(r"(?i)(api[_-]?key|secret|password|token)\s*=\s*['\"]?[A-Za-z0-9_\-]{20,}"), "assignment"),
+    (
+        re.compile(
+            r"(?i)(api[_-]?key|secret|password|token)\s*=\s*['\"]?[A-Za-z0-9_\-]{20,}"
+        ),
+        "assignment",
+    ),
     (re.compile(r"sk-[A-Za-z0-9]{20,}"), "openai_sk"),
     (re.compile(r"AKIA[0-9A-Z]{16}"), "aws_key"),
     (re.compile(r"Bearer\s+[A-Za-z0-9_\-\.]{20,}"), "bearer_token"),

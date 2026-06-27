@@ -53,9 +53,10 @@ def test_prior_scores_use_prior_date_filter_not_current() -> None:
 
 def test_replay_excludes_injected_future_events() -> None:
     """Prove PIT exclusion within replay window via synthetic future event injection."""
-    from app.models.generated import Corridor, SignalEvent
     from datetime import datetime, timezone
     from uuid import uuid4
+
+    from app.models.generated import Corridor, SignalEvent
 
     cfg = load_backtest_config()
     events = list(load_backtest_events(cfg))

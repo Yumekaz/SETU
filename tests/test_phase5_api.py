@@ -23,7 +23,7 @@ def test_backtest_config_locked_reference(client: TestClient) -> None:
     resp = client.get("/api/backtest/config")
     assert resp.status_code == 200
     body = resp.json()
-    assert body["reference_point_date"] == "2026-03-11"
+    assert body["reference_point_date"] == "2026-03-02"
     assert body["risk_threshold"] == 0.35
 
 
@@ -45,7 +45,7 @@ def test_backtest_latest_after_run(client: TestClient) -> None:
     client.post("/api/backtest/run")
     latest = client.get("/api/backtest/latest")
     assert latest.status_code == 200
-    assert latest.json()["reference_point_date"] == "2026-03-11"
+    assert latest.json()["reference_point_date"] == "2026-03-02"
 
 
 def test_health_phase5(client: TestClient) -> None:

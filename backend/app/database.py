@@ -39,7 +39,9 @@ def get_db_path() -> Path:
     url = os.getenv("DATABASE_URL", "sqlite:///data/setu.db")
     if url.startswith("sqlite:////"):
         # sqlite:////absolute/path — four slashes after the scheme
-        return Path(url[len("sqlite://") :])
+        # Keep a leading slash for POSIX (sqlite://///tmp/x) but do not turn
+        # Windows drive paths (sqlite:////C:\\x) into invalid UNC paths.
+        return Path(url[len("sqlite:////") :])
     if url.startswith("sqlite:///"):
         # sqlite:///relative/path — resolve under repo root (e.g. data/setu.db)
         return ROOT / url[len("sqlite:///") :]

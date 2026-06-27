@@ -4,10 +4,10 @@ backtest:
   window_end: "2026-06-30"
   corridor: HORMUZ
   risk_threshold: 0.35
-  reference_point_date: "2026-03-11"
-  reference_point_label: "Reported Hormuz transit restriction (EIA anchor)"
+  reference_point_date: "2026-03-02"
+  reference_point_label: "EIA-dated closure of the Strait of Hormuz"
   seed: 42
   n_simulations: 200
   cache_path: data/samples/gdelt_hormuz_backtest.json
   timeline_path: data/hormuz_2026_timeline.csv
-  ground_truth_compare_date: "2026-03-18"
+  ground_truth_compare_date: "2026-03-11"

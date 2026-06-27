@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 sys.path.insert(0, str(ROOT / "ml"))
 
-from app.backtest.run import run_backtest
+from app.backtest.run import run_backtest  # noqa: E402
 
 
 def main() -> int:

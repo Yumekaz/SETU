@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from app.signals.classify import classify_corridor, is_relevant_cameo
+from app.signals.classify import (
+    classify_corridor,
+    has_valid_source_url,
+    is_relevant_cameo,
+)
 
 
 def test_hormuz_bbox_classification() -> None:
@@ -30,3 +34,8 @@ def test_malacca_keyword_classification() -> None:
         "Actor2Name": "Navy",
     }
     assert classify_corridor(row) == "MALACCA"
+
+
+def test_shifted_gdelt_row_without_url_is_not_auditable() -> None:
+    assert has_valid_source_url({"SOURCEURL": "112.5"}) is False
+    assert has_valid_source_url({"SOURCEURL": "https://example.com/report"}) is True
