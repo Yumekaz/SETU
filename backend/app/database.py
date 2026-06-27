@@ -6,7 +6,15 @@ import os
 import sqlite3
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent.parent
+def _find_repo_root() -> Path:
+    p = Path(__file__).resolve().parent
+    for _ in range(5):
+        if (p / "backend").exists() or (p / "data").exists():
+            return p
+        p = p.parent
+    return Path(__file__).resolve().parent.parent.parent
+
+ROOT = _find_repo_root()
 DATA_DIR = ROOT / "data"
 DEFAULT_DB_PATH = DATA_DIR / "setu.db"
 
