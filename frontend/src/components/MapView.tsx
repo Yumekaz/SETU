@@ -51,7 +51,7 @@ export default function MapView({
   const scoreMap = useMemo(() => scoreByCorridor(scores), [scores]);
 
   const corridorScore = (corridor: string): number => {
-    if (replayScore != null && corridor === "HORMUZ") return replayScore;
+    if (replayScore != null && corridor === selectedCorridor) return replayScore;
     return scoreMap[corridor] ?? 0;
   };
 
@@ -80,44 +80,47 @@ export default function MapView({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <label className="text-sm text-slate-300">Corridor</label>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-3 bg-glass px-4 py-2.5 rounded-xl border border-slate-900 w-fit">
+        <label htmlFor="map-corridor-select" className="text-xs font-bold uppercase tracking-wider text-slate-400">Target Corridor</label>
         <select
           id="map-corridor-select"
-          className="rounded bg-slate-800 px-3 py-2 text-sm"
+          disabled={replayScore !== undefined}
+          className={`bg-slate-950/80 border border-slate-900 rounded px-2.5 py-1 text-xs text-sky-400 font-bold outline-none transition-all mr-2 ${
+            replayScore !== undefined ? "cursor-not-allowed opacity-60" : "cursor-pointer focus:border-sky-500"
+          }`}
           value={selectedCorridor}
           onChange={(e) => onCorridorChange(e.target.value as Corridor)}
         >
           {CORRIDORS.map((c) => (
             <option key={c} value={c}>
-              {c}
+              {c.replace(/_/g, " ")}
             </option>
           ))}
         </select>
         {showDisruption && (
-          <span className="rounded-full bg-amber-900/50 px-3 py-1 text-xs text-amber-200">
-            Disruption emphasis active
+          <span className="rounded bg-rose-500/10 px-2.5 py-1 text-[10px] font-bold text-rose-400 border border-rose-500/15 uppercase tracking-wide animate-pulse">
+            Active Disruption Overlay
           </span>
         )}
         <span
           id="cape-overlay-badge"
-          className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400"
+          className="rounded bg-slate-800/40 px-2.5 py-1 text-[10px] font-bold text-slate-500 border border-slate-800/60 uppercase tracking-wide"
         >
-          Cape reroute overlay (demo ASSUMPTION)
+          Cape Reroute Active
         </span>
       </div>
       <div
         id="setu-map-container"
-        className="h-[520px] w-full min-w-[720px] overflow-hidden rounded-lg border border-slate-700"
+        className="h-[550px] w-full overflow-hidden rounded-xl border border-slate-900 shadow-2xl shadow-black/45 bg-[#0e0e11]"
       >
         <MapContainer center={MAP_CENTER} zoom={MAP_ZOOM} className="h-full w-full">
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url={
               useOfflineTiles
                 ? "/tiles/{z}/{x}/{y}.png"
-                : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             }
             eventHandlers={{
               tileerror: () => setUseOfflineTiles(true),

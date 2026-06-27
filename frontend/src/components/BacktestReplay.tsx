@@ -90,11 +90,11 @@ export default function BacktestReplay() {
   if (!trajectory || !config) return <p className="text-slate-400">Loading replay data…</p>;
 
   return (
-    <div id="backtest-replay-root" className="space-y-6">
-      <div className="flex flex-wrap items-center gap-4">
+    <div id="backtest-replay-root" className="space-y-6 animate-fadeIn">
+      <div className="flex flex-wrap items-center gap-4 bg-glass p-4 rounded-xl border border-slate-900 shadow-lg shadow-black/20">
         <button
           type="button"
-          className="rounded bg-setu-accent px-4 py-2 text-sm"
+          className="btn-primary min-w-[80px]"
           onClick={() => setPlaying((p) => !p)}
         >
           {playing ? "Pause" : "Play"}
@@ -105,74 +105,94 @@ export default function BacktestReplay() {
           min={0}
           max={Math.max(0, points.length - 1)}
           value={index}
-          className="min-w-[240px] flex-1"
+          className="min-w-[240px] flex-1 accent-sky-500 bg-slate-950/60 rounded-lg cursor-pointer h-2 border border-slate-900 outline-none"
           onChange={(e) => {
             setPlaying(false);
             setIndex(Number(e.target.value));
           }}
         />
-        <span className="font-mono text-sm text-sky-300">
-          {currentDate} · score {currentScore.toFixed(4)}
-        </span>
+        <div className="bg-slate-950/80 border border-slate-900 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-400">
+          <span className="font-mono text-slate-300">{currentDate}</span>
+          <span className="text-slate-600 mx-2">|</span>
+          <span>Risk: </span>
+          <span className="font-mono text-sky-400 font-bold">{currentScore.toFixed(4)}</span>
+        </div>
       </div>
-      <div id="replay-chart" className="h-56 w-full">
+
+      <div id="replay-chart" className="h-60 w-full bg-glass p-5 rounded-xl border border-slate-900 shadow-xl shadow-black/20">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points}>
-            <CartesianGrid stroke="#334155" />
-            <XAxis dataKey="date" tick={{ fontSize: 9, fill: "#94a3b8" }} />
-            <YAxis domain={[0, 0.5]} tick={{ fill: "#94a3b8" }} />
-            <Tooltip />
-            <ReferenceLine y={config.risk_threshold} stroke="#ef4444" strokeDasharray="4 4" />
-            <ReferenceLine x={config.reference_point_date} stroke="#a78bfa" strokeDasharray="4 4" />
-            <Line type="monotone" dataKey="score" stroke="#38bdf8" dot={false} />
+            <CartesianGrid stroke="#1e293b/60" strokeDasharray="3 3" />
+            <XAxis dataKey="date" tick={{ fontSize: 9, fill: "#64748b" }} />
+            <YAxis domain={[0, 0.5]} tick={{ fill: "#64748b", fontSize: 9 }} />
+            <Tooltip contentStyle={{ background: "#0a0f1d", border: "1px solid #1e293b", borderRadius: "8px" }} />
+            <ReferenceLine y={config.risk_threshold} stroke="#ef4444" strokeDasharray="4 4" label={{ value: "Risk Threshold", fill: "#ef4444", fontSize: 10, position: "top" }} />
+            <ReferenceLine x={config.reference_point_date} stroke="#a78bfa" strokeDasharray="4 4" label={{ value: "Reference Pt", fill: "#a78bfa", fontSize: 10, position: "insideTopLeft" }} />
+            <Line type="monotone" dataKey="score" stroke="#38bdf8" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
+
       <div
         id="replay-timeline-card"
-        className="rounded-lg border border-slate-700 bg-slate-800/50 p-4"
+        className="rounded-xl bg-glass p-5 shadow-xl shadow-black/20"
       >
+        <h4 className="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-3 border-b border-slate-900/60 pb-2">TIMELINE TELEMETRY FEED</h4>
         {event ? (
-          <>
-            <p className="text-xs text-slate-400">
-              {event.date} · {(event as TimelineEvent).event_type}
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-slate-400 flex items-center gap-2">
+              <span className="font-mono text-slate-300 bg-slate-900/80 px-2 py-0.5 rounded border border-slate-900">{event.date}</span>
+              <span className="text-[10px] bg-sky-500/10 text-sky-400 border border-sky-500/15 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">{(event as TimelineEvent).event_type}</span>
             </p>
-            <p className="text-slate-100">{(event as TimelineEvent).description}</p>
-          </>
+            <p className="text-slate-100 text-sm mt-2 leading-relaxed">{(event as TimelineEvent).description}</p>
+          </div>
         ) : (
-          <p className="text-slate-400">No timeline event on or before {currentDate}</p>
+          <p className="text-slate-400 text-sm italic">No timeline telemetry registered on or before {currentDate}</p>
         )}
       </div>
-      <MapView
-        selectedCorridor="HORMUZ"
-        onCorridorChange={() => {}}
-        showDisruption={currentScore >= 0.15}
-        replayScore={currentScore}
-      />
-      <div id="replay-headline" className="rounded-lg border border-slate-600 bg-slate-900/60 p-4 text-sm">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="font-semibold text-slate-200">Phase 5 headline result (honest)</span>
-          <button type="button" className="text-xs text-sky-400 underline" onClick={loadHeadline}>
+
+      <div className="bg-glass rounded-xl p-5 shadow-xl shadow-black/20">
+        <h4 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">TACTICAL SIMULATION OVERLAY</h4>
+        <MapView
+          selectedCorridor="HORMUZ"
+          onCorridorChange={() => {}}
+          showDisruption={currentScore >= 0.15}
+          replayScore={currentScore}
+        />
+      </div>
+
+      <div id="replay-headline" className="rounded-xl bg-glass p-5 shadow-xl shadow-black/20">
+        <div className="mb-4 flex items-center justify-between border-b border-slate-900/60 pb-3">
+          <span className="text-sm font-bold tracking-wider text-slate-200 uppercase">Backtest Evaluation Summary</span>
+          <button type="button" className="text-xs font-semibold text-sky-400 hover:text-sky-300 transition-colors uppercase tracking-wider" onClick={loadHeadline}>
             Refresh run
           </button>
         </div>
         {headline && headline.status !== "empty" ? (
-          <dl className="grid grid-cols-2 gap-2 text-slate-300">
-            <dt>status</dt>
-            <dd>{headline.status}</dd>
-            <dt>lead_time_days</dt>
-            <dd>{headline.lead_time_days ?? "null"}</dd>
-            <dt>peak</dt>
-            <dd>
-              {headline.trajectory_peak
-                ? `${headline.trajectory_peak.peak_score} on ${headline.trajectory_peak.peak_date}`
-                : "—"}
-            </dd>
-            <dt>orchestrator</dt>
-            <dd>{headline.orchestrator_summary?.status ?? "—"}</dd>
-          </dl>
+          <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-400">
+            <div className="bg-slate-950/40 border border-slate-900 p-3 rounded-lg">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wider block">RUN STATUS</span>
+              <span className="mt-1 font-mono text-slate-100 block text-sm">{headline.status}</span>
+            </div>
+            <div className="bg-slate-950/40 border border-slate-900 p-3 rounded-lg">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wider block">LEAD TIME</span>
+              <span className="mt-1 font-mono text-slate-100 block text-sm">{headline.lead_time_days ?? "N/A"} Days</span>
+            </div>
+            <div className="bg-slate-950/40 border border-slate-900 p-3 rounded-lg">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wider block">TRAJECTORY PEAK</span>
+              <span className="mt-1 font-mono text-slate-100 block text-sm">
+                {headline.trajectory_peak
+                  ? `${headline.trajectory_peak.peak_score.toFixed(4)} [${headline.trajectory_peak.peak_date}]`
+                  : "—"}
+              </span>
+            </div>
+            <div className="bg-slate-950/40 border border-slate-900 p-3 rounded-lg">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wider block">ORCHESTRATOR DECISION</span>
+              <span className="mt-1 font-mono text-slate-100 block text-sm">{headline.orchestrator_summary?.status ?? "—"}</span>
+            </div>
+          </div>
         ) : (
-          <p className="text-slate-400">Run backtest to populate headline panel.</p>
+          <p className="text-slate-400 text-sm italic">No backtest run registry found. Click refresh to populate telemetry summary.</p>
         )}
       </div>
     </div>
