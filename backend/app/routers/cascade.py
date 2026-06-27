@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import ValidationError
 from pydantic import BaseModel, Field
 
 from app.database import get_db_path, init_db
-from app.forecast.inference import highest_risk_forecast
 from app.forecast.repository import list_risk_forecasts
 from app.models.generated import Corridor
 from app.signals.repository import list_risk_scores
@@ -22,7 +23,7 @@ from app.simulation.corridors import (
 from app.simulation.graph_loader import load_network_graph
 from app.simulation.monte_carlo import default_n_simulations, run_cascade
 from app.simulation.repository import insert_cascade_result, list_cascade_results
-from app.simulation.validate import validate_network
+from app.simulation.validate import GraphValidationError, validate_network
 
 router = APIRouter(prefix="/api", tags=["cascade"])
 
@@ -35,8 +36,18 @@ class CascadeSimulateRequest(BaseModel):
 
 @router.get("/graph")
 def get_graph() -> dict[str, Any]:
-    network = load_network_graph()
-    validate_network(network)
+    try:
+        network = load_network_graph()
+        validate_network(network)
+    except (
+        json.JSONDecodeError,
+        ValidationError,
+        GraphValidationError,
+        ValueError,
+        KeyError,
+        OSError,
+    ) as exc:
+        raise HTTPException(status_code=422, detail=f"graph load failed: {exc}") from exc
     return {
         "sources": network.sources,
         "nodes": [n.model_dump(mode="json") for n in network.nodes],
@@ -114,6 +125,8 @@ def post_cascade_simulate_from_forecast(
     seed: int | None = None,
     n_simulations: int | None = Query(default=None, ge=1),
 ) -> dict[str, Any]:
+    from app.forecast.inference import highest_risk_forecast
+
     init_db()
     forecasts = list_risk_forecasts(latest_only=True)
     if not forecasts:

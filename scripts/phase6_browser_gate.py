@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
-SCRATCH = Path(os.environ.get("SCRATCH_DIR", "/tmp/grok-goal-df3a238e5ed0/implementer"))
+SCRATCH = Path(os.environ.get("SCRATCH_DIR", "/tmp/grok-goal-ff8428ca3705/implementer"))
 
 
 def pick_free_port() -> int:

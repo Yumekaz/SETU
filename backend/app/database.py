@@ -134,14 +134,14 @@ def init_db() -> None:
             );
 
             INSERT OR IGNORE INTO schema_meta (key, value)
-            VALUES ('phase', '6'), ('version', '0.7.0');
+            VALUES ('phase', '8'), ('version', '1.0.0');
             """
         )
         conn.execute(
-            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('phase', '6')"
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('phase', '8')"
         )
         conn.execute(
-            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '0.7.0')"
+            "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '1.0.0')"
         )
         migrate_recommendations_computed_at(conn)
         conn.commit()

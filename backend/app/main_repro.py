@@ -1,4 +1,4 @@
-"""SETU FastAPI application — Phase 0 skeleton."""
+"""Minimal API surface for zero-manual Docker repro (pipeline + health only)."""
 
 from __future__ import annotations
 
@@ -12,10 +12,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
-from app.routers import backtest as backtest_router
-from app.routers import cascade as cascade_router
-from app.routers import forecast as forecast_router
-from app.routers import recommendations as recommendations_router
 from app.routers import signals as signals_router
 
 load_dotenv()
@@ -33,16 +29,12 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="SETU API",
-    description="Strategic Energy Trade Uncertainty — Phase 8",
+    description="Strategic Energy Trade Uncertainty — Phase 8 repro",
     version="1.0.0",
     lifespan=lifespan,
 )
 
 app.include_router(signals_router.router)
-app.include_router(cascade_router.router)
-app.include_router(forecast_router.router)
-app.include_router(recommendations_router.router)
-app.include_router(backtest_router.router)
 
 cors_origins = os.getenv(
     "CORS_ORIGINS",
@@ -65,13 +57,10 @@ def health() -> dict[str, str | int]:
 
 @app.get("/api/contracts")
 def get_contracts() -> dict[str, object]:
-    """Serve frozen JSON schema contracts from /schemas/."""
     contracts: dict[str, object] = {}
     if not SCHEMAS_DIR.exists():
         return contracts
-
     for schema_file in sorted(SCHEMAS_DIR.glob("*.json")):
         with schema_file.open(encoding="utf-8") as f:
             contracts[schema_file.stem] = json.load(f)
-
     return contracts

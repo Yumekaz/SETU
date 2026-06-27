@@ -2,7 +2,7 @@
 
 Geopolitical risk intelligence and cascade simulation for India's crude oil import corridors.
 
-**Phase 0:** Foundations & contract freeze — no modeling logic, only plumbing.
+**Phase 8 (submission):** `version: 1.0.0`, `phase: 8` — demo-ready for GitHub + video.
 
 ## Quick Start (Docker)
 
@@ -18,9 +18,32 @@ Or skip the fix and use sudo: `sudo docker compose up --build`
 
 ```bash
 cd SETU
-cp .env.example .env   # add EIA_API_KEY for live pulls
 docker compose up --build
 ```
+
+No `.env` file is required for the demo path — the stack uses cached offline data and `SETU_EXTRACTOR_MODE=rules` by default. Copy `.env.example` to `.env` only when you need live EIA/FRED pulls.
+
+Automated zero-manual repro check (backend pipeline + health, no `.env` copy):
+
+```bash
+bash scripts/verify_docker_repro.sh
+```
+
+## Submission / Demo
+
+Before recording your video or presenting live:
+
+```bash
+bash scripts/demo_preflight.sh          # PREFLIGHT=PASS required
+python3 scripts/run_phase8_verification.py
+```
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/phase8_demo_script.md](docs/phase8_demo_script.md) | Timed live + video script |
+| [docs/phase8_solo_runbook.md](docs/phase8_solo_runbook.md) | One-person demo steps |
+| [docs/submission/README.md](docs/submission/README.md) | Upload checklist |
+| [docs/submission/video_outline.md](docs/submission/video_outline.md) | 5–8 min recording guide |
 
 - **Frontend:** http://localhost:5173
 - **Backend API:** http://localhost:8000

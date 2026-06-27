@@ -22,8 +22,8 @@ def client(tmp_path, monkeypatch):
 def test_health_phase6(client: TestClient) -> None:
     assert client.get("/health").json() == {
         "status": "ok",
-        "version": "0.7.0",
-        "phase": 6,
+        "version": "1.0.0",
+        "phase": 8,
     }
 
 

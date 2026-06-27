@@ -86,6 +86,22 @@ describe("Dashboard bootstrap error", () => {
     expect(document.querySelector("#dashboard-bootstrap-error")).toBeTruthy();
   });
 
+  it("shows polling error when fetcher fails after bootstrap", async () => {
+    vi.mocked(ensureBaselineData).mockResolvedValueOnce(undefined);
+    vi.mocked(usePolling).mockReturnValue({
+      data: null,
+      error: "Network unreachable",
+      loading: false,
+      refresh: vi.fn(),
+    });
+
+    render(<Dashboard {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Dashboard error: Network unreachable/)).toBeTruthy();
+    });
+  });
+
   it("renders bootstrap error for non-Error rejection", async () => {
     vi.mocked(ensureBaselineData).mockRejectedValueOnce("string failure");
 

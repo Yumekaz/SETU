@@ -36,7 +36,7 @@ def test_health_returns_ok(client: TestClient) -> None:
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
-    assert data == {"status": "ok", "version": "0.7.0", "phase": 6}
+    assert data == {"status": "ok", "version": "1.0.0", "phase": 8}
 
 
 def test_contracts_endpoint_serves_schemas(client: TestClient) -> None:

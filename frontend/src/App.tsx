@@ -24,7 +24,9 @@ export default function App() {
       <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-widest text-setu-accent">SETU</p>
-          <h1 className="text-2xl font-bold text-white">Geospatial Demo — Phase 6</h1>
+          <h1 className="text-2xl font-bold text-white">
+            Energy Corridor Resilience — Demo
+          </h1>
         </div>
         <HealthBadge />
       </header>

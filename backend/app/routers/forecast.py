@@ -8,8 +8,6 @@ from typing import Any
 from fastapi import APIRouter
 
 from app.database import get_db_path, init_db
-from app.forecast.features import ensure_features_parquet
-from app.forecast.inference import run_all_forecasts
 from app.forecast.repository import insert_risk_forecast, list_risk_forecasts
 from app.models.generated import Corridor
 
@@ -33,6 +31,9 @@ def get_forecasts_latest() -> list[dict[str, Any]]:
 
 @router.post("/forecast/run")
 def post_forecast_run() -> list[dict[str, Any]]:
+    from app.forecast.features import ensure_features_parquet
+    from app.forecast.inference import run_all_forecasts
+
     init_db()
     ensure_features_parquet()
     forecasts = run_all_forecasts()

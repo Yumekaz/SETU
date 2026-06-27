@@ -10,7 +10,7 @@ const { chromium } = await import(playwrightEntry);
 
 const API = process.env.SETU_API_URL ?? "http://127.0.0.1:8000";
 const UI = process.env.SETU_UI_URL ?? "http://127.0.0.1:5173";
-const SCRATCH = process.env.SCRATCH_DIR ?? "/tmp/grok-goal-df3a238e5ed0/implementer";
+const SCRATCH = process.env.SCRATCH_DIR ?? "/tmp/grok-goal-ff8428ca3705/implementer";
 const GATE = process.env.SETU_GATE_NAME ?? "browser";
 const BROWSER_LOG =
   process.env.SETU_BROWSER_LOG ?? `${SCRATCH}/${GATE}_browser.log`;
@@ -30,7 +30,7 @@ function isBenignConsoleError(text) {
 }
 
 function healthOk(health) {
-  return health?.status === "ok" && health?.version === "0.7.0" && health?.phase === 6;
+  return health?.status === "ok" && health?.version === "1.0.0" && health?.phase === 8;
 }
 
 async function waitForForecast(page) {

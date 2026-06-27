@@ -3,9 +3,10 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      network: host
       args:
-        REQUIREMENTS_FILE: backend/requirements.txt
-        APP_MODULE: app.main:app
+        REQUIREMENTS_FILE: backend/requirements-docker.txt
+        APP_MODULE: app.main_repro:app
     ports:
       - "8000:8000"
     volumes:
@@ -21,18 +22,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-
-  frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-      args:
-        VITE_API_URL: http://localhost:8000
-    ports:
-      - "5173:5173"
-    depends_on:
-      backend:
-        condition: service_healthy
 
 volumes:
   setu-data:
