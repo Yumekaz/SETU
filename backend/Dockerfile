@@ -16,6 +16,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --default-timeout=300 --retries 5 -r requirements.txt
 
 COPY backend/app ./app
+COPY ml ./ml
 COPY schemas /schemas
 COPY data /app/bundled-data
 
