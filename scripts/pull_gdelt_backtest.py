@@ -1,110 +1,95 @@
 #!/usr/bin/env python3
-"""Build gdelt_hormuz_backtest.json from GDELT daily exports (Feb–Jun 2026)."""
+"""Pull denser GDELT historical data for the backtest window.
+
+Usage:
+    python scripts/pull_gdelt_backtest.py \\
+        --start 2026-01-15 --end 2026-06-30 \\
+        --output data/samples/gdelt_hormuz_backtest_dense.json \\
+        --sample-interval 4
+"""
 
 from __future__ import annotations
 
-import json
+import argparse
+import logging
 import sys
-import zipfile
-from datetime import date, datetime, timezone
+from datetime import date
 from pathlib import Path
-
-import httpx
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
-sys.path.insert(0, str(ROOT))
 
-from app.signals.ingest_gdelt import filter_rows, iter_zip_bytes, load_sample_rows  # noqa: E402
+from app.signals.gdelt_client import pull_gdelt_historical  # noqa: E402
 
-OUT_PATH = ROOT / "data" / "samples" / "gdelt_hormuz_backtest.json"
-SAMPLE_PATH = ROOT / "data" / "samples" / "gdelt_events_sample.json"
-TIMEOUT = 45.0
-TARGET_ROWS = 55
-
-# Strategic dates across the Hormuz backtest window (weekly-ish sampling).
-PULL_DATES = [
-    date(2026, 2, 7),
-    date(2026, 2, 14),
-    date(2026, 2, 21),
-    date(2026, 2, 28),
-    date(2026, 3, 4),
-    date(2026, 3, 11),
-    date(2026, 3, 18),
-    date(2026, 3, 25),
-    date(2026, 4, 8),
-    date(2026, 4, 22),
-    date(2026, 5, 1),
-    date(2026, 5, 15),
-    date(2026, 6, 1),
-    date(2026, 6, 15),
-    date(2026, 6, 23),
-]
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger("pull_gdelt_backtest")
 
 
-def _pull_day(client: httpx.Client, day: date) -> list[dict[str, str]]:
-    urls = [
-        f"http://data.gdeltproject.org/events/{day.strftime('%Y%m%d')}.export.CSV.zip",
-        f"http://data.gdeltproject.org/gdeltv2/{day.strftime('%Y%m%d')}000000.export.CSV.zip",
-    ]
-    for url in urls:
-        try:
-            resp = client.get(url, timeout=TIMEOUT)
-            if resp.status_code != 200:
-                continue
-            return list(iter_zip_bytes(resp.content))
-        except (httpx.HTTPError, zipfile.BadZipFile, IndexError, KeyError):
-            continue
-    return []
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Pull GDELT backtest data")
+    parser.add_argument(
+        "--start",
+        type=date.fromisoformat,
+        default=date(2026, 1, 15),
+        help="Start date (ISO format, default: 2026-01-15)",
+    )
+    parser.add_argument(
+        "--end",
+        type=date.fromisoformat,
+        default=date(2026, 6, 30),
+        help="End date (ISO format, default: 2026-06-30)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=ROOT / "data" / "samples" / "gdelt_hormuz_backtest_dense.json",
+        help="Output JSON file path",
+    )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=ROOT / "data" / "samples" / ".gdelt_pull_manifest.json",
+        help="Manifest file for resumable pulls",
+    )
+    parser.add_argument(
+        "--sample-interval",
+        type=int,
+        default=4,
+        help="Sample every Nth 15-min file (default: 4 = hourly)",
+    )
+    args = parser.parse_args()
 
+    logger.info("=" * 60)
+    logger.info("GDELT Backtest Dense Pull")
+    logger.info("  Window: %s to %s", args.start, args.end)
+    logger.info("  Output: %s", args.output)
+    logger.info("  Sample interval: every %d files (1 per %d min)",
+                args.sample_interval, args.sample_interval * 15)
+    logger.info("=" * 60)
 
-def build_backtest(*, use_network: bool = True) -> dict[str, object]:
-    collected: list[dict[str, str]] = []
-    seen_ids: set[str] = set()
+    stats = pull_gdelt_historical(
+        start_date=args.start,
+        end_date=args.end,
+        output_path=args.output,
+        manifest_path=args.manifest,
+        sample_interval=args.sample_interval,
+    )
 
-    if use_network:
-        with httpx.Client() as client:
-            for day in PULL_DATES:
-                if len(collected) >= TARGET_ROWS:
-                    break
-                for row in filter_rows(_pull_day(client, day)):
-                    event_id = str(row.get("GLOBALEVENTID", ""))
-                    if event_id in seen_ids:
-                        continue
-                    collected.append(row)
-                    seen_ids.add(event_id)
-                    if len(collected) >= TARGET_ROWS:
-                        break
-
-    for row in filter_rows(load_sample_rows(SAMPLE_PATH)):
-        event_id = str(row.get("GLOBALEVENTID", ""))
-        if event_id not in seen_ids:
-            collected.append(row)
-            seen_ids.add(event_id)
-
-    if len(collected) < TARGET_ROWS:
-        raise RuntimeError(
-            f"Only collected {len(collected)} filtered rows; need >= {TARGET_ROWS}. "
-            "Re-run with network access."
-        )
-
-    return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "window_start": "2026-02-01",
-        "window_end": "2026-06-30",
-        "row_count": len(collected),
-        "rows": collected,
-    }
-
-
-def main() -> int:
-    use_network = "--offline" not in sys.argv
-    payload = build_backtest(use_network=use_network)
-    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(f"wrote {OUT_PATH} ({payload['row_count']} rows)")
-    return 0
+    logger.info("=" * 60)
+    logger.info("Pull Summary:")
+    logger.info("  Files downloaded: %d", stats.files_downloaded)
+    logger.info("  Files skipped (resume): %d", stats.files_skipped)
+    logger.info("  Files failed: %d", stats.files_failed)
+    logger.info("  Rows parsed: %d", stats.rows_parsed)
+    logger.info("  Rows accepted: %d", stats.rows_accepted)
+    logger.info("  Rows rejected: %d", stats.rows_rejected)
+    logger.info("  Accept rate: %.1f%%",
+                100.0 * stats.rows_accepted / max(stats.rows_parsed, 1))
+    logger.info("=" * 60)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

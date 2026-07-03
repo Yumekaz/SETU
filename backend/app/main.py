@@ -13,9 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
 from app.routers import backtest as backtest_router
+from app.routers import briefing as briefing_router
 from app.routers import cascade as cascade_router
 from app.routers import forecast as forecast_router
+from app.routers import ingest_url as ingest_url_router
 from app.routers import recommendations as recommendations_router
+from app.routers import route as route_router
 from app.routers import signals as signals_router
 
 load_dotenv()
@@ -39,10 +42,13 @@ app = FastAPI(
 )
 
 app.include_router(signals_router.router)
+app.include_router(ingest_url_router.router)
 app.include_router(cascade_router.router)
 app.include_router(forecast_router.router)
 app.include_router(recommendations_router.router)
 app.include_router(backtest_router.router)
+app.include_router(route_router.router)
+app.include_router(briefing_router.router)
 
 cors_origins = os.getenv(
     "CORS_ORIGINS",

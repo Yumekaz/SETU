@@ -55,6 +55,25 @@ Maps SRS Sections 11–16 and §19 master register to test evidence or known lim
 | EC-40 | chaos | §17 Invalid corridor | 422 supported list | tests/test_phase7_chaos.py | PASS |
 | EC-41 | chaos | §17 Missing cascade rec | 404 not 500 | tests/test_phase7_chaos.py | PASS |
 | EC-42 | chaos | §17 Backend unreachable UI | Bootstrap/polling error state | frontend/src/components/Dashboard.test.tsx | PASS |
+| EC-43 | gdelt | §11 GDELT server 503 | Retry 3x with backoff | tests/test_gdelt_client.py | PASS |
+| EC-44 | gdelt | §11 GDELT malformed CSV | Skip row, log warning | tests/test_gdelt_client.py | PASS |
+| EC-45 | gdelt | §11 Download network timeout | Resumable manifest | tests/test_gdelt_client.py | PASS |
+| EC-46 | gdelt | §11 Zero relevant events | Empty list return | tests/test_gdelt_client.py | PASS |
+| EC-47 | router | §12 All corridors blocked | Return NO_FEASIBLE_ROUTE | tests/test_router.py | PASS |
+| EC-48 | router | §12 Same origin and dest | Return 0-cost trivial route | tests/test_router.py | PASS |
+| EC-49 | router | §12 Disconnected graph path | Return NO_FEASIBLE_ROUTE | tests/test_router.py | PASS |
+| EC-50 | router | §12 Negative edge weight | Non-negative validation | tests/test_router.py | PASS |
+| EC-51 | router | §12 Blocked unused corridor | Normal route returned | tests/test_router.py | PASS |
+| EC-52 | scraper | §11 SSRF localhost attempt | Reject with 422 | tests/test_scraper.py | PASS |
+| EC-53 | scraper | §11 Non-HTML content type | Reject with 400 | tests/test_scraper.py | PASS |
+| EC-54 | scraper | §11 Large response (>5MB) | Abort stream 413 | tests/test_scraper.py | PASS |
+| EC-55 | scraper | §11 Scraper HTTP timeout | 504 Gateway Timeout | tests/test_scraper.py | PASS |
+| EC-56 | scraper | §11 Duplicate URL article | Dedup filter catches | tests/test_scraper.py | PASS |
+| EC-57 | scraper | §11 Irrelevant URL article | 200 with event_id=null | tests/test_scraper.py | PASS |
+| EC-58 | scraper | §11 Rate limit exceeded | 429 Too Many Requests | tests/test_scraper.py | PASS |
+| EC-59 | briefing | §16 Zero corridor events | LOW level empty briefing | tests/test_briefing.py | PASS |
+| EC-60 | briefing | §16 Stale events (>14 days) | Recency decay LOW level | tests/test_briefing.py | PASS |
+| EC-61 | briefing | §16 Score boundary (0.35) | Deterministic HIGH level | tests/test_briefing.py | PASS |
 
 ## Machine-readable rows
 
@@ -103,4 +122,23 @@ EC-39|PASS|tests/test_phase7_chaos.py
 EC-40|PASS|tests/test_phase7_chaos.py
 EC-41|PASS|tests/test_phase7_chaos.py
 EC-42|PASS|frontend/src/components/Dashboard.test.tsx
+EC-43|PASS|tests/test_gdelt_client.py
+EC-44|PASS|tests/test_gdelt_client.py
+EC-45|PASS|tests/test_gdelt_client.py
+EC-46|PASS|tests/test_gdelt_client.py
+EC-47|PASS|tests/test_router.py
+EC-48|PASS|tests/test_router.py
+EC-49|PASS|tests/test_router.py
+EC-50|PASS|tests/test_router.py
+EC-51|PASS|tests/test_router.py
+EC-52|PASS|tests/test_scraper.py
+EC-53|PASS|tests/test_scraper.py
+EC-54|PASS|tests/test_scraper.py
+EC-55|PASS|tests/test_scraper.py
+EC-56|PASS|tests/test_scraper.py
+EC-57|PASS|tests/test_scraper.py
+EC-58|PASS|tests/test_scraper.py
+EC-59|PASS|tests/test_briefing.py
+EC-60|PASS|tests/test_briefing.py
+EC-61|PASS|tests/test_briefing.py
 ```

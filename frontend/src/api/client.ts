@@ -327,3 +327,93 @@ export async function ensureBaselineData(): Promise<void> {
     throw err;
   }
 }
+
+// --- NEW COMPONENT API CLIENTS ---
+
+export interface IngestUrlResponse {
+  status: "accepted" | "rejected";
+  event_id?: string;
+  corridor?: string;
+  event_type?: string;
+  severity?: number;
+  risk_score_after?: number;
+  rejection_reason?: string;
+  source_url: string;
+}
+
+export async function ingestLiveUrl(url: string): Promise<IngestUrlResponse> {
+  const response = await fetch(`${API_URL}/api/signals/ingest-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  });
+  if (!response.ok && response.status !== 400 && response.status !== 422) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+  return response.json() as Promise<IngestUrlResponse>;
+}
+
+export interface RouteComparisonResult {
+  corridor: string;
+  origin: string;
+  destination: string;
+  normal: {
+    path: string[];
+    distance_nm: number;
+    transit_days: number;
+    cost_usd: number;
+  };
+  alternative: {
+    path: string[];
+    distance_nm: number;
+    transit_days: number;
+    cost_usd: number;
+    error?: string;
+  };
+  comparison: {
+    extra_days: number;
+    extra_cost_usd: number;
+    extra_distance_nm: number;
+  };
+}
+
+export async function compareRoute(
+  corridor: string = "HORMUZ",
+  origin: string = "persian_gulf",
+  destination: string = "jamnagar",
+): Promise<RouteComparisonResult> {
+  const url = `${API_URL}/api/route/compare?corridor=${encodeURIComponent(corridor)}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<RouteComparisonResult>;
+}
+
+export interface IntelligenceBriefing {
+  corridor: string;
+  risk_level: "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
+  score: number;
+  trend: string;
+  headline: string;
+  contributing_factors: Array<{
+    event_type: string;
+    event_date: string;
+    contribution_pct: number;
+    goldstein_scale: number;
+    source_url: string;
+    snippet: string;
+  }>;
+  recommended_posture: string;
+  generated_at: string;
+}
+
+export async function fetchLatestBriefing(corridor: string = "HORMUZ"): Promise<IntelligenceBriefing> {
+  const response = await fetch(`${API_URL}/api/briefing/latest?corridor=${encodeURIComponent(corridor)}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<IntelligenceBriefing>;
+}
+
+export async function fetchAllBriefings(): Promise<IntelligenceBriefing[]> {
+  const response = await fetch(`${API_URL}/api/briefing/all`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<IntelligenceBriefing[]>;
+}

@@ -48,11 +48,15 @@ def run_pipeline(
     reset: bool = True,
     score_date: date | None = None,
 ) -> PipelineResult:
-    if source != "cache":
-        raise ValueError("Phase 1 supports source='cache' only (offline-first)")
+    if source not in {"cache", "gdelt_live"}:
+        raise ValueError(f"Unsupported pipeline source: {source!r}. Expected 'cache' or 'gdelt_live'")
 
     init_db()
-    rows = load_backtest_cache(cache_path)
+    if source == "gdelt_live":
+        from app.signals.gdelt_client import fetch_recent_gdelt
+        rows = fetch_recent_gdelt()
+    else:
+        rows = load_backtest_cache(cache_path)
 
     accepted: list[SignalEvent] = []
     rejected = 0
