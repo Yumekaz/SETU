@@ -11,6 +11,8 @@ import {
 import { usePolling } from "../hooks/usePolling";
 import CascadeBands from "./CascadeBands";
 import CorridorScoreGrid from "./CorridorScoreGrid";
+import IntelligenceBriefingCard from "./IntelligenceBriefingCard";
+import MaritimeRouteCard from "./MaritimeRouteCard";
 import RecommendationPanel from "./RecommendationPanel";
 import RiskTrendChart from "./RiskTrendChart";
 import ScenarioControls from "./ScenarioControls";
@@ -94,8 +96,17 @@ export default function Dashboard({
   return (
     <div id="dashboard-root" className="space-y-6">
       <section>
-        <h2 className="mb-4 text-xs font-bold tracking-widest text-slate-400 uppercase">Live Global Corridor Risk Metrics</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xs font-bold tracking-widest text-slate-400 uppercase">Live Global Corridor Risk Metrics</h2>
+          <span className="text-[10px] font-mono text-slate-500">Auto-refresh: 30s</span>
+        </div>
         <CorridorScoreGrid scores={data?.latestScores ?? []} />
+      </section>
+
+      {/* Grounded XAI Briefing & Dynamic Maritime Route Pathfinder */}
+      <section className="grid gap-6 lg:grid-cols-2">
+        <IntelligenceBriefingCard corridor={selectedCorridor} />
+        <MaritimeRouteCard corridor={selectedCorridor} />
       </section>
       
       <section className="grid gap-6 lg:grid-cols-2">

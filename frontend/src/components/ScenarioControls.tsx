@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { ingestLiveUrl, runForecast, runRecommendations, simulateCascade } from "../api/client";
 import type { Corridor } from "../types/generated";
-import { runForecast, runRecommendations, simulateCascade } from "../api/client";
 
 interface Props {
   corridor: Corridor;
@@ -9,6 +9,8 @@ interface Props {
 
 export default function ScenarioControls({ corridor, onComplete }: Props) {
   const [busy, setBusy] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const [urlBusy, setUrlBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,9 +33,33 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
     }
   };
 
+  const handleIngestUrl = async () => {
+    if (!urlInput.trim()) return;
+    setUrlBusy(true);
+    setMessage(null);
+    setError(null);
+    try {
+      const res = await ingestLiveUrl(urlInput.trim());
+      if (res.status === "accepted") {
+        setMessage(
+          `Live URL ingested successfully! Corridor [${res.corridor}], Event Type [${res.event_type}], Severity [${res.severity?.toFixed(2)}]. Updated risk score: ${(res.risk_score_after ?? 0).toFixed(3)}.`
+        );
+        setUrlInput("");
+        onComplete();
+      } else {
+        setError(`URL Ingestion Rejected: ${res.rejection_reason || "Extraction filter rejected article content"}`);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setUrlBusy(false);
+    }
+  };
+
   return (
-    <div id="scenario-controls" className="rounded-xl bg-glass p-5 shadow-xl shadow-black/20">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div id="scenario-controls" className="rounded-xl bg-glass p-5 shadow-xl shadow-black/20 space-y-6">
+      {/* Simulation Trigger */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-900/60 pb-5">
         <div>
           <h4 className="text-sm font-bold tracking-wider text-slate-200 uppercase">Live Simulation Sandbox</h4>
           <p className="text-xs text-slate-400 mt-1 leading-relaxed">
@@ -42,7 +68,7 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
         </div>
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || urlBusy}
           onClick={runUnrehearsed}
           className={`flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-lg shadow-md transition-all duration-300 shrink-0 ${
             busy 
@@ -58,6 +84,31 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
           )}
           {busy ? "Executing Simulation..." : "Simulate Supply Disruption"}
         </button>
+      </div>
+
+      {/* Live URL Intelligence Ingest */}
+      <div className="space-y-2">
+        <h4 className="text-xs font-bold tracking-wider text-slate-300 uppercase">
+          Analyze Live Geopolitical News Link
+        </h4>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <input
+            type="url"
+            className="input-premium flex-1"
+            placeholder="Paste news article URL (e.g. https://www.reuters.com/...)"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            disabled={urlBusy || busy}
+          />
+          <button
+            type="button"
+            disabled={urlBusy || busy || !urlInput.trim()}
+            onClick={handleIngestUrl}
+            className="btn-secondary whitespace-nowrap text-xs py-2.5 px-4"
+          >
+            {urlBusy ? "Scraping & Scoring..." : "Ingest & Score Live URL"}
+          </button>
+        </div>
       </div>
       
       {message && (
