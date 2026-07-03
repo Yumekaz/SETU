@@ -1,14 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { CircleMarker, MapContainer, Polyline, Popup, TileLayer } from "react-leaflet";
+import { CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
 import type { Corridor } from "../types/generated";
+import type { GraphNode, GraphResponse, RiskScore, RouteComparisonResult } from "../api/client";
 import {
+  compareRoute,
   fetchGraph,
   fetchRiskScoresLatest,
-  type GraphNode,
-  type GraphResponse,
-  type RiskScore,
 } from "../api/client";
-import { CAPE_REROUTE, HORMUZ_PRIMARY_ROUTE, MAP_CENTER, MAP_ZOOM } from "../geo/routes";
+import {
+  ALTERNATE_ROUTES,
+  CORRIDOR_MAP_CENTERS,
+  LatLngTuple,
+  MAP_CENTER,
+  MAP_ZOOM,
+  MARITIME_NODE_COORDS,
+  PRIMARY_ROUTES,
+} from "../geo/routes";
 import { scoreByCorridor, scoreToHex } from "../utils/riskColors";
 import "leaflet/dist/leaflet.css";
 
@@ -27,6 +34,15 @@ interface MapViewProps {
   replayScore?: number | null;
 }
 
+/** Component to smoothly pan the map view when selected corridor changes */
+function MapRecenter({ center }: { center: LatLngTuple }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, 4, { duration: 1.2 });
+  }, [center, map]);
+  return null;
+}
+
 export default function MapView({
   selectedCorridor,
   onCorridorChange,
@@ -35,6 +51,7 @@ export default function MapView({
 }: MapViewProps) {
   const [graph, setGraph] = useState<GraphResponse | null>(null);
   const [scores, setScores] = useState<RiskScore[]>([]);
+  const [routeComp, setRouteComp] = useState<RouteComparisonResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [useOfflineTiles, setUseOfflineTiles] = useState(false);
 
@@ -47,6 +64,21 @@ export default function MapView({
       })
       .catch((err: Error) => setError(err.message));
   }, []);
+
+  // Fetch dynamic backend route comparison whenever selectedCorridor changes
+  useEffect(() => {
+    let active = true;
+    compareRoute(selectedCorridor)
+      .then((res) => {
+        if (active) setRouteComp(res);
+      })
+      .catch(() => {
+        // Fall back to static route tuples if API fails
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedCorridor]);
 
   const scoreMap = useMemo(() => scoreByCorridor(scores), [scores]);
 
@@ -75,7 +107,44 @@ export default function MapView({
     return "#64748b";
   };
 
+  // Convert node path strings to LatLngTuple arrays
+  const pathToCoordinates = (pathNodes: string[]): LatLngTuple[] => {
+    const coords: LatLngTuple[] = [];
+    for (const nid of pathNodes) {
+      if (MARITIME_NODE_COORDS[nid]) {
+        coords.push(MARITIME_NODE_COORDS[nid]);
+      } else if (graph) {
+        const found = graph.nodes.find((n) => n.node_id === nid);
+        if (found) coords.push([found.lat, found.lon]);
+      }
+    }
+    return coords;
+  };
+
+  const dynamicPrimaryRoute = useMemo(() => {
+    if (routeComp?.normal?.path && routeComp.normal.path.length > 0) {
+      const parsed = pathToCoordinates(routeComp.normal.path);
+      if (parsed.length > 1) return parsed;
+    }
+    return PRIMARY_ROUTES[selectedCorridor] ?? PRIMARY_ROUTES.HORMUZ;
+  }, [routeComp, graph, selectedCorridor]);
+
+  const dynamicAlternateRoute = useMemo(() => {
+    if (routeComp?.alternative?.path && routeComp.alternative.path.length > 0) {
+      const parsed = pathToCoordinates(routeComp.alternative.path);
+      if (parsed.length > 1) return parsed;
+    }
+    return ALTERNATE_ROUTES[selectedCorridor] ?? ALTERNATE_ROUTES.HORMUZ;
+  }, [routeComp, graph, selectedCorridor]);
+
   const currentScoreVal = corridorScore(selectedCorridor);
+  const targetCenter = CORRIDOR_MAP_CENTERS[selectedCorridor] ?? MAP_CENTER;
+
+  const rerouteBadgeText = () => {
+    if (selectedCorridor === "BAB_EL_MANDEB") return "CAPE / SUEZ BYPASS ACTIVE";
+    if (selectedCorridor === "MALACCA") return "SUNDA / LOMBOK BYPASS ACTIVE";
+    return "CAPE REROUTE ACTIVE";
+  };
 
   if (error) {
     return <p className="text-red-300">Map error: {error}</p>;
@@ -138,10 +207,10 @@ export default function MapView({
             className={`rounded-lg px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider border transition-all duration-300 ${
               showDisruption
                 ? "bg-amber-500/15 text-amber-300 border-amber-500/30 shadow-md shadow-amber-500/20"
-                : "bg-slate-900 text-slate-500 border-slate-800"
+                : "bg-slate-900 text-slate-400 border-slate-800"
             }`}
           >
-            CAPE REROUTE ACTIVE
+            {rerouteBadgeText()}
           </span>
         </div>
       </div>
@@ -161,13 +230,13 @@ export default function MapView({
           </div>
           <div className="space-y-2">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-400 font-semibold">Threat Factor:</span>
+              <span className="text-slate-400 font-semibold">Threat Index:</span>
               <span className="font-mono font-bold text-sky-300">{currentScoreVal.toFixed(3)}</span>
             </div>
             <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
               <div
                 className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 transition-all duration-500"
-                style={{ width: `${Math.min(100, currentScoreVal * 100)}%` }}
+                style={{ width: `${Math.min(100, Math.max(8, currentScoreVal * 100))}%` }}
               />
             </div>
             <div className="flex justify-between items-center text-[10px] font-mono text-slate-500 pt-1">
@@ -182,28 +251,35 @@ export default function MapView({
         {/* Floating Right Overlay Panel (Reroute Path Stats) */}
         <div className="absolute bottom-6 right-4 z-[1000] w-80 bg-glass-heavy p-4 rounded-xl border border-slate-800/90 shadow-2xl pointer-events-auto space-y-2.5">
           <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">Cape Pathfinder Telemetry</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">
+              {selectedCorridor.replace(/_/g, " ")} ROUTE TELEMETRY
+            </span>
             <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-mono">
-              BYPASS ROUTE
+              DYNAMIC DIJKSTRA
             </span>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="bg-slate-950/60 p-2 rounded border border-slate-800/60">
               <span className="text-[9px] font-bold text-slate-500 block uppercase">Extra Days</span>
-              <span className="font-mono font-bold text-amber-400 text-sm">+15.2 Days</span>
+              <span className="font-mono font-bold text-amber-400 text-sm">
+                +{routeComp ? routeComp.comparison.extra_days.toFixed(1) : "15.2"} Days
+              </span>
             </div>
             <div className="bg-slate-950/60 p-2 rounded border border-slate-800/60">
               <span className="text-[9px] font-bold text-slate-500 block uppercase">Extra Cost</span>
-              <span className="font-mono font-bold text-rose-400 text-sm">+$548k / trip</span>
+              <span className="font-mono font-bold text-rose-400 text-sm">
+                +${routeComp ? (routeComp.comparison.extra_cost_usd / 1000).toFixed(0) : "548"}k / trip
+              </span>
             </div>
           </div>
           <div className="text-[10px] font-mono text-slate-400 flex justify-between pt-1 border-t border-slate-900">
-            <span>VLCC Fuel Burn Rate:</span>
+            <span>VLCC Daily Fuel Burn:</span>
             <span className="text-slate-200 font-bold">$36,000/day</span>
           </div>
         </div>
 
         <MapContainer center={MAP_CENTER} zoom={MAP_ZOOM} className="h-full w-full">
+          <MapRecenter center={targetCenter} />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url={
@@ -215,21 +291,24 @@ export default function MapView({
               tileerror: () => setUseOfflineTiles(true),
             }}
           />
-          {selectedCorridor === "HORMUZ" && (
-            <Polyline
-              positions={HORMUZ_PRIMARY_ROUTE}
-              color="#38bdf8"
-              weight={showDisruption ? 5 : 3.5}
-              opacity={showDisruption ? 1 : 0.85}
-            />
-          )}
+
+          {/* Dynamic Normal Route Line (Cyan) */}
           <Polyline
-            positions={CAPE_REROUTE}
+            positions={dynamicPrimaryRoute}
+            color="#38bdf8"
+            weight={showDisruption ? 5 : 3.5}
+            opacity={showDisruption ? 0.9 : 0.85}
+          />
+
+          {/* Dynamic Alternate Reroute Line (Dashed Amber) */}
+          <Polyline
+            positions={dynamicAlternateRoute}
             color="#f59e0b"
             weight={showDisruption ? 5 : 3.5}
             dashArray="10 8"
             opacity={showDisruption ? 1 : 0.9}
           />
+
           {graph?.nodes.map((node) => (
             <CircleMarker
               key={node.node_id}
