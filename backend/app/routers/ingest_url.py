@@ -10,10 +10,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.database import get_db_path, init_db
 from app.signals.extract import extract_signal
 from app.signals.repository import (
-    get_all_signal_events,
     insert_extraction_log,
     insert_risk_score,
     insert_signal_event,
+    list_signal_events,
 )
 from app.signals.score import build_risk_scores
 from app.signals.scraper import scrape_url
@@ -87,7 +87,7 @@ def ingest_live_url(req: IngestUrlRequest) -> IngestUrlResponse:
         insert_signal_event(conn, res.event)
 
         # Step 5: Recalculate risk score for the corridor
-        all_events = get_all_signal_events(conn)
+        all_events = list_signal_events()
         new_scores = build_risk_scores(all_events, score_date=res.event.event_date)
         after_score = None
         for s in new_scores:

@@ -6,9 +6,9 @@ import sqlite3
 from fastapi import APIRouter, HTTPException, Query
 
 from app.database import get_db_path, init_db
-from app.models.generated import Corridor
+from app.models.generated import Corridor, RiskScore
 from app.signals.briefing import generate_all_briefings, generate_briefing
-from app.signals.repository import get_all_signal_events, get_latest_risk_scores
+from app.signals.repository import list_risk_scores, list_signal_events
 
 router = APIRouter(prefix="/api/briefing", tags=["briefing"])
 
@@ -16,13 +16,20 @@ router = APIRouter(prefix="/api/briefing", tags=["briefing"])
 @router.get("/latest")
 def get_latest_briefing(corridor: Corridor = Query(Corridor.hormuz)) -> dict[str, object]:
     init_db()
-    with sqlite3.connect(str(get_db_path())) as conn:
-        scores = get_latest_risk_scores(conn)
-        events = get_all_signal_events(conn)
+    scores = list_risk_scores(latest_only=True)
+    events = list_signal_events()
 
     target_score = next((s for s in scores if s.corridor == corridor), None)
     if target_score is None:
-        raise HTTPException(status_code=404, detail=f"No risk score found for corridor '{corridor.value}'")
+        from datetime import date
+        from app.models.generated import Trend7d
+        target_score = RiskScore(
+            corridor=corridor,
+            score=0.0,
+            score_date=date.today(),
+            contributing_event_ids=[],
+            trend_7d=Trend7d.stable,
+        )
 
     b = generate_briefing(target_score, events)
     return {
@@ -50,9 +57,8 @@ def get_latest_briefing(corridor: Corridor = Query(Corridor.hormuz)) -> dict[str
 @router.get("/all")
 def get_all_briefings_endpoint() -> list[dict[str, object]]:
     init_db()
-    with sqlite3.connect(str(get_db_path())) as conn:
-        scores = get_latest_risk_scores(conn)
-        events = get_all_signal_events(conn)
+    scores = list_risk_scores(latest_only=True)
+    events = list_signal_events()
 
     briefings = generate_all_briefings(scores, events)
     return [
