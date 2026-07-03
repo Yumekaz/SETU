@@ -43,6 +43,11 @@ export const PRIMARY_ROUTES: Record<string, LatLngTuple[]> = {
     MARITIME_NODE_COORDS.chennai,
     MARITIME_NODE_COORDS.kochi,
   ],
+  OTHER: [
+    MARITIME_NODE_COORDS.persian_gulf,
+    MARITIME_NODE_COORDS.arabian_sea,
+    MARITIME_NODE_COORDS.jamnagar,
+  ],
 };
 
 /** Alternate reroutes per corridor */
@@ -69,6 +74,13 @@ export const ALTERNATE_ROUTES: Record<string, LatLngTuple[]> = {
     [ -12.0, 95.0 ], // South Indian Ocean
     MARITIME_NODE_COORDS.chennai,
   ],
+  OTHER: [
+    MARITIME_NODE_COORDS.persian_gulf,
+    MARITIME_NODE_COORDS.mozambique_channel,
+    MARITIME_NODE_COORDS.cape_of_good_hope,
+    MARITIME_NODE_COORDS.atlantic_west_africa,
+    MARITIME_NODE_COORDS.jamnagar,
+  ],
 };
 
 /** Backward compatibility exports */
@@ -79,6 +91,7 @@ export const CORRIDOR_MAP_CENTERS: Record<string, LatLngTuple> = {
   HORMUZ: [22.0, 62.0],
   BAB_EL_MANDEB: [18.0, 48.0],
   MALACCA: [5.0, 95.0],
+  OTHER: [15.0, 65.0],
 };
 
 export const MAP_CENTER: LatLngTuple = [15.0, 65.0];

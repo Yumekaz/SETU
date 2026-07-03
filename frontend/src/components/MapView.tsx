@@ -19,7 +19,7 @@ import {
 import { scoreByCorridor, scoreToHex } from "../utils/riskColors";
 import "leaflet/dist/leaflet.css";
 
-const CORRIDORS: Corridor[] = ["HORMUZ", "BAB_EL_MANDEB", "MALACCA"];
+const CORRIDORS: Corridor[] = ["HORMUZ", "BAB_EL_MANDEB", "MALACCA", "OTHER"];
 
 function nodeRadius(node: GraphNode): number {
   if (node.node_type === "CORRIDOR") return 14;
@@ -143,6 +143,7 @@ export default function MapView({
   const rerouteBadgeText = () => {
     if (selectedCorridor === "BAB_EL_MANDEB") return "CAPE / SUEZ BYPASS ACTIVE";
     if (selectedCorridor === "MALACCA") return "SUNDA / LOMBOK BYPASS ACTIVE";
+    if (selectedCorridor === "OTHER") return "GLOBAL TRADE ROUTE ACTIVE";
     return "CAPE REROUTE ACTIVE";
   };
 
