@@ -89,6 +89,7 @@ def list_signal_events(
     from_date: date | None = None,
     to_date: date | None = None,
     min_confidence: float | None = None,
+    conn: sqlite3.Connection | None = None,
 ) -> list[SignalEvent]:
     clauses: list[str] = []
     params: list[Any] = []
@@ -108,12 +109,15 @@ def list_signal_events(
     where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
     query = f"SELECT payload_json FROM signal_events {where} ORDER BY event_date DESC"
 
-    with _connect() as conn:
+    if conn is None:
+        with _connect() as owned_conn:
+            rows = owned_conn.execute(query, params).fetchall()
+    else:
         rows = conn.execute(query, params).fetchall()
 
     events: list[SignalEvent] = []
     for row in rows:
-        payload = json.loads(row["payload_json"])
+        payload = json.loads(row["payload_json"] if isinstance(row, sqlite3.Row) else row[0])
         events.append(SignalEvent.model_validate(payload))
     return events
 

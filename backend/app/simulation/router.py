@@ -82,6 +82,8 @@ MARITIME_NODES: dict[str, dict[str, Any]] = {
     "mediterranean": {"type": "WAYPOINT", "name": "Mediterranean Sea", "lat": 35.00, "lon": 25.00},
     "atlantic_west_africa": {"type": "WAYPOINT", "name": "West Africa Atlantic", "lat": 5.00, "lon": -5.00},
     "mozambique_channel": {"type": "WAYPOINT", "name": "Mozambique Channel", "lat": -15.00, "lon": 42.00},
+    "lombok_strait": {"type": "CHOKEPOINT", "name": "Lombok Strait", "lat": -8.50, "lon": 115.75},
+    "indian_ocean_south": {"type": "WAYPOINT", "name": "Southern Indian Ocean", "lat": -12.00, "lon": 95.00},
 }
 
 # Directed shipping edges: (source, target, corridor_dependency, canal_fee)
@@ -105,11 +107,16 @@ MARITIME_EDGES: list[tuple[str, str, str | None, float]] = [
     ("cape_of_good_hope", "atlantic_west_africa", None, 0.0),
     ("atlantic_west_africa", "jamnagar", None, 0.0),
     ("atlantic_west_africa", "mumbai", None, 0.0),
+    ("atlantic_west_africa", "mediterranean", None, 0.0),
 
     # Malacca routes
     ("se_asia", "malacca", "MALACCA", 0.0),
     ("malacca", "chennai", "MALACCA", 0.0),
     ("malacca", "kochi", "MALACCA", 0.0),
+    ("se_asia", "lombok_strait", None, 0.0),
+    ("lombok_strait", "indian_ocean_south", None, 0.0),
+    ("indian_ocean_south", "kochi", None, 0.0),
+    ("indian_ocean_south", "chennai", None, 0.0),
 
     # Inter-waypoint links for connectivity
     ("gulf_of_aden", "arabian_sea", None, 0.0),

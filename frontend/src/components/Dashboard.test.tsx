@@ -12,6 +12,24 @@ vi.mock("../api/client", () => ({
   fetchCascadeResultsLatest: vi.fn(),
   fetchForecastsLatest: vi.fn(),
   fetchRecommendationsLatest: vi.fn(),
+  fetchLatestBriefing: vi.fn().mockResolvedValue({
+    corridor: "HORMUZ",
+    risk_level: "LOW",
+    score: 0.12,
+    trend: "STABLE",
+    headline: "No active threat signals detected.",
+    contributing_factors: [],
+    recommended_posture: "Maintain standard procurement schedule.",
+    generated_at: "2026-06-01T00:00:00Z",
+  }),
+  compareRoute: vi.fn().mockResolvedValue({
+    corridor: "HORMUZ",
+    origin: "persian_gulf",
+    destination: "jamnagar",
+    normal: { path: ["persian_gulf", "hormuz", "jamnagar"], distance_nm: 1, transit_days: 1, cost_usd: 1 },
+    alternative: { path: ["persian_gulf", "cape_of_good_hope", "jamnagar"], distance_nm: 2, transit_days: 2, cost_usd: 2 },
+    comparison: { extra_days: 1, extra_cost_usd: 1, extra_distance_nm: 1 },
+  }),
 }));
 
 vi.mock("../hooks/usePolling", () => ({
@@ -67,7 +85,7 @@ describe("Dashboard forecast bootstrap", () => {
     render(<Dashboard {...defaultProps} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/p50 0\.150/)).toBeTruthy();
+      expect(screen.getByText(/p50:\s*0\.150/)).toBeTruthy();
     });
     expect(screen.queryByText(/No forecasts/)).toBeNull();
     expect(document.querySelector("#forecast-panel")?.textContent).toContain("p10–p90");

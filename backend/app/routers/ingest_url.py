@@ -87,7 +87,7 @@ def ingest_live_url(req: IngestUrlRequest) -> IngestUrlResponse:
         insert_signal_event(conn, res.event)
 
         # Step 5: Recalculate risk score for the corridor
-        all_events = list_signal_events()
+        all_events = list_signal_events(conn=conn)
         new_scores = build_risk_scores(all_events, score_date=res.event.event_date)
         after_score = None
         for s in new_scores:

@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import sys
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
+from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 
-from app.models.generated import Corridor, RiskScore, Trend7d  # noqa: E402
+from app.models.generated import Corridor, RiskScore, SignalEvent, Trend7d  # noqa: E402
 from app.signals.briefing import (  # noqa: E402
     generate_all_briefings,
     generate_briefing,
@@ -70,3 +71,30 @@ def test_generate_all_briefings() -> None:
     assert len(briefings) == 2
     assert briefings[0].risk_level == "HIGH"
     assert briefings[1].risk_level == "LOW"
+
+
+def test_briefing_excludes_events_below_scoring_confidence_threshold() -> None:
+    score = RiskScore(
+        corridor=Corridor.hormuz,
+        score=0.20,
+        score_date=date(2026, 6, 1),
+        contributing_event_ids=[],
+        trend_7d=Trend7d.stable,
+    )
+    low_confidence_event = SignalEvent(
+        event_id=uuid4(),
+        corridor=Corridor.hormuz,
+        event_type="MILITARY",
+        severity=1.0,
+        goldstein_scale=-10.0,
+        confidence=0.49,
+        event_date=date(2026, 6, 1),
+        ingested_at=datetime(2026, 6, 1, tzinfo=timezone.utc),
+        source_url="https://example.com/low-confidence",
+        raw_text_snippet="Untrusted low-confidence signal",
+    )
+
+    briefing = generate_briefing(score, [low_confidence_event])
+
+    assert briefing.contributing_factors == []
+    assert "No active threat signals" in briefing.headline

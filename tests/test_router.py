@@ -84,3 +84,29 @@ def test_route_comparison_function() -> None:
     assert comp.extra_days > 15.0
     assert comp.extra_cost_usd > 0
     assert comp.extra_distance_nm > 1000.0
+
+
+def test_blocked_bab_el_mandeb_uses_cape_route() -> None:
+    comp = compare_routes(
+        "persian_gulf",
+        "mediterranean",
+        blocked_corridors=[Corridor.bab_el_mandeb],
+    )
+    assert not comp.normal.error
+    assert not comp.alternative.error
+    assert "red_sea_north" in comp.normal.path
+    assert "cape_of_good_hope" in comp.alternative.path
+    assert comp.extra_days > 0
+
+
+def test_blocked_malacca_uses_lombok_route() -> None:
+    comp = compare_routes(
+        "se_asia",
+        "kochi",
+        blocked_corridors=[Corridor.malacca],
+    )
+    assert not comp.normal.error
+    assert not comp.alternative.error
+    assert "malacca" in comp.normal.path
+    assert "lombok_strait" in comp.alternative.path
+    assert comp.extra_days > 0

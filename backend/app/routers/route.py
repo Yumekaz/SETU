@@ -15,6 +15,13 @@ from app.simulation.router import (
 
 router = APIRouter(prefix="/api/route", tags=["route"])
 
+CORRIDOR_ENDPOINTS: dict[Corridor, tuple[str, str]] = {
+    Corridor.hormuz: ("persian_gulf", "jamnagar"),
+    Corridor.bab_el_mandeb: ("persian_gulf", "mediterranean"),
+    Corridor.malacca: ("se_asia", "kochi"),
+    Corridor.other: ("persian_gulf", "jamnagar"),
+}
+
 
 class RouteRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -51,18 +58,21 @@ def find_route(req: RouteRequest) -> dict[str, object]:
 @router.get("/compare")
 def compare_corridor_route(
     corridor: Corridor = Query(Corridor.hormuz),
-    origin: str = Query("persian_gulf"),
-    destination: str = Query("jamnagar"),
+    origin: str | None = Query(None),
+    destination: str | None = Query(None),
 ) -> dict[str, object]:
+    default_origin, default_destination = CORRIDOR_ENDPOINTS[corridor]
+    resolved_origin = origin or default_origin
+    resolved_destination = destination or default_destination
     comp = compare_routes(
-        origin=origin,
-        destination=destination,
+        origin=resolved_origin,
+        destination=resolved_destination,
         blocked_corridors=[corridor],
     )
     return {
         "corridor": corridor.value,
-        "origin": origin,
-        "destination": destination,
+        "origin": resolved_origin,
+        "destination": resolved_destination,
         "normal": {
             "path": comp.normal.path,
             "distance_nm": comp.normal.total_distance_nm,

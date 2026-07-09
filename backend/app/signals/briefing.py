@@ -77,7 +77,11 @@ def generate_briefing(
     relevant_events = [
         e
         for e in events
-        if e.corridor.value == corridor_key and e.event_date <= risk_score.score_date
+        if (
+            e.corridor.value == corridor_key
+            and e.event_date <= risk_score.score_date
+            and e.confidence >= cfg.scoring.confidence_threshold
+        )
     ]
 
     level = get_risk_level(score_val)

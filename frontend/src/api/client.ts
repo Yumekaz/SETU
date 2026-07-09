@@ -379,10 +379,13 @@ export interface RouteComparisonResult {
 
 export async function compareRoute(
   corridor: string = "HORMUZ",
-  origin: string = "persian_gulf",
-  destination: string = "jamnagar",
+  origin?: string,
+  destination?: string,
 ): Promise<RouteComparisonResult> {
-  const url = `${API_URL}/api/route/compare?corridor=${encodeURIComponent(corridor)}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+  const params = new URLSearchParams({ corridor });
+  if (origin) params.set("origin", origin);
+  if (destination) params.set("destination", destination);
+  const url = `${API_URL}/api/route/compare?${params.toString()}`;
   const response = await fetch(url);
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json() as Promise<RouteComparisonResult>;

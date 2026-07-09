@@ -21,6 +21,8 @@ export const MARITIME_NODE_COORDS: Record<string, LatLngTuple> = {
   mediterranean: [35.00, 25.00],
   atlantic_west_africa: [5.00, -5.00],
   mozambique_channel: [-15.00, 42.00],
+  lombok_strait: [-8.50, 115.75],
+  indian_ocean_south: [-12.00, 95.00],
 };
 
 /** Primary routes per corridor */
