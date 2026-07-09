@@ -69,14 +69,32 @@ export async function fetchRiskScoresLatest(): Promise<RiskScore[]> {
   return response.json() as Promise<RiskScore[]>;
 }
 
-export async function runPipeline(): Promise<unknown> {
+export interface PipelineRunResult {
+  status: "ok";
+  source: "cache" | "gdelt_live";
+  data_origin: "LIVE_GDELT" | "SEEDED_CACHE";
+  refreshed_at: string;
+  stats: {
+    input_rows: number;
+    accepted_events: number;
+    rejected_events: number;
+    dedup_dropped: number;
+    risk_scores: number;
+  };
+  events: number;
+  scores: RiskScore[];
+}
+
+export async function runPipeline(
+  source: "cache" | "gdelt_live" = "cache",
+): Promise<PipelineRunResult> {
   const response = await fetch(`${API_URL}/api/pipeline/run`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ source: "cache" }),
+    body: JSON.stringify({ source }),
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.json();
+  return response.json() as Promise<PipelineRunResult>;
 }
 
 export interface GraphNode {
@@ -339,6 +357,14 @@ export interface IngestUrlResponse {
   risk_score_after?: number;
   rejection_reason?: string;
   source_url: string;
+  data_origin: "LIVE_WEB";
+  source_domain?: string;
+  article_title?: string;
+  published_at?: string;
+  scraped_at?: string;
+  confidence?: number;
+  goldstein_scale?: number;
+  evidence_terms: string[];
 }
 
 export async function ingestLiveUrl(url: string): Promise<IngestUrlResponse> {

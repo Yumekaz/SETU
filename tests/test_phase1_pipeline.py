@@ -15,9 +15,11 @@ from app.signals.extract import extract_signal
 from app.signals.ingest_gdelt import load_backtest_cache
 from app.signals.pipeline import run_pipeline
 
+from tests.scratch import scratch_dir
+
 ROOT = Path(__file__).resolve().parent.parent
 BACKTEST = ROOT / "data" / "samples" / "gdelt_hormuz_backtest.json"
-SCRATCH = Path("/tmp/grok-goal-7dbdddf7e201/implementer")
+SCRATCH = scratch_dir("grok-goal-7dbdddf7e201") / "implementer"
 
 
 def _fixed_ingested_at() -> datetime:

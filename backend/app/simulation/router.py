@@ -66,12 +66,27 @@ def haversine_nm(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 # Node definitions with real geographical coordinates
 MARITIME_NODES: dict[str, dict[str, Any]] = {
-    "persian_gulf": {"type": "SOURCE", "name": "Persian Gulf (Ras Tanura)", "lat": 26.65, "lon": 50.17},
+    "persian_gulf": {
+        "type": "SOURCE",
+        "name": "Persian Gulf (Ras Tanura)",
+        "lat": 26.65,
+        "lon": 50.17,
+    },
     "hormuz": {"type": "CHOKEPOINT", "name": "Strait of Hormuz", "lat": 26.57, "lon": 56.25},
-    "gulf_of_aden": {"type": "CHOKEPOINT", "name": "Bab-el-Mandeb / Gulf of Aden", "lat": 12.58, "lon": 43.33},
+    "gulf_of_aden": {
+        "type": "CHOKEPOINT",
+        "name": "Bab-el-Mandeb / Gulf of Aden",
+        "lat": 12.58,
+        "lon": 43.33,
+    },
     "malacca": {"type": "CHOKEPOINT", "name": "Strait of Malacca", "lat": 1.27, "lon": 103.75},
     "suez_canal": {"type": "CANAL", "name": "Suez Canal", "lat": 30.46, "lon": 32.34},
-    "cape_of_good_hope": {"type": "WAYPOINT", "name": "Cape of Good Hope", "lat": -34.36, "lon": 18.50},
+    "cape_of_good_hope": {
+        "type": "WAYPOINT",
+        "name": "Cape of Good Hope",
+        "lat": -34.36,
+        "lon": 18.50,
+    },
     "jamnagar": {"type": "PORT", "name": "Jamnagar (Vadinar)", "lat": 22.47, "lon": 69.67},
     "mumbai": {"type": "PORT", "name": "Mumbai (JNPT)", "lat": 18.95, "lon": 72.95},
     "kochi": {"type": "PORT", "name": "Kochi (Cochin)", "lat": 9.97, "lon": 76.27},
@@ -80,10 +95,25 @@ MARITIME_NODES: dict[str, dict[str, Any]] = {
     "arabian_sea": {"type": "WAYPOINT", "name": "Arabian Sea Transit", "lat": 15.00, "lon": 65.00},
     "red_sea_north": {"type": "WAYPOINT", "name": "North Red Sea", "lat": 27.50, "lon": 34.00},
     "mediterranean": {"type": "WAYPOINT", "name": "Mediterranean Sea", "lat": 35.00, "lon": 25.00},
-    "atlantic_west_africa": {"type": "WAYPOINT", "name": "West Africa Atlantic", "lat": 5.00, "lon": -5.00},
-    "mozambique_channel": {"type": "WAYPOINT", "name": "Mozambique Channel", "lat": -15.00, "lon": 42.00},
+    "atlantic_west_africa": {
+        "type": "WAYPOINT",
+        "name": "West Africa Atlantic",
+        "lat": 5.00,
+        "lon": -5.00,
+    },
+    "mozambique_channel": {
+        "type": "WAYPOINT",
+        "name": "Mozambique Channel",
+        "lat": -15.00,
+        "lon": 42.00,
+    },
     "lombok_strait": {"type": "CHOKEPOINT", "name": "Lombok Strait", "lat": -8.50, "lon": 115.75},
-    "indian_ocean_south": {"type": "WAYPOINT", "name": "Southern Indian Ocean", "lat": -12.00, "lon": 95.00},
+    "indian_ocean_south": {
+        "type": "WAYPOINT",
+        "name": "Southern Indian Ocean",
+        "lat": -12.00,
+        "lon": 95.00,
+    },
 }
 
 # Directed shipping edges: (source, target, corridor_dependency, canal_fee)
@@ -264,8 +294,16 @@ def compare_routes(
 ) -> RouteComparison:
     """Compare normal path vs path with blocked corridors."""
     g = build_maritime_graph()
-    normal = find_optimal_route(g, origin, destination, blocked_corridors=None, risk_scores=risk_scores)
-    alt = find_optimal_route(g, origin, destination, blocked_corridors=blocked_corridors, risk_scores=risk_scores)
+    normal = find_optimal_route(
+        g, origin, destination, blocked_corridors=None, risk_scores=risk_scores
+    )
+    alt = find_optimal_route(
+        g,
+        origin,
+        destination,
+        blocked_corridors=blocked_corridors,
+        risk_scores=risk_scores,
+    )
 
     extra_days = max(0.0, alt.total_transit_days - normal.total_transit_days)
     extra_cost = max(0.0, alt.total_cost_usd - normal.total_cost_usd)

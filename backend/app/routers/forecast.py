@@ -31,12 +31,13 @@ def get_forecasts_latest() -> list[dict[str, Any]]:
 
 @router.post("/forecast/run")
 def post_forecast_run() -> list[dict[str, Any]]:
-    from app.forecast.features import ensure_features_parquet
+    from app.forecast.features import build_current_signal_features, ensure_features_parquet
     from app.forecast.inference import run_all_forecasts
 
     init_db()
     ensure_features_parquet()
-    forecasts = run_all_forecasts()
+    features = build_current_signal_features()
+    forecasts = run_all_forecasts(features)
     with sqlite3.connect(str(get_db_path())) as conn:
         for fc in forecasts:
             insert_risk_forecast(conn, fc)

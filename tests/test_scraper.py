@@ -5,10 +5,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from bs4 import BeautifulSoup
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 
 from app.signals.scraper import (  # noqa: E402
+    extract_published_at_iso,
     is_rate_limited,
     is_ssrf_safe_url,
     scrape_url,
@@ -47,3 +50,11 @@ def test_scrape_url_rejects_ssrf() -> None:
 def test_rate_limiter() -> None:
     # Under limit initially
     assert not is_rate_limited()
+
+
+def test_extracts_publisher_timestamp_from_metadata() -> None:
+    soup = BeautifulSoup(
+        '<meta property="article:published_time" content="2026-07-08T09:30:00Z">',
+        "html.parser",
+    )
+    assert extract_published_at_iso(soup) == "2026-07-08T09:30:00Z"

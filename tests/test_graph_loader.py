@@ -9,9 +9,11 @@ import pytest
 from app.simulation.graph_loader import load_network_graph
 from app.simulation.validate import GraphValidationError, validate_network
 
+from tests.scratch import scratch_dir
+
 ROOT = Path(__file__).resolve().parent.parent
 GRAPH_PATH = ROOT / "data" / "graph" / "india_crude_network.json"
-SCRATCH = Path("/tmp/grok-goal-673d97933c7a/implementer")
+SCRATCH = scratch_dir("grok-goal-673d97933c7a") / "implementer"
 
 
 def test_graph_loads_with_semantic_ids_and_citations() -> None:

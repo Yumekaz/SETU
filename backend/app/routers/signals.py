@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api", tags=["signals"])
 
 
 class PipelineRunRequest(BaseModel):
-    source: str = Field(default="cache", pattern="^cache$")
+    source: str = Field(default="cache", pattern="^(cache|gdelt_live)$")
 
 
 @router.get("/signals")
@@ -60,6 +60,8 @@ def post_pipeline_run(body: PipelineRunRequest) -> dict[str, Any]:
     return {
         "status": "ok",
         "source": body.source,
+        "data_origin": "LIVE_GDELT" if body.source == "gdelt_live" else "SEEDED_CACHE",
+        "refreshed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "stats": {
             "input_rows": result.stats.input_rows,
             "accepted_events": result.stats.accepted_events,

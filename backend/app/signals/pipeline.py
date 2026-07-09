@@ -17,6 +17,7 @@ from app.signals.repository import (
     insert_extraction_log,
     insert_risk_score,
     insert_signal_event,
+    list_signal_events,
 )
 from app.signals.score import build_risk_scores
 
@@ -45,27 +46,33 @@ def run_pipeline(
     *,
     source: str = "cache",
     cache_path: Path | None = None,
-    reset: bool = True,
+    reset: bool | None = None,
     score_date: date | None = None,
 ) -> PipelineResult:
     if source not in {"cache", "gdelt_live"}:
-        raise ValueError(f"Unsupported pipeline source: {source!r}. Expected 'cache' or 'gdelt_live'")
+        raise ValueError(
+            f"Unsupported pipeline source: {source!r}. Expected 'cache' or 'gdelt_live'"
+        )
 
     init_db()
     if source == "gdelt_live":
         from app.signals.gdelt_client import fetch_recent_gdelt
+
         rows = fetch_recent_gdelt()
     else:
         rows = load_backtest_cache(cache_path)
 
+    should_reset = source == "cache" if reset is None else reset
     accepted: list[SignalEvent] = []
     rejected = 0
 
     with sqlite3.connect(str(get_db_path())) as conn:
-        if reset:
+        if should_reset:
             clear_pipeline_tables(conn)
 
-        ingested_at = _fixed_ingested_at()
+        ingested_at = (
+            datetime.now(timezone.utc) if source == "gdelt_live" else _fixed_ingested_at()
+        )
         for row in rows:
             result = extract_signal(row, ingested_at=ingested_at)
             insert_extraction_log(
@@ -84,12 +91,20 @@ def run_pipeline(
         for event in kept:
             insert_signal_event(conn, event)
 
-        as_of = score_date or max((event.event_date for event in kept), default=date(2026, 6, 23))
+        scoring_events = list_signal_events(conn=conn)
+        as_of = score_date or max(
+            (event.event_date for event in scoring_events),
+            default=date(2026, 6, 23),
+        )
         prior_scores = {}
         week_ago = as_of.fromordinal(as_of.toordinal() - 7)
-        prior = build_risk_scores(kept, score_date=week_ago)
+        prior = build_risk_scores(scoring_events, score_date=week_ago)
         prior_scores = {score.corridor: score.score for score in prior}
-        scores = build_risk_scores(kept, score_date=as_of, prior_scores=prior_scores)
+        scores = build_risk_scores(
+            scoring_events,
+            score_date=as_of,
+            prior_scores=prior_scores,
+        )
         for score in scores:
             insert_risk_score(conn, score)
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ingestLiveUrl, runForecast, runRecommendations, simulateCascade } from "../api/client";
+import { ingestLiveUrl, runForecast, runPipeline, runRecommendations, simulateCascade } from "../api/client";
+import type { IngestUrlResponse } from "../api/client";
 import type { Corridor } from "../types/generated";
 
 interface Props {
@@ -13,11 +14,15 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
   const [urlBusy, setUrlBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [liveEvidence, setLiveEvidence] = useState<IngestUrlResponse | null>(null);
+  const [gdeltBusy, setGdeltBusy] = useState(false);
+  const [gdeltMessage, setGdeltMessage] = useState<string | null>(null);
 
   const runUnrehearsed = async () => {
     setBusy(true);
     setMessage(null);
     setError(null);
+    setLiveEvidence(null);
     try {
       const cascade = await simulateCascade({ corridor, n_simulations: 50 });
       await runForecast();
@@ -41,6 +46,7 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
     try {
       const res = await ingestLiveUrl(urlInput.trim());
       if (res.status === "accepted") {
+        setLiveEvidence(res);
         setMessage(
           `Live URL ingested successfully! Corridor [${res.corridor}], Event Type [${res.event_type}], Severity [${res.severity?.toFixed(2)}]. Updated risk score: ${(res.risk_score_after ?? 0).toFixed(3)}.`
         );
@@ -56,6 +62,23 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
     }
   };
 
+  const refreshGdelt = async () => {
+    setGdeltBusy(true);
+    setGdeltMessage(null);
+    setError(null);
+    try {
+      const result = await runPipeline("gdelt_live");
+      setGdeltMessage(
+        `GDELT refreshed at ${result.refreshed_at}: ${result.stats.input_rows} relevant rows, ${result.stats.accepted_events} accepted, ${result.stats.dedup_dropped} duplicates.`,
+      );
+      onComplete();
+    } catch (err) {
+      setError(`GDELT refresh failed: ${(err as Error).message}`);
+    } finally {
+      setGdeltBusy(false);
+    }
+  };
+
   return (
     <div id="scenario-controls" className="rounded-xl bg-glass p-5 shadow-xl shadow-black/20 space-y-6">
       {/* Simulation Trigger */}
@@ -68,7 +91,7 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
         </div>
         <button
           type="button"
-          disabled={busy || urlBusy}
+          disabled={busy || urlBusy || gdeltBusy}
           onClick={runUnrehearsed}
           className={`flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-lg shadow-md transition-all duration-300 shrink-0 ${
             busy 
@@ -88,9 +111,27 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
 
       {/* Live URL Intelligence Ingest */}
       <div className="space-y-2">
-        <h4 className="text-xs font-bold tracking-wider text-slate-300 uppercase">
-          Analyze Live Geopolitical News Link
-        </h4>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h4 className="text-xs font-bold tracking-wider text-slate-300 uppercase">
+            Analyze Live Geopolitical News Link
+          </h4>
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-black tracking-widest text-emerald-300">
+            LIVE WEB · SOURCE GROUNDED
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sky-500/15 bg-sky-500/5 p-3">
+          <p className="text-[11px] text-slate-400">
+            Pull the latest 15-minute GDELT export and merge relevant corridor events without deleting existing evidence.
+          </p>
+          <button
+            type="button"
+            disabled={gdeltBusy || busy || urlBusy}
+            onClick={refreshGdelt}
+            className="btn-secondary whitespace-nowrap text-xs py-2 px-3"
+          >
+            {gdeltBusy ? "Refreshing GDELT..." : "Refresh GDELT Live"}
+          </button>
+        </div>
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <input
             type="url"
@@ -98,11 +139,11 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
             placeholder="Paste news article URL (e.g. https://www.reuters.com/...)"
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
-            disabled={urlBusy || busy}
+            disabled={urlBusy || busy || gdeltBusy}
           />
           <button
             type="button"
-            disabled={urlBusy || busy || !urlInput.trim()}
+            disabled={urlBusy || busy || gdeltBusy || !urlInput.trim()}
             onClick={handleIngestUrl}
             className="btn-secondary whitespace-nowrap text-xs py-2.5 px-4"
           >
@@ -110,6 +151,39 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
           </button>
         </div>
       </div>
+
+      {liveEvidence && (
+        <div id="live-evidence-card" className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 space-y-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Verified source evidence</p>
+              <p className="mt-1 text-sm font-bold text-slate-100">{liveEvidence.article_title || "Untitled article"}</p>
+              <p className="mt-1 text-[11px] text-slate-400">
+                {liveEvidence.source_domain} · Published {liveEvidence.published_at || "timestamp unavailable"} · Scraped {liveEvidence.scraped_at}
+              </p>
+            </div>
+            <span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-1 text-[10px] font-bold text-sky-300">
+              Confidence {((liveEvidence.confidence ?? 0) * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {liveEvidence.evidence_terms.map((term) => (
+              <span key={term} className="rounded bg-slate-950/70 px-2 py-1 text-[10px] font-mono text-slate-300 border border-slate-800">
+                {term}
+              </span>
+            ))}
+          </div>
+          <a href={liveEvidence.source_url} target="_blank" rel="noreferrer" className="block truncate text-[11px] text-sky-400 hover:text-sky-300">
+            {liveEvidence.source_url}
+          </a>
+        </div>
+      )}
+
+      {gdeltMessage && (
+        <div id="gdelt-refresh-result" className="rounded-lg border border-sky-500/25 bg-sky-500/10 p-3 text-xs font-semibold text-sky-300">
+          {gdeltMessage}
+        </div>
+      )}
       
       {message && (
         <div className="mt-4 rounded-lg bg-emerald-500/10 border border-emerald-500/25 p-3 text-xs font-semibold text-emerald-400 animate-fadeIn">

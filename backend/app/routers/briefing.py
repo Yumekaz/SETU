@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import sqlite3
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
-from app.database import get_db_path, init_db
+from app.database import init_db
 from app.models.generated import Corridor, RiskScore
 from app.signals.briefing import generate_all_briefings, generate_briefing
 from app.signals.repository import list_risk_scores, list_signal_events
@@ -22,6 +21,7 @@ def get_latest_briefing(corridor: Corridor = Query(Corridor.hormuz)) -> dict[str
     target_score = next((s for s in scores if s.corridor == corridor), None)
     if target_score is None:
         from datetime import date
+
         from app.models.generated import Trend7d
         target_score = RiskScore(
             corridor=corridor,

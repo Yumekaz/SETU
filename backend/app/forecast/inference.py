@@ -124,29 +124,53 @@ def _latest_date_in_frame(df: pd.DataFrame) -> date:
     return max(date.fromisoformat(str(d)[:10]) for d in df["date"].unique())
 
 
-def _phase1_score_at_date(corridor: Corridor, score_date: date) -> tuple[float, str]:
-    """Resolve score/trend from Phase 1 scoring replay at a calendar date."""
-    from app.forecast.features import extract_events_from_cache
-    from app.signals.score import build_risk_scores
-
-    events = extract_events_from_cache()
-    prior_date = score_date - timedelta(days=7)
-    prior_scores = {
-        s.corridor: s.score
-        for s in build_risk_scores(events, score_date=prior_date)
-    }
-    scores = build_risk_scores(events, score_date=score_date, prior_scores=prior_scores)
-    for score in scores:
-        if score.corridor == corridor:
-            return float(score.score), score.trend_7d.value
-    return 0.0, "STABLE"
-
-
 def _phase1_score_for_corridor(corridor: Corridor, df: pd.DataFrame) -> tuple[date, float, str]:
-    """Resolve score/trend from Phase 1 scoring when parquet rows are absent."""
+    """Resolve score/trend from the active feature frame when rows are sparse."""
     origin_date = _latest_date_in_frame(df) if len(df) else date.today()
-    current_score, trend_7d = _phase1_score_at_date(corridor, origin_date)
+    sub = df[df["corridor"] == corridor.value].copy()
+    if sub.empty:
+        return origin_date, 0.0, "STABLE"
+
+    sub["_d"] = pd.to_datetime(sub["date"])
+    sub = sub.sort_values("_d")
+    row = sub.iloc[-1]
+    origin_date = date.fromisoformat(str(row["date"])[:10])
+    current_score = float(row["risk_score"])
+    prior_date = origin_date - timedelta(days=7)
+    prior = sub[sub["_d"] <= pd.Timestamp(prior_date)]
+    if prior.empty:
+        return origin_date, current_score, "STABLE"
+
+    prior_score = float(prior.iloc[-1]["risk_score"])
+    if current_score > prior_score + 0.02:
+        trend_7d = "RISING"
+    elif current_score < prior_score - 0.02:
+        trend_7d = "FALLING"
+    else:
+        trend_7d = "STABLE"
     return origin_date, current_score, trend_7d
+
+
+def _trend_7d_from_feature_frame(
+    corridor: Corridor,
+    df: pd.DataFrame,
+    origin_date: date,
+    current_score: float,
+) -> str:
+    """Infer a 7-day trend from the same features used for prediction."""
+    sub = df[df["corridor"] == corridor.value].copy()
+    if sub.empty:
+        return "STABLE"
+    sub["_d"] = pd.to_datetime(sub["date"])
+    prior = sub[sub["_d"] <= pd.Timestamp(origin_date - timedelta(days=7))]
+    if prior.empty:
+        return "STABLE"
+    prior_score = float(prior.sort_values("_d").iloc[-1]["risk_score"])
+    if current_score > prior_score + 0.02:
+        return "RISING"
+    if current_score < prior_score - 0.02:
+        return "FALLING"
+    return "STABLE"
 
 
 def _trend_fallback_missing_rows(
@@ -177,13 +201,15 @@ def _trend_from_row(
     row: pd.Series,
     *,
     training_data_through: date,
+    df: pd.DataFrame,
 ) -> RiskForecast:
     origin_date = date.fromisoformat(str(row["date"])[:10])
-    _, trend_7d = _phase1_score_at_date(corridor, origin_date)
+    current_score = float(row["risk_score"])
+    trend_7d = _trend_7d_from_feature_frame(corridor, df, origin_date, current_score)
     return build_trend_forecast(
         corridor,
         origin_date=origin_date,
-        current_score=float(row["risk_score"]),
+        current_score=current_score,
         trend_7d=trend_7d,
         training_data_through=training_data_through,
         feature_data_through=origin_date,
@@ -219,6 +245,7 @@ def forecast_corridor(
             corridor,
             row,
             training_data_through=training_through,
+            df=df,
         )
 
     if corridor.value not in bundle.eligible_corridors:
@@ -227,6 +254,7 @@ def forecast_corridor(
             corridor,
             row,
             training_data_through=training_through,
+            df=df,
         )
 
     window = _build_inference_tensor(df, corridor.value, origin_date)
@@ -236,6 +264,7 @@ def forecast_corridor(
             corridor,
             row,
             training_data_through=training_through,
+            df=df,
         )
 
     with torch.no_grad():

@@ -7,8 +7,10 @@ from pathlib import Path
 
 import pytest
 
+from tests.scratch import scratch_dir
+
 ROOT = Path(__file__).resolve().parent.parent
-SCRATCH = Path("/tmp/grok-goal-7dbdddf7e201/implementer")
+SCRATCH = scratch_dir("grok-goal-7dbdddf7e201") / "implementer"
 
 
 def test_llm_runner_or_rules_fallback():

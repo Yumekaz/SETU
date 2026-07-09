@@ -6,6 +6,7 @@ import os
 import sqlite3
 from pathlib import Path
 
+
 def _find_repo_root() -> Path:
     p = Path(__file__).resolve().parent
     for _ in range(5):
@@ -46,10 +47,12 @@ def migrate_recommendations_computed_at(conn: sqlite3.Connection) -> bool:
 def get_db_path() -> Path:
     url = os.getenv("DATABASE_URL", "sqlite:///data/setu.db")
     if url.startswith("sqlite:////"):
-        # sqlite:////absolute/path — four slashes after the scheme
-        # Keep a leading slash for POSIX (sqlite://///tmp/x) but do not turn
-        # Windows drive paths (sqlite:////C:\\x) into invalid UNC paths.
-        return Path(url[len("sqlite:////") :])
+        # sqlite:////absolute/path. SQLAlchemy-style POSIX URLs encode /data/x
+        # as sqlite:////data/x, while Windows drive paths start with C:\ or C:/.
+        raw_path = url[len("sqlite:////") :]
+        if len(raw_path) >= 3 and raw_path[1] == ":" and raw_path[0].isalpha():
+            return Path(raw_path)
+        return Path(f"/{raw_path.lstrip('/')}")
     if url.startswith("sqlite:///"):
         # sqlite:///relative/path — resolve under repo root (e.g. data/setu.db)
         return ROOT / url[len("sqlite:///") :]

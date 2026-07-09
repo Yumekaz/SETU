@@ -13,6 +13,7 @@ GDELT_TEXT_FIELDS = (
     "Actor2Name",
     "Actor1Geo_FullName",
     "Actor2Geo_FullName",
+    "raw_text_snippet",
     "SOURCEURL",
 )
 
@@ -84,6 +85,9 @@ def has_valid_source_url(row: dict[str, str]) -> bool:
 
 
 def build_raw_snippet(row: dict[str, str], max_len: int = 500) -> str:
+    supplied_snippet = str(row.get("raw_text_snippet", "") or "").strip()
+    if supplied_snippet:
+        return supplied_snippet[:max_len]
     geo = row.get("ActionGeo_FullName") or row.get("Actor1Geo_FullName") or ""
     actors = " | ".join(
         part

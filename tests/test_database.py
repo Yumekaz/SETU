@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from app.database import DEFAULT_DB_PATH, ROOT, get_db_path
 
 
@@ -22,3 +24,8 @@ def test_get_db_path_absolute_sqlite_url(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:////{db_file}")
     assert get_db_path() == db_file
     assert get_db_path().is_absolute()
+
+
+def test_get_db_path_docker_absolute_sqlite_url(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "sqlite:////data/setu.db")
+    assert get_db_path() == Path("/data/setu.db")

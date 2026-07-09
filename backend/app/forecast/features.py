@@ -18,6 +18,7 @@ from app.models.generated import Corridor, SignalEvent
 from app.signals.dedup import deduplicate_events
 from app.signals.extract import extract_signal
 from app.signals.ingest_gdelt import load_backtest_cache
+from app.signals.repository import list_signal_events
 from app.signals.score import build_risk_scores
 
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
@@ -122,3 +123,25 @@ def ensure_features_parquet(path: Path | None = None) -> None:
     if parquet_has_all_corridors(target):
         return
     write_features_parquet(build_daily_features(), target)
+
+
+def latest_event_date(events: list[SignalEvent]) -> date | None:
+    """Return the newest event date in a signal set."""
+    if not events:
+        return None
+    return max(event.event_date for event in events)
+
+
+def build_current_signal_features() -> pd.DataFrame:
+    """Build forecast features from current persisted signals when available.
+
+    This keeps /api/forecast/run responsive to live URL/GDELT ingestion without
+    overwriting the packaged training/demo parquet in the repository. If the
+    database has no signals yet, callers should fall back to the bundled
+    feature parquet.
+    """
+    events = list_signal_events()
+    newest = latest_event_date(events)
+    if newest is None:
+        return load_features_df(DEFAULT_FEATURES_PATH)
+    return build_daily_features(events, end=max(WINDOW_END, newest))

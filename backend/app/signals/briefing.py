@@ -9,9 +9,8 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
 
-from app.models.generated import Corridor, RiskScore, SignalEvent
+from app.models.generated import RiskScore, SignalEvent
 from app.signals.score import per_event_contribution
 
 logger = logging.getLogger(__name__)
@@ -124,7 +123,8 @@ def generate_briefing(
         headline = (
             f"{corridor_key} corridor risk is {level} at {score_val:.0%}, {trend_val} over 7 days. "
             f"Primary driver: {top_f.event_type} event on {top_f.event_date} "
-            f"(Goldstein {top_f.goldstein_scale:+.1f}, contributing {top_f.contribution_pct:.0f}% of top signals)."
+            f"(Goldstein {top_f.goldstein_scale:+.1f}, contributing "
+            f"{top_f.contribution_pct:.0f}% of top signals)."
         )
     else:
         headline = (
@@ -140,7 +140,9 @@ def generate_briefing(
         headline=headline,
         contributing_factors=factors,
         recommended_posture=posture,
-        generated_at=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        generated_at=(
+            datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        ),
     )
 
 

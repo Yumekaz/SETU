@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 from app.main import app
 from app.signals.pipeline import run_pipeline
 from fastapi.testclient import TestClient
 
-SCRATCH = Path("/tmp/grok-goal-7dbdddf7e201/implementer")
+from tests.scratch import scratch_dir
+
+SCRATCH = scratch_dir("grok-goal-7dbdddf7e201") / "implementer"
 
 
 @pytest.fixture()
@@ -30,6 +31,22 @@ def _full_api_snapshot(client: TestClient) -> dict:
         "get_risk_scores": client.get("/api/risk-scores").json(),
         "get_risk_scores_latest": client.get("/api/risk-scores/latest").json(),
     }
+
+
+def _normalize_volatile_timestamps(value):
+    """Strip runtime clock fields before deterministic snapshot comparison."""
+    if isinstance(value, dict):
+        return {
+            key: (
+                "<timestamp>"
+                if key in {"computed_at", "refreshed_at"}
+                else _normalize_volatile_timestamps(item)
+            )
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_normalize_volatile_timestamps(item) for item in value]
+    return value
 
 
 def test_run_pipeline_cache_mode_never_calls_http(tmp_path, monkeypatch):
@@ -68,4 +85,6 @@ def test_api_pipeline_and_reads_are_offline_and_deterministic(client) -> None:
         encoding="utf-8",
     )
 
-    assert json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
+    assert json.dumps(
+        _normalize_volatile_timestamps(first), sort_keys=True
+    ) == json.dumps(_normalize_volatile_timestamps(second), sort_keys=True)

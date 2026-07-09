@@ -11,8 +11,10 @@ from app.simulation.corridors import UnsupportedSimulationCorridorError
 from app.simulation.graph_loader import load_network_graph
 from app.simulation.monte_carlo import run_cascade
 
+from tests.scratch import scratch_dir
+
 ROOT = Path(__file__).resolve().parent.parent
-SCRATCH = Path("/tmp/grok-goal-673d97933c7a/implementer")
+SCRATCH = scratch_dir("grok-goal-673d97933c7a") / "implementer"
 
 
 def _bands_ordered(result: CascadeResult) -> None:

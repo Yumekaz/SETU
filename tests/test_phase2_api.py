@@ -4,14 +4,15 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from pathlib import Path
 
 import pytest
 from app.database import get_db_path, init_db
 from app.main import app
 from fastapi.testclient import TestClient
 
-SCRATCH = Path("/tmp/grok-goal-673d97933c7a/implementer")
+from tests.scratch import scratch_dir
+
+SCRATCH = scratch_dir("grok-goal-673d97933c7a") / "implementer"
 
 
 @pytest.fixture()

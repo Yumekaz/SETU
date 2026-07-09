@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 import socket
@@ -45,7 +46,38 @@ class ScrapedArticle:
     content_text: str
     domain: str
     scraped_at_iso: str
+    published_at_iso: str | None = None
     rejection_reason: str | None = None
+
+
+def extract_published_at_iso(soup: BeautifulSoup) -> str | None:
+    """Extract a publisher-provided publication timestamp without guessing."""
+    meta_keys = (
+        ("property", "article:published_time"),
+        ("name", "article:published_time"),
+        ("name", "date"),
+        ("name", "pubdate"),
+        ("itemprop", "datePublished"),
+    )
+    for attr, value in meta_keys:
+        element = soup.find("meta", attrs={attr: value})
+        if element and element.get("content"):
+            return str(element["content"]).strip()
+
+    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        try:
+            payload = json.loads(script.string or "")
+        except (json.JSONDecodeError, TypeError):
+            continue
+        candidates = payload if isinstance(payload, list) else [payload]
+        for candidate in candidates:
+            if isinstance(candidate, dict) and candidate.get("datePublished"):
+                return str(candidate["datePublished"]).strip()
+
+    time_element = soup.find("time", attrs={"datetime": True})
+    if time_element:
+        return str(time_element["datetime"]).strip()
+    return None
 
 
 def is_rate_limited() -> bool:
@@ -123,14 +155,22 @@ def scrape_url(url: str) -> ScrapedArticle:
             # Head request to check size and content-type before downloading
             head_resp = client.head(url)
             content_type = head_resp.headers.get("content-type", "").lower()
-            if content_type and "text/html" not in content_type and "text/plain" not in content_type:
+            is_supported_content = (
+                not content_type
+                or "text/html" in content_type
+                or "text/plain" in content_type
+            )
+            if not is_supported_content:
                 return ScrapedArticle(
                     url=url,
                     title="",
                     content_text="",
                     domain=domain,
                     scraped_at_iso="",
-                    rejection_reason=f"Unsupported content type '{content_type}'. Must be text/html or text/plain",
+                    rejection_reason=(
+                        f"Unsupported content type '{content_type}'. "
+                        "Must be text/html or text/plain"
+                    ),
                 )
 
             content_length = head_resp.headers.get("content-length")
@@ -189,6 +229,7 @@ def scrape_url(url: str) -> ScrapedArticle:
     # Parse HTML using BeautifulSoup
     try:
         soup = BeautifulSoup(resp.text, "html.parser")
+        published_at_iso = extract_published_at_iso(soup)
 
         # Extract title
         title_el = soup.find("title") or soup.find("h1")
@@ -222,6 +263,7 @@ def scrape_url(url: str) -> ScrapedArticle:
             content_text=content_text,
             domain=domain,
             scraped_at_iso=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            published_at_iso=published_at_iso,
         )
 
     except Exception as exc:

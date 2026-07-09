@@ -36,14 +36,19 @@ def _severity_from_goldstein(goldstein: float) -> float:
 def extract_from_gdelt(row: dict[str, str], pre_corridor: str) -> dict[str, Any]:
     event_date = parse_sql_date(str(row.get("SQLDATE", "")))
     goldstein = parse_goldstein(row.get("GoldsteinScale"))
-    event_type = _event_type_from_cameo(str(row.get("EventCode", "")))
-    severity = _severity_from_goldstein(goldstein)
-    confidence = 0.7 if event_type != "UNKNOWN" else 0.35
+    event_type = str(row.get("EventTypeHint", "") or "") or _event_type_from_cameo(
+        str(row.get("EventCode", ""))
+    )
+    severity = float(row.get("SeverityHint") or _severity_from_goldstein(goldstein))
+    confidence = float(
+        row.get("ConfidenceHint") or (0.7 if event_type != "UNKNOWN" else 0.35)
+    )
+    event_date_hint = str(row.get("EventDateHint", "") or "")
     return {
         "corridor": pre_corridor,
         "event_type": event_type,
         "severity": round(severity, 3),
         "confidence": confidence,
-        "event_date": event_date.isoformat(),
+        "event_date": event_date_hint or event_date.isoformat(),
         "_goldstein": goldstein,
     }

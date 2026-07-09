@@ -69,8 +69,13 @@ def test_same_origin_destination_zero_cost_ec_48() -> None:
 
 def test_disconnected_nodes_returns_error_ec_49() -> None:
     g = build_maritime_graph()
-    res = find_optimal_route(g, "persian_gulf", "mediterranean", blocked_corridors=["HORMUZ", "BAB_EL_MANDEB"])
-    assert res.error == "NO_FEASIBLE_ROUTE" or res.total_transit_days > 0  # Either fails or reroutes
+    res = find_optimal_route(
+        g,
+        "persian_gulf",
+        "mediterranean",
+        blocked_corridors=["HORMUZ", "BAB_EL_MANDEB"],
+    )
+    assert res.error == "NO_FEASIBLE_ROUTE" or res.total_transit_days > 0
 
 
 def test_blocked_irrelevant_corridor_returns_normal_ec_51() -> None:

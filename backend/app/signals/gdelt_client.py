@@ -13,7 +13,7 @@ import logging
 import time
 import zipfile
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -21,7 +21,7 @@ import httpx
 
 from app.signals.classify import passes_ingest_filter
 from app.signals.config import AppConfig, load_config
-from app.signals.ingest_gdelt import GDELT_HEADERS, row_to_dict
+from app.signals.ingest_gdelt import row_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +193,11 @@ def pull_gdelt_historical(
 
         lines = master_content.decode("utf-8", errors="replace").splitlines()
         candidates = filter_master_list(lines, start_date, end_date)
-        logger.info("Found %d export files in date range, sampling every %d", len(candidates), sample_interval)
+        logger.info(
+            "Found %d export files in date range, sampling every %d",
+            len(candidates),
+            sample_interval,
+        )
 
         # Sample to reduce volume
         sampled = candidates[::sample_interval]

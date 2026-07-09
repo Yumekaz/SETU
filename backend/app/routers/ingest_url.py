@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import hashlib
 import sqlite3
-from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException
+
+from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.database import get_db_path, init_db
+from app.signals.article_extractor import extract_article_metadata
+from app.signals.config import load_config
 from app.signals.extract import extract_signal
 from app.signals.repository import (
     insert_extraction_log,
@@ -36,6 +39,14 @@ class IngestUrlResponse(BaseModel):
     risk_score_after: float | None = None
     rejection_reason: str | None = None
     source_url: str
+    data_origin: str = "LIVE_WEB"
+    source_domain: str | None = None
+    article_title: str | None = None
+    published_at: str | None = None
+    scraped_at: str | None = None
+    confidence: float | None = None
+    goldstein_scale: float | None = None
+    evidence_terms: list[str] = Field(default_factory=list)
 
 
 @router.post("/ingest-url", response_model=IngestUrlResponse)
@@ -51,15 +62,37 @@ def ingest_live_url(req: IngestUrlRequest) -> IngestUrlResponse:
             source_url=req.url,
         )
 
-    # Step 2: Convert scraped text into synthetic GDELT row structure for extraction pipeline
+    # Step 2: Derive auditable signal metadata from the article itself.
+    metadata = extract_article_metadata(
+        title=scraped.title,
+        content_text=scraped.content_text,
+        published_at_iso=scraped.published_at_iso,
+        config=load_config(),
+    )
+    if metadata is None:
+        return IngestUrlResponse(
+            status="rejected",
+            rejection_reason="No supported corridor and risk-event evidence found in article text",
+            source_url=req.url,
+            source_domain=scraped.domain,
+            article_title=scraped.title,
+            published_at=scraped.published_at_iso,
+            scraped_at=scraped.scraped_at_iso,
+        )
+
+    stable_source_id = hashlib.sha256(req.url.encode("utf-8")).hexdigest()[:24]
     synthetic_row = {
-        "GLOBALEVENTID": f"url_{hash(req.url) & 0xffffffff}",
-        "SQLDATE": datetime.now(timezone.utc).strftime("%Y%m%d"),
-        "EventCode": "190",  # Military / conflict root default for scraped security intelligence
-        "GoldsteinScale": "-5.0",  # Moderate negative tone default
-        "ActionGeo_FullName": scraped.title or "Geopolitical News Article",
+        "GLOBALEVENTID": f"url_{stable_source_id}",
+        "SQLDATE": metadata.event_date.strftime("%Y%m%d"),
+        "EventCode": metadata.cameo_code,
+        "EventTypeHint": metadata.event_type,
+        "SeverityHint": str(metadata.severity),
+        "ConfidenceHint": str(metadata.confidence),
+        "EventDateHint": metadata.event_date.isoformat(),
+        "GoldsteinScale": str(metadata.goldstein_scale),
+        "ActionGeo_FullName": f"{scraped.title} {scraped.content_text[:1000]}",
         "Actor1Name": scraped.domain,
-        "Actor2Name": "Maritime Security",
+        "Actor2Name": metadata.corridor,
         "SOURCEURL": req.url,
         "raw_text_snippet": scraped.content_text[:500],
     }
@@ -105,4 +138,11 @@ def ingest_live_url(req: IngestUrlRequest) -> IngestUrlResponse:
         severity=res.event.severity,
         risk_score_after=after_score,
         source_url=req.url,
+        source_domain=scraped.domain,
+        article_title=scraped.title,
+        published_at=scraped.published_at_iso,
+        scraped_at=scraped.scraped_at_iso,
+        confidence=res.event.confidence,
+        goldstein_scale=res.event.goldstein_scale,
+        evidence_terms=list(metadata.evidence_terms),
     )
