@@ -13,6 +13,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 COPY ${REQUIREMENTS_FILE} requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --default-timeout=300 --retries 5 torch --index-url https://download.pytorch.org/whl/cpu && \
     pip install --default-timeout=300 --retries 5 -r requirements.txt
 
 COPY backend/app ./app

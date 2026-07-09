@@ -70,6 +70,9 @@ def generate_briefing(
     score_val = risk_score.score
     trend_val = risk_score.trend_7d.value
 
+    from app.signals.config import load_config
+    cfg = load_config()
+
     # Filter events for this corridor on or before score date
     relevant_events = [
         e
@@ -83,7 +86,12 @@ def generate_briefing(
     # Compute per-event contributions
     contrib_list: list[tuple[SignalEvent, float]] = []
     for e in relevant_events:
-        c = per_event_contribution(e, risk_score.score_date)
+        c = per_event_contribution(
+            e,
+            score_date=risk_score.score_date,
+            config=cfg.scoring,
+            event_type_weights=cfg.event_type_weights,
+        )
         if c > 0:
             contrib_list.append((e, c))
 
