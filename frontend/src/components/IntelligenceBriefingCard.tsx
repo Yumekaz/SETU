@@ -62,7 +62,7 @@ export default function IntelligenceBriefingCard({ corridor }: Props) {
   );
 
   return (
-    <div id="intelligence-briefing-card" className="bg-glass rounded-xl p-5 shadow-xl shadow-black/30 border border-slate-800/80 flex flex-col justify-between">
+    <div id="intelligence-briefing-card" className="min-w-0 overflow-hidden rounded-xl border border-slate-800 bg-glass p-5 shadow-xl shadow-black/30 flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
           <div className="flex items-center gap-2">

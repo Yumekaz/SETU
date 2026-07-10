@@ -168,18 +168,15 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-300">
-                Incident Workflow
-              </span>
-              <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-sky-300">
-                Guided response sequence
+              <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-widest text-emerald-300">
+                Guided analysis
               </span>
             </div>
             <h4 className="text-base font-black tracking-tight text-slate-100">
-              Run SETU’s complete source-to-decision workflow
+              Assess a reference incident
             </h4>
             <p className="max-w-3xl text-xs leading-relaxed text-slate-300">
-              Uses a reference incident source to execute the full chain: source evidence → HORMUZ risk update → forecast → cascade simulation → mitigation recommendation.
+              Follow the complete decision path: source evidence, risk update, forecast, cascade simulation, and mitigation options.
             </p>
           </div>
           <button
@@ -188,7 +185,7 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
             onClick={runIncidentWorkflow}
             className="btn-primary min-w-56"
           >
-            {workflowBusy ? "Running Incident Workflow..." : "Run Incident Response Workflow"}
+            {workflowBusy ? "Running analysis…" : "Run incident analysis"}
           </button>
         </div>
 
@@ -221,9 +218,9 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
       {/* Simulation Trigger */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-900/60 pb-5">
         <div>
-          <h4 className="text-sm font-bold tracking-wider text-slate-200 uppercase">Live Simulation Sandbox</h4>
+          <h4 className="text-sm font-semibold text-slate-200">Scenario analysis</h4>
           <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-            Trigger a real-time unrehearsed supply shock cascade on the <strong className="text-sky-400">{corridor.replace(/_/g, " ")}</strong> trade corridor to compute downstream impacts and trigger the decision orchestrator.
+            Simulate a supply disruption on the <strong className="text-sky-400">{corridor.replace(/_/g, " ")}</strong> corridor to understand downstream impact and response options.
           </p>
         </div>
         <button
@@ -242,23 +239,23 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
           )}
-          {busy ? "Executing Simulation..." : "Simulate Supply Disruption"}
+          {busy ? "Running scenario…" : "Run scenario"}
         </button>
       </div>
 
       {/* Live URL Intelligence Ingest */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-xs font-bold tracking-wider text-slate-300 uppercase">
-            Analyze Live Geopolitical News Link
+          <h4 className="text-sm font-semibold text-slate-200">
+            Analyze a news source
           </h4>
           <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-black tracking-widest text-emerald-300">
-            LIVE WEB · SOURCE GROUNDED
+            Source grounded
           </span>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sky-500/15 bg-sky-500/5 p-3">
           <p className="text-[11px] text-slate-400">
-            Pull the latest 15-minute GDELT export and merge relevant corridor events without deleting existing evidence.
+            Refresh the latest GDELT signal set and merge relevant corridor events without deleting existing evidence.
           </p>
           <button
             type="button"

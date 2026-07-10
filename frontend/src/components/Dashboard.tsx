@@ -97,33 +97,26 @@ export default function Dashboard({
     selectedScore?.score_date ?? corridorForecast?.feature_data_through ?? "awaiting live signal";
 
   return (
-    <div id="dashboard-root" className="space-y-6">
+    <div id="dashboard-root" className="space-y-7">
       <section
         id="operational-explainer-card"
-        className="relative overflow-hidden rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-500/10 via-slate-950/70 to-emerald-500/10 p-5 shadow-2xl shadow-sky-950/20"
+        className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-5 shadow-[0_18px_50px_-35px_rgba(56,189,248,0.55)] sm:p-6"
       >
         <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-sky-500/10 blur-3xl" />
         <div className="relative grid gap-5 lg:grid-cols-[1.4fr_1fr] lg:items-center">
           <div>
-            <div className="mb-3 flex flex-wrap gap-2">
-              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-300">
-                PS 2 · Energy supply-chain resilience
-              </span>
-              <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-sky-300">
-                Source-grounded decision intelligence
-              </span>
-            </div>
-            <h2 className="text-xl font-black leading-tight text-slate-50 md:text-2xl">
-              SETU detects geopolitical supply-chain shocks from live news, maps the affected crude corridor, forecasts risk, simulates downstream impact, and recommends mitigation.
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-300">
+              From signal to response
+            </p>
+            <h2 className="max-w-3xl text-2xl font-bold leading-tight text-slate-50 md:text-3xl">
+              Turn geopolitical disruption into a clear energy supply decision.
             </h2>
-            <p className="mt-3 max-w-4xl text-sm leading-relaxed text-slate-300">
-              This is not a news summarizer. It converts evidence into an operator workflow:
-              signal extraction, corridor scoring, maritime rerouting, Monte Carlo impact analysis,
-              and Pareto-ranked response options for import-dependent economies.
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+              SETU connects source evidence, corridor risk, forecast uncertainty, downstream impact, and practical mitigation options in one decision workspace.
             </p>
           </div>
 
-          <div className="grid gap-2 rounded-xl border border-slate-800/70 bg-slate-950/50 p-4">
+          <div className="grid gap-2 rounded-xl border border-slate-800 bg-slate-950/55 p-4">
             {[
               ["Live source", "AP/GDELT URL evidence"],
               ["Extraction", "Corridor + event type + confidence"],
@@ -131,10 +124,10 @@ export default function Dashboard({
               ["Decision layer", "Cascade + Pareto mitigation"],
             ].map(([label, value]) => (
               <div key={label} className="flex items-center justify-between gap-3 border-b border-slate-800/60 pb-2 last:border-0 last:pb-0">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
                   {label}
                 </span>
-                <span className="text-right text-[11px] font-semibold text-slate-200">{value}</span>
+                <span className="text-right text-[11px] font-medium text-slate-200">{value}</span>
               </div>
             ))}
           </div>
@@ -143,27 +136,27 @@ export default function Dashboard({
 
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 uppercase">Live Global Corridor Risk Metrics</h2>
-          <span className="text-[10px] font-mono text-slate-500">Auto-refresh: 30s</span>
+          <h2 className="text-sm font-semibold text-slate-200">Corridor risk overview</h2>
+          <span className="text-[11px] text-slate-500">Updated every 30 seconds</span>
         </div>
         <CorridorScoreGrid scores={data?.latestScores ?? []} />
       </section>
 
       {/* Grounded XAI Briefing & Dynamic Maritime Route Pathfinder */}
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid min-w-0 gap-6 lg:grid-cols-2">
         <IntelligenceBriefingCard corridor={selectedCorridor} />
         <MaritimeRouteCard corridor={selectedCorridor} />
       </section>
       
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid min-w-0 gap-6 lg:grid-cols-2">
         <div className="rounded-xl bg-glass p-5 shadow-xl shadow-black/20">
-          <h2 className="mb-4 text-xs font-bold tracking-widest text-slate-400 uppercase">Risk History & Progression</h2>
+          <h2 className="mb-4 text-sm font-semibold text-slate-200">Risk history</h2>
           <RiskTrendChart scores={data?.historyScores ?? []} />
         </div>
         
         <div id="forecast-panel" className="rounded-xl bg-glass p-5 shadow-xl shadow-black/20 flex flex-col justify-between">
           <div>
-            <h3 className="mb-4 text-xs font-bold tracking-widest text-slate-400 uppercase">GRU Forecast Telemetry ({selectedCorridor.replace(/_/g, " ")})</h3>
+          <h3 className="mb-4 text-sm font-semibold text-slate-200">Risk outlook · {selectedCorridor.replace(/_/g, " ")}</h3>
             {corridorForecast ? (
               <div className="space-y-2">
                 {corridorForecast.trajectory.map((step) => (
@@ -187,14 +180,14 @@ export default function Dashboard({
         </div>
       </section>
       
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid min-w-0 gap-6 lg:grid-cols-2">
         <CascadeBands cascade={corridorCascade} />
         <RecommendationPanel recommendations={data?.recommendations ?? []} onUpdated={refresh} />
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-900/60">
         <div className="flex items-center gap-3 bg-glass px-4 py-2.5 rounded-lg border border-slate-900">
-          <label htmlFor="scenario-corridor-select" className="text-xs font-bold uppercase tracking-wider text-slate-400">Tactical Target Corridor</label>
+          <label htmlFor="scenario-corridor-select" className="text-xs font-medium text-slate-400">Selected corridor</label>
           <select
             id="scenario-corridor-select"
             className="bg-slate-950/80 border border-slate-900/80 rounded px-2.5 py-1 text-xs text-sky-400 font-bold outline-none focus:border-sky-500 transition-all cursor-pointer"

@@ -8,11 +8,11 @@ interface Props {
 function getTrendBadge(trend: string) {
   switch (trend) {
     case "RISING":
-      return <span className="rounded bg-rose-500/15 px-2 py-0.5 text-[10px] font-bold text-rose-300 border border-rose-500/30 shadow-sm shadow-rose-500/20">▲ RISING</span>;
+      return <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-300 border border-rose-500/20">Rising</span>;
     case "FALLING":
-      return <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300 border border-emerald-500/30 shadow-sm shadow-emerald-500/20">▼ FALLING</span>;
+      return <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 border border-emerald-500/20">Falling</span>;
     default:
-      return <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-500/30 shadow-sm shadow-amber-500/20">● STABLE</span>;
+      return <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300 border border-amber-500/20">Stable</span>;
   }
 }
 
@@ -28,11 +28,11 @@ export default function CorridorScoreGrid({ scores }: Props) {
         return (
           <div
             key={s.corridor}
-            className="relative overflow-hidden rounded-2xl bg-glass p-5 shadow-xl shadow-black/30 border border-slate-800/80 transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:shadow-2xl group"
-            style={{ borderTop: `4px solid ${hex}` }}
+            className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950/60 p-5 shadow-sm transition-all duration-300 hover:border-slate-700 hover:bg-slate-900/70"
+            style={{ borderTop: `3px solid ${hex}` }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold tracking-widest text-slate-300 uppercase font-mono">
+              <span className="text-[11px] font-semibold tracking-[0.12em] text-slate-300 uppercase">
                 {s.corridor.replace(/_/g, " ")}
               </span>
               {getTrendBadge(s.trend_7d)}
@@ -42,8 +42,8 @@ export default function CorridorScoreGrid({ scores }: Props) {
               <span className="text-3xl font-black tracking-tight font-mono" style={{ color: hex }}>
                 {s.score.toFixed(3)}
               </span>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                THREAT INDEX
+              <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
+                Risk index
               </span>
             </div>
 
@@ -55,9 +55,9 @@ export default function CorridorScoreGrid({ scores }: Props) {
               />
             </div>
             
-            <div className="mt-4 flex items-center justify-between text-[10px] text-slate-400 font-mono pt-2 border-t border-slate-900">
-              <span className="text-slate-500">AS OF DATE:</span>
-              <span className="text-slate-300 font-bold">{s.score_date}</span>
+            <div className="mt-4 flex items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-900">
+              <span className="text-slate-500">As of</span>
+              <span className="text-slate-300 font-medium">{s.score_date}</span>
             </div>
           </div>
         );

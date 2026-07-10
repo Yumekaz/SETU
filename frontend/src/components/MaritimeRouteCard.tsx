@@ -34,7 +34,7 @@ export default function MaritimeRouteCard({ corridor }: Props) {
   }, [corridor]);
 
   return (
-    <div id="maritime-route-card" className="bg-glass rounded-xl p-5 shadow-xl shadow-black/30 border border-slate-800/80">
+    <div id="maritime-route-card" className="min-w-0 overflow-hidden rounded-xl border border-slate-800 bg-glass p-5 shadow-xl shadow-black/30">
       <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-indigo-400" />

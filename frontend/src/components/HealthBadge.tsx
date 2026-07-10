@@ -20,7 +20,7 @@ export default function HealthBadge() {
     return (
       <span className="inline-flex items-center gap-2.5 rounded-lg border border-slate-800 bg-slate-900/40 px-3.5 py-1.5 text-xs font-semibold text-slate-400 shadow-sm">
         <span className="h-2 w-2 animate-pulse rounded-full bg-slate-500" />
-        CHECKING TELEMETRY…
+        Checking service status…
       </span>
     );
   }
@@ -29,7 +29,7 @@ export default function HealthBadge() {
     return (
       <span className="inline-flex items-center gap-2.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3.5 py-1.5 text-xs font-semibold text-red-400 shadow-sm shadow-red-500/5">
         <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-        TELEMETRY FAILURE: {error}
+        Service unavailable
       </span>
     );
   }
@@ -50,11 +50,7 @@ export default function HealthBadge() {
         )}
         <span className={`relative inline-flex rounded-full h-2 w-2 ${ok ? "bg-emerald-400" : "bg-red-500"}`} />
       </span>
-      <span>
-        {ok ? "BACKEND ONLINE" : "CONNECTION LOST"}
-      </span>
-      <span className="text-slate-700 font-normal">|</span>
-      <span className="text-[10px] text-slate-400 font-medium">v{health?.version || "1.0.0"} · P{health?.phase || 8}</span>
+      <span>{ok ? "Systems operational" : "Connection lost"}</span>
     </span>
   );
 }
