@@ -3,8 +3,8 @@
 ## Required (working assumption until portal VERIFY)
 
 - [ ] Public GitHub repo URL: `PENDING — paste before upload`
-- [ ] Demo video URL: `PENDING — record using video_outline.md`
-- [ ] README clone-to-demo steps verified on clean machine
+- [ ] Product walkthrough video URL: `PENDING — record using video_outline.md`
+- [ ] README local deployment steps verified on clean machine
 - [ ] `bash scripts/demo_preflight.sh` → `PREFLIGHT=PASS`
 - [ ] `python3 scripts/run_phase8_verification.py` → `overall=PASS`
 

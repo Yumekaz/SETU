@@ -7,8 +7,34 @@ interface Props {
   onUpdated: () => void;
 }
 
+function explainOption(option: Recommendation["options"][number]) {
+  const optionText = `${option.option_id} ${option.description}`.toLowerCase();
+  if (optionText.includes("spr") || optionText.includes("reserve")) {
+    return {
+      label: "Strategic reserve buffer",
+      value: "Fastest continuity response when rerouting alone cannot absorb the shock.",
+    };
+  }
+  if (optionText.includes("mix") || optionText.includes("supplier")) {
+    return {
+      label: "Supplier mix shift",
+      value: "Balances lower corridor exposure against extra voyage time and procurement friction.",
+    };
+  }
+  if (optionText.includes("reroute")) {
+    return {
+      label: "Maritime reroute",
+      value: "Keeps cargo moving through alternate sea lanes, but accepts higher transit cost/time.",
+    };
+  }
+  return {
+    label: "Operational mitigation",
+    value: "Ranked against competing options using risk, time, and cost tradeoffs.",
+  };
+}
+
 export default function RecommendationPanel({ recommendations, onUpdated }: Props) {
-  const [note, setNote] = useState("Demo operator review");
+  const [note, setNote] = useState("Operator review pending");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,30 +85,51 @@ export default function RecommendationPanel({ recommendations, onUpdated }: Prop
       </div>
 
       <ul className="space-y-3 text-sm">
-        {latest.options.map((o) => (
-          <li key={o.option_id} className="relative rounded-lg bg-slate-950/40 border border-slate-900 p-4 transition-all duration-300 hover:border-slate-800/80">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold font-mono text-sky-400">{o.option_id}</span>
-              {o.is_pareto_optimal && (
-                <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-bold text-sky-400 border border-sky-500/15 uppercase tracking-wide">
-                  Pareto Optimal
-                </span>
-              )}
-            </div>
-            <p className="text-slate-300 text-xs leading-relaxed">{o.description}</p>
-            
-            <div className="mt-3 flex gap-4 text-[10px] text-slate-500 font-semibold border-t border-slate-900/60 pt-2.5">
-              <div>
-                <span>RISK PENALTY: </span>
-                <span className="font-mono text-slate-300">{o.risk_score.toFixed(3)}</span>
+        {latest.options.map((o) => {
+          const explanation = explainOption(o);
+          return (
+            <li key={o.option_id} className="relative rounded-lg bg-slate-950/40 border border-slate-900 p-4 transition-all duration-300 hover:border-slate-800/80">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold font-mono text-sky-400">{o.option_id}</span>
+                {o.is_pareto_optimal && (
+                  <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-bold text-sky-400 border border-sky-500/15 uppercase tracking-wide">
+                    Pareto Optimal
+                  </span>
+                )}
               </div>
-              <div>
-                <span>TRANSIT TIME: </span>
-                <span className="font-mono text-slate-300">{o.time_score.toFixed(3)}</span>
+              <p className="text-slate-300 text-xs leading-relaxed">{o.description}</p>
+
+              <div className="mt-3 rounded-lg border border-emerald-500/15 bg-emerald-500/5 p-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-300">
+                  Why this recommendation?
+                </p>
+                <p className="mt-1 text-[11px] font-semibold text-slate-300">
+                  {explanation.label}: {explanation.value}
+                </p>
+                {o.is_pareto_optimal && (
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    Pareto-optimal means no listed option beats it on one objective without worsening another.
+                  </p>
+                )}
               </div>
-            </div>
-          </li>
-        ))}
+
+              <div className="mt-3 grid gap-2 text-[10px] text-slate-500 font-semibold border-t border-slate-900/60 pt-2.5 sm:grid-cols-3">
+                <div>
+                  <span>RISK PENALTY: </span>
+                  <span className="font-mono text-slate-300">{o.risk_score.toFixed(3)}</span>
+                </div>
+                <div>
+                  <span>TIME PENALTY: </span>
+                  <span className="font-mono text-slate-300">{o.time_score.toFixed(3)}</span>
+                </div>
+                <div>
+                  <span>COST PENALTY: </span>
+                  <span className="font-mono text-slate-300">{o.cost_score.toFixed(3)}</span>
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {isPending && (

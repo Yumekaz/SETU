@@ -46,6 +46,21 @@ export default function IntelligenceBriefingCard({ corridor }: Props) {
     }
   };
 
+  const prioritizedFactors =
+    briefing?.contributing_factors
+      .filter(
+        (factor) =>
+          factor.contribution_pct > 0 ||
+          factor.source_url.includes("apnews.com") ||
+          factor.source_url.includes("reuters.com"),
+      )
+      .slice(0, 3) ?? [];
+
+  const hiddenFactorCount = Math.max(
+    0,
+    (briefing?.contributing_factors.length ?? 0) - prioritizedFactors.length,
+  );
+
   return (
     <div id="intelligence-briefing-card" className="bg-glass rounded-xl p-5 shadow-xl shadow-black/30 border border-slate-800/80 flex flex-col justify-between">
       <div>
@@ -76,13 +91,18 @@ export default function IntelligenceBriefingCard({ corridor }: Props) {
             </div>
 
             {/* Contributing Signals Breakdown */}
-            {briefing.contributing_factors.length > 0 ? (
+            {prioritizedFactors.length > 0 ? (
               <div className="space-y-2.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Primary Risk Drivers (GDELT Audit Trail)
-                </span>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Source-grounded risk drivers
+                  </span>
+                  <span className="rounded border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-emerald-300">
+                    noisy seed rows de-emphasized
+                  </span>
+                </div>
                 <div className="space-y-2">
-                  {briefing.contributing_factors.map((factor, idx) => (
+                  {prioritizedFactors.map((factor, idx) => (
                     <div key={idx} className="rounded bg-slate-900/50 border border-slate-800/40 p-2.5 text-xs space-y-1.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -115,6 +135,11 @@ export default function IntelligenceBriefingCard({ corridor }: Props) {
                     </div>
                   ))}
                 </div>
+                {hiddenFactorCount > 0 && (
+                  <p className="text-[10px] text-slate-500">
+                    {hiddenFactorCount} lower-confidence or zero-contribution historical rows are de-emphasized in the operational view.
+                  </p>
+                )}
               </div>
             ) : (
               <p className="text-xs text-slate-500 italic">No active threat signals contributing to risk score.</p>

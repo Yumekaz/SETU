@@ -3,10 +3,28 @@ import { ingestLiveUrl, runForecast, runPipeline, runRecommendations, simulateCa
 import type { IngestUrlResponse } from "../api/client";
 import type { Corridor } from "../types/generated";
 
+const REFERENCE_INCIDENT_URL = "https://apnews.com/article/4732228810c9839a1258309ad43b8289";
+
 interface Props {
   corridor: Corridor;
   onComplete: () => void;
 }
+
+type WorkflowStepStatus = "pending" | "running" | "done" | "failed";
+
+interface WorkflowStep {
+  id: string;
+  label: string;
+  status: WorkflowStepStatus;
+}
+
+const initialWorkflowSteps: WorkflowStep[] = [
+  { id: "source", label: "Ingest reference incident source", status: "pending" },
+  { id: "risk", label: "Extract HORMUZ military event + update risk", status: "pending" },
+  { id: "forecast", label: "Run live-signal forecast", status: "pending" },
+  { id: "cascade", label: "Simulate downstream cascade", status: "pending" },
+  { id: "mitigation", label: "Generate Pareto mitigation options", status: "pending" },
+];
 
 export default function ScenarioControls({ corridor, onComplete }: Props) {
   const [busy, setBusy] = useState(false);
@@ -17,6 +35,14 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
   const [liveEvidence, setLiveEvidence] = useState<IngestUrlResponse | null>(null);
   const [gdeltBusy, setGdeltBusy] = useState(false);
   const [gdeltMessage, setGdeltMessage] = useState<string | null>(null);
+  const [workflowBusy, setWorkflowBusy] = useState(false);
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>(initialWorkflowSteps);
+
+  const updateWorkflowStep = (id: string, status: WorkflowStepStatus) => {
+    setWorkflowSteps((steps) =>
+      steps.map((step) => (step.id === id ? { ...step, status } : step)),
+    );
+  };
 
   const runUnrehearsed = async () => {
     setBusy(true);
@@ -35,6 +61,62 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
       setError((err as Error).message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const runIncidentWorkflow = async () => {
+    setWorkflowBusy(true);
+    setMessage(null);
+    setError(null);
+    setGdeltMessage(null);
+    setLiveEvidence(null);
+    setWorkflowSteps(initialWorkflowSteps.map((step) => ({ ...step, status: "pending" })));
+
+    try {
+      updateWorkflowStep("source", "running");
+      const evidence = await ingestLiveUrl(REFERENCE_INCIDENT_URL);
+      if (evidence.status !== "accepted") {
+        updateWorkflowStep("source", "failed");
+        throw new Error(evidence.rejection_reason || "Reference incident source was rejected");
+      }
+      setLiveEvidence(evidence);
+      updateWorkflowStep("source", "done");
+
+      updateWorkflowStep("risk", "running");
+      if (evidence.corridor !== "HORMUZ" || evidence.event_type !== "MILITARY") {
+        updateWorkflowStep("risk", "failed");
+        throw new Error(
+          `Unexpected extraction: ${evidence.corridor ?? "UNKNOWN"} / ${evidence.event_type ?? "UNKNOWN"}`,
+        );
+      }
+      updateWorkflowStep("risk", "done");
+
+      updateWorkflowStep("forecast", "running");
+      const forecasts = await runForecast();
+      const hormuzForecast = forecasts.find((forecast) => forecast.corridor === "HORMUZ");
+      if (!hormuzForecast) {
+        updateWorkflowStep("forecast", "failed");
+        throw new Error("Forecast did not return HORMUZ telemetry");
+      }
+      updateWorkflowStep("forecast", "done");
+
+      updateWorkflowStep("cascade", "running");
+      const cascade = await simulateCascade({ corridor: "HORMUZ", n_simulations: 50 });
+      updateWorkflowStep("cascade", "done");
+
+      updateWorkflowStep("mitigation", "running");
+      const rec = await runRecommendations(true);
+      updateWorkflowStep("mitigation", "done");
+
+      setMessage(
+        `Incident workflow complete: source evidence → HORMUZ risk ${(evidence.risk_score_after ?? 0).toFixed(3)} → forecast through ${hormuzForecast.feature_data_through} → cascade ${cascade.scenario_id.slice(0, 8)} → ${rec.options.length} mitigation options.`,
+      );
+      setUrlInput("");
+      onComplete();
+    } catch (err) {
+      setError(`Incident workflow failed: ${(err as Error).message}`);
+    } finally {
+      setWorkflowBusy(false);
     }
   };
 
@@ -81,6 +163,61 @@ export default function ScenarioControls({ corridor, onComplete }: Props) {
 
   return (
     <div id="scenario-controls" className="rounded-xl bg-glass p-5 shadow-xl shadow-black/20 space-y-6">
+      {/* Guided incident-response workflow */}
+      <div className="rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-sky-500/5 to-indigo-500/10 p-4 shadow-lg shadow-emerald-950/20">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-300">
+                Incident Workflow
+              </span>
+              <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-sky-300">
+                Guided response sequence
+              </span>
+            </div>
+            <h4 className="text-base font-black tracking-tight text-slate-100">
+              Run SETU’s complete source-to-decision workflow
+            </h4>
+            <p className="max-w-3xl text-xs leading-relaxed text-slate-300">
+              Uses a reference incident source to execute the full chain: source evidence → HORMUZ risk update → forecast → cascade simulation → mitigation recommendation.
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={workflowBusy || busy || urlBusy || gdeltBusy}
+            onClick={runIncidentWorkflow}
+            className="btn-primary min-w-56"
+          >
+            {workflowBusy ? "Running Incident Workflow..." : "Run Incident Response Workflow"}
+          </button>
+        </div>
+
+        <ol className="mt-4 grid gap-2 md:grid-cols-5">
+          {workflowSteps.map((step, index) => (
+            <li
+              key={step.id}
+              className={`rounded-lg border p-3 text-[10px] transition-all ${
+                step.status === "done"
+                  ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-200"
+                  : step.status === "running"
+                    ? "border-sky-500/40 bg-sky-500/10 text-sky-200 animate-pulse"
+                    : step.status === "failed"
+                      ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
+                      : "border-slate-800 bg-slate-950/40 text-slate-400"
+              }`}
+            >
+              <div className="mb-1 font-mono text-[9px] uppercase tracking-widest opacity-70">
+                Step {index + 1}
+              </div>
+              <div className="font-bold leading-snug">{step.label}</div>
+              <div className="mt-2 font-mono uppercase tracking-widest">
+                {step.status === "done" ? "✓ Done" : step.status}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
       {/* Simulation Trigger */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-900/60 pb-5">
         <div>

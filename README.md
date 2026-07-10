@@ -1,131 +1,132 @@
 # SETU — Strategic Energy Trade Uncertainty
 
-Geopolitical risk intelligence and cascade simulation for India's crude oil import corridors.
+> **AI-powered energy supply-chain resilience for import-dependent economies.**
 
-**Phase 8 (submission):** `version: 1.0.0`, `phase: 8` — demo-ready for GitHub + video.
+SETU turns a credible geopolitical news signal into an operational decision trail: it extracts the event, identifies the affected Indian crude-oil corridor, forecasts risk, simulates downstream disruption, and presents explainable mitigation options for human approval.
 
-## Quick Start (Docker)
+Built for **ET AI Hackathon 2.0 — PS 2: AI-Driven Energy Supply Chain Resilience for Import-Dependent Economies**.
 
-**Ubuntu Snap Docker:** the `docker` group may not exist. One-time fix:
+## The problem
 
-```bash
-sudo bash scripts/fix-docker-permissions.sh
-# log out and back in, then:
-bash scripts/demo-up.sh
-```
+India's crude-oil supply depends on vulnerable maritime corridors. During a geopolitical disruption, teams need more than headlines: they need to know which corridor is affected, what could fail next, how risk may evolve, and which mitigation has the best trade-off between risk reduction, time penalty, and cost.
 
-Or skip the fix and use sudo: `sudo docker compose up --build`
+## What SETU does
 
-```bash
+| From signal to decision | SETU capability |
+|---|---|
+| **1. Evidence** | Ingests a source URL and retains the title, publisher, timestamps, confidence, evidence terms, and source link. |
+| **2. Corridor risk** | Extracts the disruption and updates the relevant corridor risk score (for example, HORMUZ). |
+| **3. Forecast** | Produces short-horizon risk telemetry from the current signal state. |
+| **4. Cascade** | Runs a Monte Carlo supply-chain cascade to estimate downstream operational impact. |
+| **5. Mitigation** | Generates Pareto-oriented options with an explicit “Why this recommendation?” explanation and human approve/reject control. |
+
+The dashboard deliberately distinguishes source-grounded evidence from lower-confidence seeded rows. SETU is decision support, not an autonomous trading or procurement system.
+
+## Guided incident response — a complete operational workflow
+
+1. Start the stack and open [http://127.0.0.1:5173](http://127.0.0.1:5173).
+2. Click **Run Incident Response Workflow**.
+3. Watch the five completed stages: source evidence → HORMUZ risk update → forecast → cascade simulation → mitigation options.
+4. Inspect the evidence card and recommendation explanations. Each recommendation exposes its risk, time, and cost trade-offs before approval.
+
+The reference workflow uses a credible AP incident source so that the full response chain can be repeated consistently. SETU also supports manual source-URL ingestion and a live GDELT pipeline trigger; external-source availability can naturally vary.
+
+## Quick start (Docker)
+
+### Windows (Docker Desktop)
+
+```powershell
+git clone <YOUR_GITHUB_REPOSITORY_URL>
 cd SETU
 docker compose up --build
 ```
 
-No `.env` file is required for the demo path — the stack uses cached offline data and `SETU_EXTRACTOR_MODE=rules` by default. Copy `.env.example` to `.env` only when you need live EIA/FRED pulls.
+Then open:
 
-Automated zero-manual repro check (backend pipeline + health, no `.env` copy):
+- Dashboard: [http://127.0.0.1:5173](http://127.0.0.1:5173)
+- API health: [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
+- API contracts: [http://127.0.0.1:8000/api/contracts](http://127.0.0.1:8000/api/contracts)
+
+No API key is required for the reproducible local path. Stop the stack with `docker compose down`.
+
+### Linux/macOS
 
 ```bash
-bash scripts/verify_docker_repro.sh
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd SETU
+docker compose up --build
 ```
 
-## Submission / Demo
+On Ubuntu using Snap Docker, run `sudo bash scripts/fix-docker-permissions.sh` once, log out and back in, then retry the command. Alternatively use `sudo docker compose up --build`.
 
-Before recording your video or presenting live:
+## Verification
+
+The project includes automated tests, a Docker health check, and a browser-verified end-to-end incident workflow.
+
+```powershell
+# Frontend
+cd frontend
+npm test -- --run
+npm run build
+
+# From repository root: Docker stack
+cd ..
+docker compose up -d --build
+```
+
+For the original reproducibility scripts on a Unix-like shell:
 
 ```bash
-bash scripts/demo_preflight.sh          # PREFLIGHT=PASS required
+bash scripts/demo_preflight.sh
 python3 scripts/run_phase8_verification.py
 ```
 
-| Doc | Purpose |
-|-----|---------|
-| [docs/phase8_demo_script.md](docs/phase8_demo_script.md) | Timed live + video script |
-| [docs/phase8_solo_runbook.md](docs/phase8_solo_runbook.md) | One-person demo steps |
-| [docs/submission/README.md](docs/submission/README.md) | Upload checklist |
-| [docs/submission/video_outline.md](docs/submission/video_outline.md) | 5–8 min recording guide |
+## Architecture
 
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:8000
-- **Health check:** http://localhost:8000/health
-- **Contracts:** http://localhost:8000/api/contracts
-
-## Local Development (without Docker)
-
-### Backend
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```text
+News URL / GDELT signal
+          ↓
+Evidence extraction + confidence scoring
+          ↓
+Corridor risk scoring and short-horizon forecast
+          ↓
+Monte Carlo cascade simulation
+          ↓
+Pareto mitigation options + human approval
 ```
 
-### Frontend
+The frontend is React/Vite; the API is FastAPI; state is persisted in SQLite; the simulation layer models corridor disruption cascades. JSON schemas in `schemas/` define the contracts shared across the application.
 
-```bash
-cd frontend
-npm install
-npm run dev
+## Repository layout
+
+```text
+backend/       FastAPI API, extraction, risk, forecast, simulation, and orchestrator
+frontend/      React dashboard and guided incident-response workflow
+schemas/       Frozen JSON contracts and generated model inputs
+data/          SQLite data, source samples, fixtures, and timeline data
+docs/          Architecture, methods, limitations, verification, and submission material
+scripts/       Reproducibility, data, and validation utilities
+tests/         Backend and contract tests
 ```
 
-### Code generation (schemas → types)
+## Data integrity and limitations
 
-```bash
-python scripts/generate_models.py
-```
+- The UI shows source URL, publisher, timestamps, evidence terms, and extraction confidence whenever URL ingestion succeeds.
+- The reference workflow is reproducible and does not claim that every displayed value is live market data.
+- External news and GDELT availability may change; real-world operational deployment requires expanded source coverage, validation, security, and domain review.
+- Forecasts are decision-support signals, not price predictions or procurement instructions.
 
-### Pull real data samples
+Full limitations: [docs/known_limitations.md](docs/known_limitations.md). Data-source notes: [docs/data_sources.md](docs/data_sources.md). Architecture: [docs/phase8_architecture.md](docs/phase8_architecture.md).
 
-```bash
-python scripts/pull_samples.py
-```
+## Submission assets
 
-### Generate mock fixtures
+- [Detailed architecture](docs/phase8_architecture.md)
+- [Operational walkthrough](docs/phase8_demo_script.md)
+- [3-4 minute recording script](docs/submission/demo_video_script.md)
+- [Video outline](docs/submission/video_outline.md)
+- [Submission checklist](docs/submission/README.md)
+- [Detailed submission PDF](output/pdf/SETU_ET_AI_Hackathon_Detailed_Submission.pdf)
 
-```bash
-python scripts/generate_mocks.py
-```
+## License
 
-### Tests
-
-```bash
-pytest tests/ -v
-```
-
-## Repository Layout
-
-```
-SETU/
-├── backend/          # FastAPI skeleton
-├── frontend/         # React + Vite + Tailwind
-├── schemas/          # JSON Schema (draft-07) — single source of truth
-├── scripts/          # Codegen, data pulls, mock generation
-├── data/             # SQLite DB, samples, fixtures, timeline CSV
-├── docs/             # SRS, brief, data sources, phase sign-off
-├── tests/            # Schema + health tests
-└── ml/               # Reserved for Phase 3+
-```
-
-## Data Contracts
-
-Frozen JSON schemas in `/schemas/` per SETU SRS Section 6:
-
-| Contract | Schema file |
-|----------|-------------|
-| SignalEvent | `signal_event.json` |
-| RiskScore | `risk_score.json` |
-| CascadeResult | `cascade_result.json` |
-| GraphNode / GraphEdge | `graph_node.json`, `graph_edge.json` |
-| Recommendation | `recommendation.json` |
-
-Shared enums: `corridor.json`, `percentile_band.json`
-
-Generated types:
-- Backend: `backend/app/models/generated.py` (Pydantic via datamodel-code-generator)
-- Frontend: `frontend/src/types/generated.ts`
-
-## Phase 0 Acceptance
-
-See [docs/phase0_signoff.md](docs/phase0_signoff.md) for acceptance criteria evidence.
+Hackathon submission project. All third-party sources remain subject to their respective terms.

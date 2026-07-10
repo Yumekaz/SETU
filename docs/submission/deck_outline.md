@@ -6,11 +6,11 @@
 2. **Problem** — India 88% import dependency, corridor chokepoints
 3. **Insight** — Monitoring vs decision support
 4. **Architecture** — diagram from phase8_architecture.md
-5. **Live demo screenshot** — dashboard score grid
+5. **Live product screenshot** — dashboard score grid
 6. **Cascade + recommendations** — percentile bands + options table
 7. **Backtest honesty** — N=1, no_crossing headline
 8. **Neuro-symbolic** — GBNF extract → deterministic decide
 9. **Limitations** — KL-01–KL-10 summary
 10. **Repo + video** — QR or URL
 
-Keep deck backup to short demo script if live slot fails.
+Keep a concise operational walkthrough as a fallback if the live slot fails.

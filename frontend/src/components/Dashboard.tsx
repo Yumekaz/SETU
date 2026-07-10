@@ -92,9 +92,55 @@ export default function Dashboard({
     data?.cascades.find((c) => c.corridor === selectedCorridor) ?? data?.cascades[0] ?? null;
   const corridorForecast =
     data?.forecasts.find((f) => f.corridor === selectedCorridor) ?? data?.forecasts[0] ?? null;
+  const selectedScore = data?.latestScores.find((score) => score.corridor === selectedCorridor);
+  const sourceFreshnessDate =
+    selectedScore?.score_date ?? corridorForecast?.feature_data_through ?? "awaiting live signal";
 
   return (
     <div id="dashboard-root" className="space-y-6">
+      <section
+        id="operational-explainer-card"
+        className="relative overflow-hidden rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-500/10 via-slate-950/70 to-emerald-500/10 p-5 shadow-2xl shadow-sky-950/20"
+      >
+        <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-sky-500/10 blur-3xl" />
+        <div className="relative grid gap-5 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+          <div>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-300">
+                PS 2 · Energy supply-chain resilience
+              </span>
+              <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-sky-300">
+                Source-grounded decision intelligence
+              </span>
+            </div>
+            <h2 className="text-xl font-black leading-tight text-slate-50 md:text-2xl">
+              SETU detects geopolitical supply-chain shocks from live news, maps the affected crude corridor, forecasts risk, simulates downstream impact, and recommends mitigation.
+            </h2>
+            <p className="mt-3 max-w-4xl text-sm leading-relaxed text-slate-300">
+              This is not a news summarizer. It converts evidence into an operator workflow:
+              signal extraction, corridor scoring, maritime rerouting, Monte Carlo impact analysis,
+              and Pareto-ranked response options for import-dependent economies.
+            </p>
+          </div>
+
+          <div className="grid gap-2 rounded-xl border border-slate-800/70 bg-slate-950/50 p-4">
+            {[
+              ["Live source", "AP/GDELT URL evidence"],
+              ["Extraction", "Corridor + event type + confidence"],
+              ["Forecast basis", `Features through ${sourceFreshnessDate}`],
+              ["Decision layer", "Cascade + Pareto mitigation"],
+            ].map(([label, value]) => (
+              <div key={label} className="flex items-center justify-between gap-3 border-b border-slate-800/60 pb-2 last:border-0 last:pb-0">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  {label}
+                </span>
+                <span className="text-right text-[11px] font-semibold text-slate-200">{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xs font-bold tracking-widest text-slate-400 uppercase">Live Global Corridor Risk Metrics</h2>

@@ -1,6 +1,6 @@
 # Submission Video Outline (5–8 min)
 
-Record from running demo at http://localhost:5173. Script mirrors [../phase8_demo_script.md](../phase8_demo_script.md).
+Record from the running local deployment at http://localhost:5173. Script mirrors [demo_video_script.md](demo_video_script.md).
 
 ## Structure
 
@@ -16,7 +16,7 @@ Record from running demo at http://localhost:5173. Script mirrors [../phase8_dem
 ## Narration bullets
 
 - Decision support, not monitoring
-- Offline cache demo — no API keys
+- Reproducible reference workflow — no API keys
 - Honest N=1 backtest
 - GitHub repo link at end
 

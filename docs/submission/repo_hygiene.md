@@ -14,7 +14,7 @@ Must exit 0. Scans `git ls-files` only.
 - API keys, tokens, local `.db` with private data
 - Large model weights (`.gguf`)
 
-## Clone-to-demo (judge path)
+## Local deployment path
 
 ```bash
 git clone <repo-url> SETU && cd SETU
@@ -25,7 +25,7 @@ bash scripts/demo_preflight.sh
 
 Open http://localhost:5173
 
-No `.env` required for demo path.
+No `.env` required for the reproducible local path.
 
 ## CI / verification
 
