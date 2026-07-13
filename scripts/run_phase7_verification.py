@@ -89,7 +89,7 @@ def run_pytest_twice() -> tuple[int, int, str, str]:
     for i in (1, 2):
         merged_env = {**os.environ, **env}
         proc = subprocess.run(
-            ["python3", "-m", "pytest", "tests/", "-q", "--tb=line"],
+            [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=line"],
             cwd=ROOT,
             env=merged_env,
             capture_output=True,

@@ -311,7 +311,7 @@ def run_pytest_twice() -> tuple[int, int, str, str]:
     hashes: list[str] = []
     for i in (1, 2):
         proc = run_cmd(
-            ["python3", "-m", "pytest", "tests/", "-q", "--tb=line"],
+            [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=line"],
             env=env,
             timeout=900,
         )

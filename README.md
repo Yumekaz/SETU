@@ -115,7 +115,7 @@ tests/         Backend and contract tests
 - The reference workflow is reproducible and does not claim that every displayed value is live market data.
 - External news and GDELT availability may change; real-world operational deployment requires expanded source coverage, validation, security, and domain review.
 - Forecasts are decision-support signals, not price predictions or procurement instructions.
-- The calibrated Hormuz replay crosses on **2026-02-10**, **20 days** before the 2026-03-02 reference point, at score `0.578125` against the pre-locked `0.437501` threshold. The threshold is one six-decimal increment above the maximum score in a separate 17-day Jan baseline, producing 0 observed baseline alerts; this is N=1 evidence with a short-baseline caveat, not broad accuracy proof. See [the reproducible result](docs/backtest_results.md) and [calibration protocol](docs/threshold_calibration.md).
+- The calibrated Hormuz replay crosses on **2026-02-10**, **20 days** before the [publicly reported March 2 closure of the Strait of Hormuz](https://www.eia.gov/todayinenergy/detail.php?id=67424), at score `0.578125` against the pre-locked `0.437501` threshold. The threshold is one six-decimal increment above the maximum score in a separate 17-day Jan baseline, producing 0 observed baseline alerts; this is N=1 evidence with a short-baseline caveat, not broad accuracy proof. See [the reproducible result](docs/backtest_results.md) and [calibration protocol](docs/threshold_calibration.md).
 
 Full limitations: [docs/known_limitations.md](docs/known_limitations.md). Data-source notes: [docs/data_sources.md](docs/data_sources.md). Architecture: [docs/phase8_architecture.md](docs/phase8_architecture.md).
 

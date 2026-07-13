@@ -18,7 +18,7 @@ const COLD_START = process.env.SETU_BROWSER_COLD_START === "1";
 const RUNS = COLD_START ? 1 : 2;
 const log = [];
 
-const SCENARIO_RE = /Scenario MALACCA: cascade [a-f0-9]{8}… → \d+ options/;
+const SCENARIO_RE = /Scenario executed successfully: cascade simulation \[[a-f0-9]{8}\] initialized\. Generated \d+ options\./;
 
 function isBenignConsoleError(text) {
   return (
@@ -109,12 +109,12 @@ async function runOnce(label) {
     grid = await page.locator("#corridor-score-grid > div").count();
     log.push(`${label}: dashboard_score_cards=${grid}`);
 
-    await page.getByRole("button", { name: "Map" }).click();
+    await page.getByRole("button", { name: "Maritime network" }).click();
     await page.waitForSelector("#setu-map-container .leaflet-container", { timeout: 30_000 });
     await page.waitForSelector("#cape-overlay-badge", { timeout: 10_000 });
 
     const badgeText = await page.locator("#cape-overlay-badge").innerText();
-    capeBadgeOk = badgeText.includes("Cape reroute overlay (demo ASSUMPTION)");
+    capeBadgeOk = badgeText.includes("CAPE REROUTE ACTIVE");
     log.push(`${label}: cape_badge=${capeBadgeOk}`);
 
     markerCount = await page.locator("#setu-map-container .leaflet-interactive").count();
@@ -133,7 +133,7 @@ async function runOnce(label) {
       copyFileSync(mapShot, `${SCRATCH}/phase6_browser_load.png`);
     }
 
-    await page.getByRole("button", { name: "Backtest Replay" }).click();
+    await page.getByRole("button", { name: "Scenario replay" }).click();
     await page.waitForSelector("#replay-scrub", { timeout: 20_000 });
     const before = await page.locator("#replay-timeline-card").innerText();
     const slider = page.locator("#replay-scrub");
@@ -151,7 +151,7 @@ async function runOnce(label) {
     scrubChanged = before !== after;
     log.push(`${label}: replay_scrub_changed=${scrubChanged}`);
 
-    await page.getByRole("button", { name: "Dashboard" }).click();
+    await page.getByRole("button", { name: "Overview" }).click();
     await page.waitForSelector("#forecast-panel", { timeout: 20_000 });
     await waitForForecast(page);
     const forecastText = await page.locator("#forecast-panel").innerText();
@@ -159,13 +159,15 @@ async function runOnce(label) {
     log.push(`${label}: forecast_populated=${forecastOk}`);
 
     await page.locator("#scenario-corridor-select").selectOption("MALACCA");
-    const scenarioResponse = page.waitForResponse(
-      (resp) =>
-        resp.url().includes("/api/recommendations/run") && resp.request().method() === "POST",
+    await page.getByRole("button", { name: "Run scenario" }).click();
+    await page.waitForFunction(
+      () => {
+        const controls = document.querySelector("#scenario-controls");
+        const text = controls?.textContent ?? "";
+        return text.includes("Scenario executed successfully:") || text.includes("Error:");
+      },
       { timeout: 120_000 },
     );
-    await page.getByRole("button", { name: /Run MALACCA cascade/ }).click();
-    await scenarioResponse;
     const scenarioText = await page.locator("#scenario-controls").innerText();
     scenarioOk = SCENARIO_RE.test(scenarioText);
     log.push(`${label}: scenario_result=${scenarioOk} text=${scenarioText.slice(0, 80)}`);
