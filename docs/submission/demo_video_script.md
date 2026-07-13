@@ -1,37 +1,41 @@
-# SETU - 3 to 4 minute product walkthrough script
+# SETU — 3–4 minute recording script
 
-Use the running Docker dashboard at `http://127.0.0.1:5173`. Keep the browser at 1280px width or above, record at 1080p, and use the **Run Incident Response Workflow** button once during the video.
+Use the running Docker application at `http://127.0.0.1:5173`. Record at 1920×1080 where possible, keep the browser at 1280px width or above, and keep system audio off.
 
 ## Before recording
 
-1. Start the stack: `docker compose up -d --build`
-2. Open `http://127.0.0.1:5173` and wait for the dashboard to load.
-3. Ensure the top explainer card and **Incident Workflow** panel are visible.
-4. Do not pre-run the workflow in the recording tab. The completed steps illustrate the operational sequence.
-5. Use a calm voice. Show the screen; do not read every number.
+1. Start the stack: `docker compose up -d --build`.
+2. Open `http://127.0.0.1:5173` and wait for **Overview** to load.
+3. Open **Scenario replay** once before recording and locate the 2026-02-10 crossing.
+4. Return to **Overview** and leave the incident analysis unrun, so the recording shows its full state transition.
+5. Use a calm, direct voice. Pause after each meaningful result; do not narrate every label.
 
 ## Script
 
 | Time | Screen action | Say this |
 |---|---|---|
-| 0:00-0:20 | Show the top of the dashboard. | "India's crude supply is vulnerable to disruptions in a few maritime corridors. During a crisis, teams do not need another news feed - they need a defensible response quickly. SETU is an AI-powered decision-support system for that problem." |
-| 0:20-0:42 | Point to the explainer and credibility table. | "SETU turns a geopolitical signal into a decision trail. It ingests evidence, identifies the affected crude corridor, forecasts risk, simulates the downstream impact, and recommends mitigation. We deliberately make the source, confidence, timestamps, and evidence terms visible so a user can inspect the basis of the decision." |
-| 0:42-0:55 | Scroll to the Incident Workflow panel. | "Rather than showing disconnected features, this control runs the complete source-to-decision workflow using a reference incident source. I will now run it end to end." |
-| 0:55-1:50 | Click **Run Incident Response Workflow**. Pause while the five steps complete. | "First, SETU ingests the source and extracts a HORMUZ military disruption event. You can see the AP article title, publisher, source URL, timestamps, matched terms, and confidence. This is important: the event is not just a hard-coded dashboard row; it is evidence that updates the corridor risk." |
-| 1:50-2:20 | Point to completed forecast and cascade stages, then the map/cascade area. | "Next, the system runs a short-horizon risk forecast from the updated state, then propagates the disruption through the crude supply network using a Monte Carlo cascade simulation. The result is an operational impact view rather than a generic alert." |
-| 2:20-2:55 | Scroll to the recommendation panel. | "SETU then generates mitigation options. Each option explains why it is recommended and makes the trade-off visible: risk reduction, time penalty, and cost impact. The final decision remains human-in-the-loop - an operator can approve or reject the recommendation with an audit trail." |
-| 2:55-3:20 | Show the evidence/recommendation panels together if possible. | "The innovation is the full chain from credible source evidence to an explainable operational action. The UI de-emphasizes weak seeded rows so they are not confused with evidence, and the one-click flow makes the decision path easy to inspect." |
-| 3:20-3:45 | Return to the explainer card or final dashboard view. | "This is a working MVP built with React, FastAPI, SQLite, typed JSON contracts, deterministic scoring and orchestration, and a containerized local deployment path. Its next step is integrating validated AIS, supplier, refinery, and market data feeds for production deployment. SETU turns a geopolitical signal into an explainable energy-supply decision." |
+| 0:00–0:25 | Switch to **Scenario replay**, paused on 2026-02-10. | "India’s crude supply is exposed to a small number of maritime corridors. SETU turns geopolitical evidence into an operational decision. In this historical Hormuz replay, SETU first crossed its risk threshold on 10 February 2026—20 days before the publicly reported 2 March closure of the Strait of Hormuz." |
+| 0:25–0:50 | Show the replay headline, score, and timeline. | "This is a reproducible result, not a retrospective threshold fit. The threshold was locked at 0.437501 from a separate 17-day January baseline. We are precise about the boundary: this is one historical case, not a claim of broad detection accuracy." |
+| 0:50–1:10 | Switch to **Overview** and show the risk and forecast panels. | "Once a signal is detected, SETU makes the decision chain visible: source evidence, structured corridor risk, forecast uncertainty, network impact, and mitigation choices." |
+| 1:10–1:55 | Click **Run incident analysis**. Let the five stages complete. | "I’ll now run the operational workflow. SETU ingests a reference incident source, extracts a Hormuz military event, updates the risk state, runs a forecast, simulates the downstream cascade, and generates feasible mitigation options." |
+| 1:55–2:25 | Point to the verified source evidence and completed stages. | "The source, publisher, evidence terms, timestamps, and confidence are shown with the result. That traceability is important: the decision is tied to inspectable evidence, not an unexplained alert." |
+| 2:25–2:55 | Show cascade and recommendation panels. | "The cascade translates corridor disruption into supply and price ranges. The recommendations make the trade-offs explicit—risk reduction, time penalty, and strategic-reserve use—while the final approval stays with a human operator." |
+| 2:55–3:15 | Switch to **Maritime network** and change the corridor focus. | "The maritime view connects the signal to the physical trade network and compares the relevant route response. These route waypoints are reference geometry, not a claim of live AIS vessel tracking." |
+| 3:15–3:40 | Return to **Scenario replay** or show the repository URL. | "SETU is built as a transparent decision-support system: constrained extraction, deterministic scoring and optimization, and documented limitations. The historical result is N=1 with a short baseline; the product and reproducibility details are available in this repository." |
 
 ## Common technical questions
 
+**"How confident are you in the 20-day result?"**
+
+"It is a reproducible N=1 historical result. The 0.437501 threshold was derived from a separate 17-day January baseline and locked before the February–March evaluation. That is encouraging evidence, not broad statistical validation; we document that limitation directly."
+
+**"Why did February 28 not cross but March 2 did?"**
+
+"This replay requires source-deduplicated, same-day direct Hormuz evidence. February 28 did not have enough direct corridor evidence to meet the pre-locked threshold. By March 2, corroborated closure reporting did. Earlier signals remain context, but they cannot substitute for direct evidence in this metric."
+
 **"Is this all live data?"**
 
-"The guided workflow uses a credible reference news source for a stable, reproducible operational walkthrough. SETU also supports source URL ingestion and a live GDELT trigger. External data availability varies, so we show the source and clearly distinguish evidence from seeded data."
-
-**"What is the AI part?"**
-
-"The intelligence layer converts geopolitical text into structured event signals. We intentionally keep scoring, simulation, and recommendation logic deterministic and inspectable, because operational decisions require repeatability and explanation."
+"The product supports article ingestion and a GDELT refresh. This recording uses a stable reference incident and a committed historical cache so the result can be reproduced. We show the source and clearly distinguish evidence from static reference geometry."
 
 **"Why should a team trust the recommendations?"**
 
@@ -43,8 +47,8 @@ Use the running Docker dashboard at `http://127.0.0.1:5173`. Keep the browser at
 
 ## Recording checklist
 
+- Show the 2026-02-10 crossing before operational workflow.
+- State the 20-day result and N=1 / 17-day-baseline boundary verbatim.
 - Show source URL, evidence terms, and confidence.
-- Show all five Incident Workflow stages complete.
-- Show at least one recommendation's explanation and human approval gate.
-- Keep the video between 3 and 4 minutes.
-- End with the GitHub repository URL on screen or in the video description.
+- Show all five incident-analysis stages complete and one recommendation’s trade-offs.
+- Keep the recording between 3 and 4 minutes; end with the GitHub repository URL on screen or in the description.

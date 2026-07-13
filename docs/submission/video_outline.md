@@ -1,23 +1,22 @@
-# Submission Video Outline (5–8 min)
+# Submission Video Outline (3–4 min)
 
-Record from the running local deployment at http://localhost:5173. Script mirrors [demo_video_script.md](demo_video_script.md).
+Record from the running local deployment at http://localhost:5173. Follow the word-for-word [recording script](demo_video_script.md).
 
 ## Structure
 
 | Segment | Duration | Visual |
 |---------|----------|--------|
-| Hook — India crude corridor risk | 0:30 | Title card + map tab |
-| Baseline dashboard | 1:30 | Score grid + forecast bands |
-| Live disruption + recommendations | 2:00 | Scenario button → HITL panel |
-| Backtest replay climax | 2:00 | Scrub to the 2026-02-10 threshold crossing and explain the 20-day lead time |
-| Unrehearsed BAB_EL_MANDEB | 1:00 | Corridor switch + run |
-| Limitations + CTA | 0:30 | known_limitations.md talking points |
+| Evidence headline | 0:35 | Scenario replay at the Feb 10 crossing |
+| How it works | 0:35 | Replay timeline, source-backed signal, threshold and reference-event explanation |
+| Operational response | 1:25 | Overview: incident analysis → forecast → cascade → mitigations |
+| Maritime context | 0:25 | Maritime network and route comparison |
+| Boundaries + close | 0:25 | N=1 / 17-day baseline honesty and repository URL |
 
 ## Narration bullets
 
-- Decision support, not monitoring
-- Reproducible reference workflow — no API keys
-- Honest N=1 backtest
+- 20-day lead time before EIA’s publicly reported March 2 closure
+- Decision support with evidence, uncertainty, and human approval
+- Honest N=1 / 17-day baseline boundary
 - GitHub repo link at end
 
 ## Technical
