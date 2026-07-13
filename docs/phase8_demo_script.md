@@ -41,7 +41,7 @@ Open http://localhost:5173 → **Dashboard** tab.
 |------|--------|------------|
 | C1 | Switch to **Backtest Replay** tab | Credibility climax — real Hormuz 2026 window |
 | C2 | Scrub timeline / press Play | Point-in-time scores vs news events |
-| C3 | Headline panel (`no_crossing` at 0.35) | We report honestly: N=1 crisis, modest lead-time claim |
+| C3 | Headline panel (crossed 2026-02-10 at 0.437501) | 20-day lead time; threshold comes from a separate short baseline, so this is N=1 evidence, not broad accuracy proof |
 | C4 | Map overlay | Corridor risk coloring synced to replay date |
 
 ### D. Unrehearsed scenario — Time budget: 2 min

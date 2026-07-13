@@ -24,7 +24,7 @@ def test_backtest_config_locked_reference(client: TestClient) -> None:
     assert resp.status_code == 200
     body = resp.json()
     assert body["reference_point_date"] == "2026-03-02"
-    assert body["risk_threshold"] == 0.35
+    assert body["risk_threshold"] == 0.437501
 
 
 def test_backtest_run_persists_and_matches_direct(client: TestClient) -> None:

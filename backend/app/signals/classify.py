@@ -60,12 +60,22 @@ def _keyword_hit(text: str, config: AppConfig) -> str | None:
 
 
 def classify_corridor(row: dict[str, str], config: AppConfig | None = None) -> str | None:
-    """Return corridor enum string or None if row is not corridor-relevant."""
+    """Return a corridor only when the source contains explicit corridor evidence.
+
+    GDELT ActionGeo coordinates often represent a nearby city or the place a
+    story was filed, not the maritime chokepoint affected by the event. Bboxes
+    remain useful corroboration for a detected corridor, but are deliberately
+    not sufficient to assign one on their own.
+    """
     cfg = config or load_config()
-    bbox_corridor = _bbox_hit(row, cfg)
-    if bbox_corridor:
-        return bbox_corridor
-    return _keyword_hit(_text_blob(row), cfg)
+    text_corridor = _keyword_hit(_text_blob(row), cfg)
+    if text_corridor is None:
+        return None
+
+    # Evaluate the coordinate candidate for auditability/future confidence
+    # features, but never promote a city-level bbox hit into a corridor label.
+    _bbox_hit(row, cfg)
+    return text_corridor
 
 
 def is_english_source(row: dict[str, str]) -> bool:

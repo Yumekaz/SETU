@@ -11,9 +11,10 @@ corridors:
       - bandar abbas
       - qeshm
     bbox:
-      lat_min: 24.0
+      # Waterway-focused extent. Dubai/UAE city geocodes are not corridor evidence.
+      lat_min: 25.5
       lat_max: 28.5
-      lon_min: 54.0
+      lon_min: 55.5
       lon_max: 58.5
 
   BAB_EL_MANDEB:
@@ -49,7 +50,6 @@ corridors:
 cameo_allowlist_roots:
   - "04"  # consult / diplomatic tension
   - "05"
-  - "14"  # protest / military posture
   - "15"
   - "16"
   - "17"

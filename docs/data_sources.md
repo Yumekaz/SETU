@@ -61,10 +61,11 @@ Output wrapper format:
 
 ## GDELT Hormuz backtest cache
 
-- **Active file:** `gdelt_hormuz_backtest_dense.json` (2,753 accepted rows, normalized to 1,831 SignalEvents; six-hour samples from 2026-01-15 through 2026-03-02)
+- **Active file:** `gdelt_hormuz_backtest_dense.json` (2,753 date-bounded candidate rows, normalized to 1,080 SignalEvents after explicit corridor-evidence and CAMEO gates; six-hour samples from 2026-01-15 through 2026-03-02)
 - **Builder:** `python scripts/pull_gdelt_backtest.py --start 2026-01-15 --end 2026-03-02 --sample-interval 24`
 - **Use:** Reproducible evidence input for the locked Hormuz historical replay. The archived 55-row cache remains only for the earlier Phase 1 offline-pipeline fixture.
 - **Schema guard:** SETU maps the current 61-column GDELT Events export, including the three `*_ADM2Code` columns, so `SOURCEURL` remains correctly aligned.
+- **Relevance guard:** city-level Gulf coordinates do not alone assign a maritime corridor; sources must contain explicit corridor terms. CAMEO protest root `14` is not promoted to military risk.
 - **GKG:** Deferred in Phase 1 — Events CSV only
 
 ## Hormuz 2026 backtest timeline

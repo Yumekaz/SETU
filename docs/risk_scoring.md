@@ -25,11 +25,16 @@ contribution = min(raw, CAP_SINGLE)
 
 ## Corridor score
 
-1. Collect contributions for events where `e.corridor == corridor` and `e.event_date <= D`.
-2. Take top `TOP_K` contributions by value.
-3. `mean_top` = mean of top-K contributions.
-4. `median_7d` = median of contributions with `event_date` in `[D-7, D]`.
-5. `score = clip(0.6 * mean_top + 0.4 * median_7d, 0, 1)`.
+1. Keep events where `e.corridor == corridor` and `e.event_date == D`.
+2. Deduplicate GDELT's multiple event rows per source URL, retaining the highest capped contribution for that source.
+3. Combine the remaining independent source contributions with a noisy-OR:
+
+```
+score = 1 - Π(1 - contribution_source)
+```
+
+This keeps `CAP_SINGLE` as an outlier dampener for one event/source, while
+allowing corroborating independent sources to raise corridor risk above 0.25.
 
 ## 7-day trend
 
@@ -50,7 +55,7 @@ Compare current score to score 7 days prior:
 | `W_GOLD` | 0.30 | GDELT Goldstein is auditable |
 | `W_TYPE` | 0.25 | Event-type prior (military > diplomatic) |
 | `RECENCY_TAU` | 14 days | Half-life for relevance decay |
-| `CAP_SINGLE` | 0.25 | Outlier dampening per SRS edge case |
+| `CAP_SINGLE` | 0.25 | Per-event/source outlier dampening; not a corridor-score ceiling |
 | `CONFIDENCE_THRESHOLD` | 0.5 | Hallucination gate — sub-threshold events excluded |
 | `TREND_EPS` | 0.03 | Stable band for trend label |
 | `TOP_K` | 5 | Top contributing events cap |

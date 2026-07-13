@@ -14,3 +14,4 @@ Explicit deferrals per SRS Section 17 triage. These are conscious scope boundari
 | KL-08 | Demo-day personnel / time-slot risks | Operational, not code-hardening |
 | KL-09 | Literal kill -9 mid-request chaos | Simulated via connection refused / corrupt files |
 | KL-10 | Social media sentiment analysis | Out of scope per SRS Phase 1 |
+| KL-11 | Place-name geolocation near Hormuz can still need maritime-context disambiguation | City-level bbox-only classification is blocked, but place anchors such as Qeshm/Bandar Abbas may still require article-level maritime-context review; deferred pending richer source text/GKG evidence. |

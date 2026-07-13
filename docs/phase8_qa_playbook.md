@@ -4,7 +4,7 @@ Prepared answers for judge probes (SRS §18 Task 4).
 
 ## Why not Kpler / Vortexa / Windward?
 
-Those platforms **surface risk signals** from vessel and cargo data. SETU produces a **prescriptive, constraint-optimized recommendation** with quantified cascade impacts (supply shortfall, price, SPR days) and a reproducible historical-replay method. Monitoring vs decision support. The current N=1 replay does not claim validated positive lead time.
+Those platforms **surface risk signals** from vessel and cargo data. SETU produces a **prescriptive, constraint-optimized recommendation** with quantified cascade impacts (supply shortfall, price, SPR days) and a reproducible historical replay. The current N=1 replay crosses 20 days before its reference point, but does not claim broad validated accuracy.
 
 ## How do you prevent LLM hallucinations affecting scores?
 
@@ -15,7 +15,7 @@ Those platforms **surface risk signals** from vessel and cargo data. SETU produc
 
 ## Isn't one historical crisis (N=1) too small to validate?
 
-**Yes — we say so explicitly.** Backtest headline shows `no_crossing` at threshold 0.35 for the locked Hormuz 2026 window. We claim **directional credibility** and **pipeline integrity**, not statistical proof across many crises. See `docs/backtest_results.md` and `docs/known_limitations.md` KL-05.
+**Yes — we say so explicitly.** The replay crosses on 2026-02-10, 20 days before the 2026-03-02 reference point, using a 0.437501 threshold derived from a separate 17-day baseline. This is N=1 evidence with a short-baseline caveat, not statistical proof across crises. See `docs/backtest_results.md` and `docs/known_limitations.md` KL-05/KL-11.
 
 ## What if GDELT or the network fails during the demo?
 

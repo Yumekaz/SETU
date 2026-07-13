@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from datetime import date, timedelta
+from datetime import date
 
 from app.models.generated import Corridor, RiskScore, SignalEvent, Trend7d
 from app.signals.config import AppConfig, ScoringConfig, load_config
@@ -59,43 +59,31 @@ def compute_corridor_score(
     if not relevant:
         return 0.0, []
 
-    contributions = [
-        (
-            per_event_contribution(
-                event,
-                score_date=score_date,
-                config=cfg.scoring,
-                event_type_weights=cfg.event_type_weights,
-            ),
+    # One source may generate several GDELT event rows. Retain its strongest
+    # same-day signal once, then combine independent source signals with a
+    # noisy-OR. The per-event cap still prevents one event/source dominating;
+    # multiple sources can nevertheless raise corridor risk above that cap.
+    source_contributions: dict[str, tuple[float, SignalEvent]] = {}
+    for event in relevant:
+        if event.event_date != score_date:
+            continue
+        contribution = per_event_contribution(
             event,
+            score_date=score_date,
+            config=cfg.scoring,
+            event_type_weights=cfg.event_type_weights,
         )
-        for event in relevant
-        if event.event_date <= score_date
-    ]
-    if not contributions:
+        source_key = str(event.source_url)
+        existing = source_contributions.get(source_key)
+        if existing is None or contribution > existing[0]:
+            source_contributions[source_key] = (contribution, event)
+
+    if not source_contributions:
         return 0.0, []
 
-    contributions.sort(key=lambda item: item[0], reverse=True)
+    contributions = sorted(source_contributions.values(), reverse=True, key=lambda item: item[0])
+    score = 1.0 - math.prod(1.0 - value for value, _ in contributions)
     top_k = contributions[: cfg.scoring.top_k_events]
-    mean_top = sum(value for value, _ in top_k) / len(top_k)
-
-    window_start = score_date - timedelta(days=7)
-    window_values = [
-        value
-        for value, event in contributions
-        if window_start <= event.event_date <= score_date
-    ]
-    if window_values:
-        sorted_vals = sorted(window_values)
-        mid = len(sorted_vals) // 2
-        if len(sorted_vals) % 2:
-            median = sorted_vals[mid]
-        else:
-            median = (sorted_vals[mid - 1] + sorted_vals[mid]) / 2
-    else:
-        median = mean_top
-
-    score = 0.6 * mean_top + 0.4 * median
     return min(max(score, 0.0), 1.0), [event for _, event in top_k]
 
 

@@ -19,7 +19,7 @@ def test_run_backtest_reproducible_twice() -> None:
     assert first.crossing_score == second.crossing_score
     assert first.crossing_summary == second.crossing_summary
     assert first.reference_point_date.isoformat() == "2026-03-02"
-    assert first.risk_threshold == 0.35
+    assert first.risk_threshold == 0.437501
 
 
 def test_run_backtest_returns_required_keys() -> None:
@@ -47,18 +47,20 @@ def test_run_backtest_returns_required_keys() -> None:
         assert key in result
 
 
-def test_default_run_invokes_chain_at_peak_when_no_crossing() -> None:
+def test_default_run_invokes_chain_at_locked_crossing() -> None:
     result = run_backtest()
-    assert result.status == "no_crossing"
-    assert result.lead_time_days is None
-    assert result.orchestrator_at_peak is not None
-    assert result.orchestrator_at_crossing is None
+    assert result.status == "crossed"
+    assert result.lead_time_days == 20
+    assert result.first_crossing_date is not None
+    assert result.first_crossing_date.isoformat() == "2026-02-10"
+    assert result.orchestrator_at_peak is None
+    assert result.orchestrator_at_crossing is not None
     assert result.recommendation_status is not None
     assert len(result.recommendation_option_ids) >= 1
     assert result.pit_integrity is not None
     assert result.pit_integrity["pit_ok"] is True
-    assert result.trajectory_peak["peak_score"] == 0.25
-    assert result.trajectory_peak["peak_date"] == "2026-02-01"
+    assert result.trajectory_peak["peak_score"] == 0.816089
+    assert result.trajectory_peak["peak_date"] == "2026-03-02"
 
 
 def test_run_full_chain_pit_filters_future_events() -> None:

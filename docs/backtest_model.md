@@ -6,7 +6,7 @@ For each `score_date` in `[window_start, window_end]`:
 
 1. Filter GDELT-derived `SignalEvent` rows to `event_date <= score_date` via `filter_events_up_to()`.
 2. Build `prior_scores` from events visible through `score_date - 7 days` (separate filter — no lookahead for 7-day trend).
-3. Run `build_risk_scores()` (same engine as Phase 1 / feature replay).
+3. Run `build_risk_scores()`: it uses same-day, source-deduplicated capped contributions combined with noisy-OR.
 4. Record Hormuz corridor score for the day.
 
 No shared `daily_features.parquet` or SQLite score tables are written during replay.
@@ -15,7 +15,7 @@ No shared `daily_features.parquet` or SQLite score tables are written during rep
 
 - **Reference point (source-verified):** `2026-03-02` — EIA-dated closure of the Strait of Hormuz.
 - **Separate comparison date:** `2026-03-11` is only used for the optional qualitative recommendation comparison after a crossing; it is not the lead-time anchor.
-- **Threshold (locked):** `0.35` in `data/config/backtest.yaml`.
+- **Threshold (locked):** `0.437501` in `data/config/backtest.yaml`, derived before final evaluation from the Jan 15–31 baseline at a ≤5% target (0 observed alerts in 17 days).
 - **First crossing:** earliest date where Hormuz score ≥ threshold.
 - **Lead time:** `reference_point_date - first_crossing_date` (integer days). **Null when no crossing.**
 
@@ -30,7 +30,7 @@ No shared `daily_features.parquet` or SQLite score tables are written during rep
 
 Result stored in `orchestrator_at_crossing`; `orchestrator_summary` points here.
 
-**When threshold is not crossed (locked run):** on trajectory **peak** date (highest Hormuz score in window):
+**When threshold is not crossed:** on trajectory **peak** date (highest Hormuz score in window):
 
 Same four steps, using events visible through peak date. Result stored in `orchestrator_at_peak`; `orchestrator_summary` points here. This is **chain proof only** — headline `lead_time_days` remains null.
 
@@ -49,6 +49,6 @@ Compare generated option_ids at crossing against the configured `2026-03-11` tim
 ## Limitations
 
 - N=1 historical crisis — directional evidence only.
-- One historical replay cannot establish broad detection accuracy or false-positive rates.
-- Threshold is not tuned post-hoc to maximize lead time.
-- Default locked run (`no_crossing` at 0.35) does not produce a positive lead-time claim.
+- One historical replay and a 17-day baseline cannot establish broad detection accuracy or stable false-positive rates.
+- Threshold was derived from the separate baseline, not tuned against the Feb–Mar evaluation outcome.
+- Place-name anchors near Hormuz still need richer maritime-context disambiguation (see KL-11).

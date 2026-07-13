@@ -8,7 +8,7 @@
 4. **Architecture** — diagram from phase8_architecture.md
 5. **Live product screenshot** — dashboard score grid
 6. **Cascade + recommendations** — percentile bands + options table
-7. **Backtest honesty** — N=1, no_crossing headline
+7. **Backtest evidence** — 20-day lead time, N=1 and short-baseline caveats
 8. **Neuro-symbolic** — GBNF extract → deterministic decide
 9. **Limitations** — KL-01–KL-10 summary
 10. **Repo + video** — QR or URL

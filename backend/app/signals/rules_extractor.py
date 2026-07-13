@@ -7,7 +7,8 @@ from typing import Any
 from app.signals.ingest_gdelt import parse_goldstein, parse_sql_date
 
 CAMEO_TO_EVENT_TYPE: dict[str, str] = {
-    "14": "MILITARY",
+    # CAMEO root 14 is protest, not military action. It is intentionally
+    # excluded from the corridor-risk allowlist rather than promoted here.
     "15": "MILITARY",
     "16": "MILITARY",
     "17": "MILITARY",

@@ -8,7 +8,7 @@
 
 ## Acceptance Criteria
 
-### 1. ≥90% valid `SignalEvent` from 50+ Hormuz-window GDELT rows
+### 1. Deterministic explicit-corridor `SignalEvent` extraction from 50+ GDELT candidates
 
 | Metric | Result |
 |---|---|

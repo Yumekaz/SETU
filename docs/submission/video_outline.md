@@ -9,7 +9,7 @@ Record from the running local deployment at http://localhost:5173. Script mirror
 | Hook — India crude corridor risk | 0:30 | Title card + map tab |
 | Baseline dashboard | 1:30 | Score grid + forecast bands |
 | Live disruption + recommendations | 2:00 | Scenario button → HITL panel |
-| Backtest replay climax | 2:00 | Scrub timeline, `no_crossing` headline |
+| Backtest replay climax | 2:00 | Scrub to the 2026-02-10 threshold crossing and explain the 20-day lead time |
 | Unrehearsed BAB_EL_MANDEB | 1:00 | Corridor switch + run |
 | Limitations + CTA | 0:30 | known_limitations.md talking points |
 

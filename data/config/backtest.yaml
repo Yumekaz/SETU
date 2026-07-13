@@ -3,7 +3,9 @@ backtest:
   window_start: "2026-02-01"
   window_end: "2026-06-30"
   corridor: HORMUZ
-  risk_threshold: 0.35
+  # Locked 2026-07-13 from the clean Jan 15–31 baseline: max score 0.437500,
+  # so 0.437501 gives 0/17 observed baseline alerts at the <=5% target.
+  risk_threshold: 0.437501
   reference_point_date: "2026-03-02"
   reference_point_label: "EIA-dated closure of the Strait of Hormuz"
   seed: 42

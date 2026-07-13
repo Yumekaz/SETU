@@ -46,3 +46,23 @@ def test_trend_labels() -> None:
     assert compute_trend_7d(0.5, 0.5) == Trend7d.stable
     assert compute_trend_7d(0.6, 0.4) == Trend7d.rising
     assert compute_trend_7d(0.3, 0.5) == Trend7d.falling
+
+
+def test_same_source_is_deduplicated_but_independent_sources_accumulate() -> None:
+    first = _event(1.0)
+    duplicate = first.model_copy(update={"event_id": uuid4()})
+    independent = first.model_copy(
+        update={"event_id": uuid4(), "source_url": "https://example.com/independent"}
+    )
+
+    one_source = next(
+        score for score in build_risk_scores([first, duplicate], score_date=ROOT_DATE)
+        if score.corridor.value == "HORMUZ"
+    )
+    two_sources = next(
+        score for score in build_risk_scores([first, independent], score_date=ROOT_DATE)
+        if score.corridor.value == "HORMUZ"
+    )
+
+    assert one_source.score == 0.25
+    assert two_sources.score == 0.4375

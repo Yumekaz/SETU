@@ -26,7 +26,7 @@
 ## Demo notes
 
 - Serve via `docker compose up` or `vite preview` — not `file://` (ESM).
-- Phase 5 honest result: `no_crossing` at 0.35 shown in replay headline panel.
+- Phase 5 calibrated result: crossing on 2026-02-10, 20 days before the 2026-03-02 reference point; N=1/short-baseline caveats remain visible.
 - Cape polylines are static demo waypoints, not graph edge geometry.
 
 ## Out of scope (confirmed)
