@@ -58,6 +58,7 @@ def test_default_run_invokes_chain_at_peak_when_no_crossing() -> None:
     assert result.pit_integrity is not None
     assert result.pit_integrity["pit_ok"] is True
     assert result.trajectory_peak["peak_score"] == 0.25
+    assert result.trajectory_peak["peak_date"] == "2026-02-01"
 
 
 def test_run_full_chain_pit_filters_future_events() -> None:

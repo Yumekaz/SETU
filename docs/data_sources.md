@@ -59,11 +59,12 @@ Output wrapper format:
 }
 ```
 
-## GDELT Hormuz backtest cache (Phase 1)
+## GDELT Hormuz backtest cache
 
-- **File:** `gdelt_hormuz_backtest.json` (55 filtered rows, Feb–Jun 2026 window)
-- **Builder:** `python scripts/pull_gdelt_backtest.py` (strategic daily pulls + offline `--offline` fails without cache)
-- **Use:** Offline pipeline input for `POST /api/pipeline/run` with `source=cache`
+- **Active file:** `gdelt_hormuz_backtest_dense.json` (2,753 accepted rows, normalized to 1,831 SignalEvents; six-hour samples from 2026-01-15 through 2026-03-02)
+- **Builder:** `python scripts/pull_gdelt_backtest.py --start 2026-01-15 --end 2026-03-02 --sample-interval 24`
+- **Use:** Reproducible evidence input for the locked Hormuz historical replay. The archived 55-row cache remains only for the earlier Phase 1 offline-pipeline fixture.
+- **Schema guard:** SETU maps the current 61-column GDELT Events export, including the three `*_ADM2Code` columns, so `SOURCEURL` remains correctly aligned.
 - **GKG:** Deferred in Phase 1 — Events CSV only
 
 ## Hormuz 2026 backtest timeline

@@ -18,16 +18,16 @@
 | Cited timeline 8–12 rows | Yes | 11 rows, all with `source_url` |
 | Reproducible harness | Yes | `test_backtest_pipeline.py` |
 | Reference locked before run | Yes | Section A + `backtest.yaml` |
-| Limitations documented | Yes | N=1, sparse cache, `no_crossing` at 0.35 |
+| Limitations documented | Yes | N=1, locked-threshold `no_crossing` at 0.35; no positive lead-time claim |
 | PIT integrity | Yes | `filter_events_up_to`, `assert_events_visible_at`, `pit_diagnostics`, synthetic future-event test |
 | Chain proof | Yes | At peak when `no_crossing` (`orchestrator_at_peak`); at crossing in sub-threshold test (0.2) |
 | Health phase 5 / 0.6.0 | Yes | `test_phase5_api.py` |
 
 ## Locked-threshold result (honest)
 
-- `status=no_crossing`, `lead_time_days=null`, peak score 0.25 on 2026-02-14
+- `status=no_crossing`, `lead_time_days=null`, peak score 0.25 (first observed on 2026-02-01)
 - `orchestrator_summary` from peak-date chain (not a crossing claim)
-- Cache max event_date 2026-02-14; PIT exclusion beyond that proven synthetically
+- Dense cache has 2,753 accepted GDELT rows through the locked 2026-03-02 reference date; PIT diagnostics exclude later cached events at the peak
 
 ## Out of scope (confirmed)
 

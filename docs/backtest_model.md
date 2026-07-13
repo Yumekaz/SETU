@@ -14,6 +14,7 @@ No shared `daily_features.parquet` or SQLite score tables are written during rep
 ## Headline metric
 
 - **Reference point (source-verified):** `2026-03-02` — EIA-dated closure of the Strait of Hormuz.
+- **Separate comparison date:** `2026-03-11` is only used for the optional qualitative recommendation comparison after a crossing; it is not the lead-time anchor.
 - **Threshold (locked):** `0.35` in `data/config/backtest.yaml`.
 - **First crossing:** earliest date where Hormuz score ≥ threshold.
 - **Lead time:** `reference_point_date - first_crossing_date` (integer days). **Null when no crossing.**
@@ -35,7 +36,7 @@ Same four steps, using events visible through peak date. Result stored in `orche
 
 ## Secondary metric
 
-Compare generated option_ids at crossing against the `2026-03-18` timeline row (SPR drawdown / Cape reroute discussions). Assessment is qualitative (`partial_match` / `no_match`), not a fabricated accuracy score. Runs only when threshold is crossed.
+Compare generated option_ids at crossing against the configured `2026-03-11` timeline row. Assessment is qualitative (`partial_match` / `no_match`), not a fabricated accuracy score. Runs only when threshold is crossed.
 
 ## Integrity
 
@@ -43,11 +44,11 @@ Compare generated option_ids at crossing against the `2026-03-18` timeline row (
 - `pit_diagnostics(events, as_of)` returns structured proof: visible count, excluded future count, max visible date, `pit_ok`.
 - `events_for_score_date()` filters and validates in one call.
 - Replay uses separate prior/current filters before every score call.
-- **Cache caveat:** committed `gdelt_hormuz_backtest.json` max `event_date` is 2026-02-14, so real-cache chain runs show `excluded_future_events=0`. Lookahead exclusion within the replay window is proven by unit tests that inject synthetic future events (see `test_replay_excludes_injected_future_events`).
+- **Cache coverage:** committed `gdelt_hormuz_backtest_dense.json` contains six-hour GDELT samples through the locked `2026-03-02` reference date. The lead-time claim uses only this pre-reference evidence. Point-in-time diagnostics on the locked run exclude future cached events (and unit tests also inject synthetic future events).
 
 ## Limitations
 
 - N=1 historical crisis — directional evidence only.
-- Sparse GDELT sampling in early Feb may delay crossing detection; gaps documented in `backtest_results.md`.
+- One historical replay cannot establish broad detection accuracy or false-positive rates.
 - Threshold is not tuned post-hoc to maximize lead time.
 - Default locked run (`no_crossing` at 0.35) does not produce a positive lead-time claim.

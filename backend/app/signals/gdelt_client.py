@@ -21,7 +21,7 @@ import httpx
 
 from app.signals.classify import passes_ingest_filter
 from app.signals.config import AppConfig, load_config
-from app.signals.ingest_gdelt import row_to_dict
+from app.signals.ingest_gdelt import parse_sql_date, row_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -224,7 +224,12 @@ def pull_gdelt_historical(
             file_accepted = 0
             for row in _parse_rows(text):
                 stats.rows_parsed += 1
-                if passes_ingest_filter(row, cfg):
+                try:
+                    event_date = parse_sql_date(row.get("SQLDATE", ""))
+                except ValueError:
+                    stats.rows_rejected += 1
+                    continue
+                if start_date <= event_date <= end_date and passes_ingest_filter(row, cfg):
                     stats.rows_accepted += 1
                     file_accepted += 1
                     all_rows.append(row)

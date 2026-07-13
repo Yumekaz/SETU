@@ -34,6 +34,7 @@ docs/SETU_SRS_Phased_Build_Plan.md
 # Data (generated/cached)
 data/setu.db
 data/models/
+data/samples/.gdelt_pull_manifest.json
 
 # IDE
 .idea/

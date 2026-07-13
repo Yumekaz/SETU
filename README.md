@@ -115,6 +115,7 @@ tests/         Backend and contract tests
 - The reference workflow is reproducible and does not claim that every displayed value is live market data.
 - External news and GDELT availability may change; real-world operational deployment requires expanded source coverage, validation, security, and domain review.
 - Forecasts are decision-support signals, not price predictions or procurement instructions.
+- The locked 0.35-threshold Hormuz replay uses 2,753 accepted six-hour GDELT samples through the 2026-03-02 reference point. Its result is `no_crossing`, so SETU does not claim positive historical lead time from this N=1 case. See [the reproducible result](docs/backtest_results.md).
 
 Full limitations: [docs/known_limitations.md](docs/known_limitations.md). Data-source notes: [docs/data_sources.md](docs/data_sources.md). Architecture: [docs/phase8_architecture.md](docs/phase8_architecture.md).
 

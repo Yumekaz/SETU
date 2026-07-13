@@ -4,7 +4,7 @@ Prepared answers for judge probes (SRS §18 Task 4).
 
 ## Why not Kpler / Vortexa / Windward?
 
-Those platforms **surface risk signals** from vessel and cargo data. SETU produces a **prescriptive, constraint-optimized recommendation** with quantified cascade impacts (supply shortfall, price, SPR days) and backtest-validated lead-time framing. Monitoring vs decision support.
+Those platforms **surface risk signals** from vessel and cargo data. SETU produces a **prescriptive, constraint-optimized recommendation** with quantified cascade impacts (supply shortfall, price, SPR days) and a reproducible historical-replay method. Monitoring vs decision support. The current N=1 replay does not claim validated positive lead time.
 
 ## How do you prevent LLM hallucinations affecting scores?
 
