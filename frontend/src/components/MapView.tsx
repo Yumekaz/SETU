@@ -221,6 +221,19 @@ export default function MapView({
         id="setu-map-container"
         className="h-[600px] w-full overflow-hidden rounded-2xl border border-slate-800/80 shadow-2xl shadow-black/80 bg-[#070b14] relative group"
       >
+        {useOfflineTiles && (
+          <div className="setu-map-fallback absolute inset-0" aria-label="Offline basemap fallback">
+            <span className="absolute left-[12%] top-[26%] text-[10px] font-mono font-bold tracking-[0.28em] text-sky-200/35">
+              ARABIAN SEA
+            </span>
+            <span className="absolute right-[13%] bottom-[20%] text-[10px] font-mono font-bold tracking-[0.28em] text-sky-200/35">
+              INDIAN OCEAN
+            </span>
+            <span className="absolute bottom-4 left-4 rounded border border-sky-400/20 bg-slate-950/75 px-3 py-1.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-sky-200/80">
+              Basemap unavailable · route geometry active
+            </span>
+          </div>
+        )}
         {/* Floating Left Overlay Panel (Threat Metrics HUD) */}
         <div className="absolute top-4 left-4 z-[1000] w-72 bg-glass-heavy p-4 rounded-xl border border-slate-800/90 shadow-2xl pointer-events-auto space-y-3">
           <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -279,19 +292,21 @@ export default function MapView({
           </div>
         </div>
 
-        <MapContainer center={MAP_CENTER} zoom={MAP_ZOOM} className="h-full w-full">
+        <MapContainer
+          center={MAP_CENTER}
+          zoom={MAP_ZOOM}
+          className={`h-full w-full ${useOfflineTiles ? "setu-map-offline" : ""}`}
+        >
           <MapRecenter center={targetCenter} />
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url={
-              useOfflineTiles
-                ? "/tiles/{z}/{x}/{y}.png"
-                : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            }
-            eventHandlers={{
-              tileerror: () => setUseOfflineTiles(true),
-            }}
-          />
+          {!useOfflineTiles && (
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              eventHandlers={{
+                tileerror: () => setUseOfflineTiles(true),
+              }}
+            />
+          )}
 
           {/* Dynamic Normal Route Line (Cyan) */}
           <Polyline
