@@ -1,10 +1,20 @@
-# SETU — Strategic Energy Trade Uncertainty
+# SETU — Strategic Energy Trade Intelligence
 
 > **AI-powered energy supply-chain resilience for import-dependent economies.**
 
 SETU turns a credible geopolitical news signal into an operational decision trail: it extracts the event, identifies the affected Indian crude-oil corridor, forecasts risk, simulates downstream disruption, and presents explainable mitigation options for human approval.
 
 Built for **ET AI Hackathon 2.0 — PS 2: AI-Driven Energy Supply Chain Resilience for Import-Dependent Economies**.
+
+## Evidence-backed early warning
+
+> **SETU flagged elevated Hormuz risk on 10 February 2026 — 20 days before the [publicly reported 2 March closure of the Strait of Hormuz](https://www.eia.gov/todayinenergy/detail.php?id=67424).**
+
+The replay crossed a pre-locked `0.437501` threshold at `0.578125`. The threshold was derived from a separate 17-day January baseline; this is a reproducible **N=1** historical result with a short-baseline caveat, not a broad accuracy claim. See the [full result](docs/backtest_results.md) and [calibration record](docs/threshold_calibration.md).
+
+![SETU operational workspace](docs/assets/setu-overview.png)
+
+![SETU Hormuz replay with 20-day lead time](docs/assets/setu-replay.png)
 
 ## The problem
 
@@ -22,10 +32,10 @@ India's crude-oil supply depends on vulnerable maritime corridors. During a geop
 
 The dashboard deliberately distinguishes source-grounded evidence from lower-confidence seeded rows. SETU is decision support, not an autonomous trading or procurement system.
 
-## Guided incident response — a complete operational workflow
+## Operational incident analysis
 
 1. Start the stack and open [http://127.0.0.1:5173](http://127.0.0.1:5173).
-2. Click **Run Incident Response Workflow**.
+2. Click **Run incident analysis**.
 3. Watch the five completed stages: source evidence → HORMUZ risk update → forecast → cascade simulation → mitigation options.
 4. Inspect the evidence card and recommendation explanations. Each recommendation exposes its risk, time, and cost trade-offs before approval.
 
@@ -36,7 +46,7 @@ The reference workflow uses a credible AP incident source so that the full respo
 ### Windows (Docker Desktop)
 
 ```powershell
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone https://github.com/Yumekaz/SETU.git
 cd SETU
 docker compose up --build
 ```
@@ -118,6 +128,8 @@ tests/         Backend and contract tests
 - The calibrated Hormuz replay crosses on **2026-02-10**, **20 days** before the [publicly reported March 2 closure of the Strait of Hormuz](https://www.eia.gov/todayinenergy/detail.php?id=67424), at score `0.578125` against the pre-locked `0.437501` threshold. The threshold is one six-decimal increment above the maximum score in a separate 17-day Jan baseline, producing 0 observed baseline alerts; this is N=1 evidence with a short-baseline caveat, not broad accuracy proof. See [the reproducible result](docs/backtest_results.md) and [calibration protocol](docs/threshold_calibration.md).
 
 Full limitations: [docs/known_limitations.md](docs/known_limitations.md). Data-source notes: [docs/data_sources.md](docs/data_sources.md). Architecture: [docs/phase8_architecture.md](docs/phase8_architecture.md).
+
+![SETU alternate-corridor simulation](docs/assets/setu-simulation.png)
 
 ## Submission assets
 
