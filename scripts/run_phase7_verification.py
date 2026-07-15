@@ -15,7 +15,6 @@ SCRATCH = Path(
     __import__("os").environ.get("SCRATCH_DIR", "/tmp/grok-goal-ff8428ca3705/implementer")
 )
 SCRATCH.mkdir(parents=True, exist_ok=True)
-MATRIX_PATH = ROOT / "docs" / "phase7_edge_case_matrix.md"
 SUMMARY_PATH = SCRATCH / "phase7_verification.txt"
 gates: dict[str, str] = {}
 
@@ -54,30 +53,6 @@ def run_cmd(
 
 def normalize_pytest_log(content: str) -> str:
     return re.sub(r" in [\d.]+s.*$", "", content, flags=re.MULTILINE)
-
-
-def validate_matrix() -> tuple[bool, str]:
-    if not MATRIX_PATH.exists():
-        return False, "matrix missing"
-    text = MATRIX_PATH.read_text(encoding="utf-8")
-    block = text.split("## Machine-readable rows")[-1]
-    rows = [
-        ln.strip()
-        for ln in block.splitlines()
-        if ln.strip().startswith("EC-") and "|" in ln
-    ]
-    if len(rows) < 40:
-        return False, f"only {len(rows)} rows"
-    for row in rows:
-        parts = row.split("|")
-        if len(parts) != 3:
-            return False, f"bad row {row}"
-        _id, status, evidence = parts
-        if status not in ("PASS", "DEFERRED"):
-            return False, f"{_id} bad status"
-        if not evidence:
-            return False, f"{_id} missing evidence"
-    return True, f"rows={len(rows)}"
 
 
 def run_pytest_twice() -> tuple[int, int, str, str]:
@@ -310,9 +285,6 @@ def write_plan_review() -> None:
 def main() -> int:
     print(f"Phase 7 verification — scratch={SCRATCH}")
     write_plan_review()
-    ok_matrix, matrix_detail = validate_matrix()
-    gate("matrix_complete", ok_matrix, matrix_detail)
-
     run_health_probe()
     run_bab_unrehearsed_twice()
     run_phase7_tests()

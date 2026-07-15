@@ -21,4 +21,4 @@ Triangular distributions per corridor in [`data/config/corridor_distributions.ya
 
 Timeline Brent: ~78.20 (2026-02-28) → ~85.10 (2026-03-11) ≈ **+8.8%**.
 
-Phase 2 does not force exact match — AC requires **positive p50** in the Hormuz directionally consistent band documented in [`docs/phase2_signoff.md`](phase2_signoff.md).
+The model does not force an exact historical match; it reports the simulated percentile bands and keeps the calibration and validation boundaries explicit in the public backtest documentation.

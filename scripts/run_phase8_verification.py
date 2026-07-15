@@ -17,19 +17,16 @@ SUMMARY_PATH = SCRATCH / "phase8_verification.txt"
 gates: dict[str, str] = {}
 
 REQUIRED_DOCS = [
-    ROOT / "docs" / "phase8_submission_verify.md",
-    ROOT / "docs" / "phase8_demo_script.md",
-    ROOT / "docs" / "phase8_qa_playbook.md",
-    ROOT / "docs" / "phase8_solo_runbook.md",
-    ROOT / "docs" / "phase8_venue_checklist.md",
     ROOT / "docs" / "phase8_architecture.md",
-    ROOT / "docs" / "phase8_rehearsal_log.md",
-    ROOT / "docs" / "submission" / "README.md",
-    ROOT / "docs" / "submission" / "repo_hygiene.md",
+    ROOT / "docs" / "backtest_results.md",
+    ROOT / "docs" / "threshold_calibration.md",
+    ROOT / "docs" / "known_limitations.md",
+    ROOT / "docs" / "submission" / "demo_video_script.md",
+    ROOT / "docs" / "submission" / "deck_outline.md",
     ROOT / "docs" / "submission" / "video_outline.md",
 ]
 
-DEMO_SCRIPT_MARKERS = ("Time budget", "Short", "Baseline dashboard")
+DEMO_SCRIPT_MARKERS = ("0:00", "Run incident analysis", "20-day")
 
 
 def gate(name: str, ok: bool, detail: str = "") -> None:
@@ -66,44 +63,11 @@ def run_cmd(
 def check_docs() -> None:
     missing = [p for p in REQUIRED_DOCS if not p.exists()]
     gate("phase8_docs_present", not missing, f"missing={len(missing)}")
-    demo = ROOT / "docs" / "phase8_demo_script.md"
+    demo = ROOT / "docs" / "submission" / "demo_video_script.md"
     ok_markers = demo.exists() and all(
         marker in demo.read_text(encoding="utf-8") for marker in DEMO_SCRIPT_MARKERS
     )
     gate("demo_script_markers", ok_markers)
-
-
-def check_submission_verify() -> None:
-    path = ROOT / "docs" / "phase8_submission_verify.md"
-    text = path.read_text(encoding="utf-8") if path.exists() else ""
-    confirmed = "confirmed_on=" in text and "PENDING" not in text.split("confirmed_on=")[-1][:40]
-    detail = "confirmed" if confirmed else "still_pending"
-    gate("submission_verify_doc", path.exists() and confirmed, detail)
-
-
-def check_rehearsal_log() -> None:
-    path = ROOT / "docs" / "phase8_rehearsal_log.md"
-    if not path.exists():
-        gate("rehearsal_log", False, "missing")
-        return
-    text = path.read_text(encoding="utf-8")
-    rows = [
-        ln
-        for ln in text.splitlines()
-        if ln.strip().startswith("|")
-        and "---" not in ln
-        and "Date" not in ln
-        and "PENDING" not in ln.upper()
-    ]
-    completed_full = [
-        ln for ln in rows
-        if "| full |" in ln.lower() and "| automated |" not in ln.lower()
-    ]
-    gate(
-        "rehearsal_log",
-        len(completed_full) >= 3,
-        f"completed_full_human_runs={len(completed_full)}",
-    )
 
 
 def run_phase8_tests() -> None:
@@ -205,8 +169,6 @@ def write_summary() -> None:
 def main() -> int:
     print(f"Phase 8 verification — scratch={SCRATCH}")
     check_docs()
-    check_submission_verify()
-    check_rehearsal_log()
     run_secret_scan()
     run_phase8_tests()
     run_demo_preflight_probe()

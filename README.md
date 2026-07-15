@@ -134,10 +134,8 @@ Full limitations: [docs/known_limitations.md](docs/known_limitations.md). Data-s
 ## Submission assets
 
 - [Detailed architecture](docs/phase8_architecture.md)
-- [Operational walkthrough](docs/phase8_demo_script.md)
 - [3-4 minute recording script](docs/submission/demo_video_script.md)
 - [Video outline](docs/submission/video_outline.md)
-- [Submission checklist](docs/submission/README.md)
 - [Detailed submission PDF](output/pdf/SETU_ET_AI_Hackathon_Detailed_Submission.pdf)
 
 ## License
