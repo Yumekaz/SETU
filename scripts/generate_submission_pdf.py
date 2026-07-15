@@ -138,7 +138,7 @@ def main():
     story += [
         cover,
         Spacer(1, 18),
-        p("<b>Evidence-backed early warning:</b> SETU flagged elevated Hormuz risk on 10 February 2026 - 20 days before the publicly reported 2 March closure of the Strait of Hormuz.", styles["Callout"]),
+        p("<b>Evidence-backed early warning:</b> SETU flagged elevated Hormuz risk on 10 February 2026 - 20 days before the EIA-documented 2 March Hormuz closure reference date.", styles["Callout"]),
         Spacer(1, 8),
         p("React + FastAPI + SQLite | source evidence + simulation + human-in-the-loop decisions | reproducible N=1 replay with a 17-day baseline caveat", styles["Small"]),
         PageBreak(),
@@ -146,7 +146,7 @@ def main():
 
     story += section_title("Verified Hormuz replay", "A reproducible early-warning result, not a retrospective threshold fit", styles)
     story += [
-        p("SETU crossed its pre-locked Hormuz risk threshold on <b>10 February 2026</b>, 20 days before the public reference event: the 2 March closure reported by the U.S. Energy Information Administration (EIA).", styles["Body"]),
+        p("SETU crossed its pre-locked Hormuz risk threshold on <b>10 February 2026</b>, 20 days before the 2 March closure reference date documented in EIA's March 26 analysis.", styles["Body"]),
         p("The threshold (<b>0.437501</b>) was derived only from a separate 17-day January baseline, before the Feb 1-Mar 2 evaluation window. The replay crossing score was <b>0.578125</b>; the trajectory peaked at <b>0.816089</b> on 2 March.", styles["Body"]),
         Image(str(REPLAY_SCREENSHOT), width=6.7 * inch, height=4.35 * inch),
         Spacer(1, 5),

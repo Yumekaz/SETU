@@ -14,7 +14,7 @@ Record from the running local deployment at http://localhost:5173. Follow the wo
 
 ## Narration bullets
 
-- 20-day lead time before EIA’s publicly reported March 2 closure
+- 20-day lead time before the EIA-documented March 2 closure reference date
 - Decision support with evidence, uncertainty, and human approval
 - Honest N=1 / 17-day baseline boundary
 - GitHub repo link at end

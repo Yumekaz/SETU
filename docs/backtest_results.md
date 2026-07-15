@@ -5,7 +5,7 @@
 | Parameter | Locked value |
 |-----------|--------------|
 | Reference point date | 2026-03-02 |
-| Reference point label | Publicly reported March 2 closure of the Strait of Hormuz (EIA) |
+| Reference point label | EIA-documented March 2 Strait of Hormuz closure reference date |
 | Risk threshold | 0.437501 |
 | Replay window | 2026-02-01 → 2026-06-30 |
 | Evidence coverage | Six-hour samples from 2026-01-15 → 2026-03-02 (2,753 date-bounded GDELT candidate rows; 1,080 normalized SignalEvents after relevance gates) |
@@ -36,7 +36,7 @@ The original sparse cache was replaced with a denser, date-bounded GDELT cache a
 | trajectory_days | 150 |
 | seed / n_simulations | 42 / 200 |
 
-**Interpretation:** On the committed dense offline GDELT cache, the deterministic Hormuz risk score first reaches the baseline-derived locked threshold on **2026-02-10**, 20 days before the **publicly reported March 2 closure of the Strait of Hormuz**. The reference event is fixed in `data/hormuz_2026_timeline.csv` before replay and is supported by [EIA's April 7, 2026 analysis](https://www.eia.gov/todayinenergy/detail.php?id=67424), which dates the closure to March 2. `2026-03-11` is a separate ground-truth recommendation-comparison date; it is not the lead-time anchor. This is one historical case with a short 17-day baseline, not a broad claim of detection accuracy.
+**Interpretation:** On the committed dense offline GDELT cache, the deterministic Hormuz risk score first reaches the baseline-derived locked threshold on **2026-02-10**, 20 days before the **March 2 closure reference date**. The reference event is fixed in `data/hormuz_2026_timeline.csv` before replay and is documented in [EIA's March 26, 2026 analysis](https://www.eia.gov/todayinenergy/detail.php?id=67386), which states that tanker-rate increases followed Iran's closure on March 2. `2026-03-11` is a separate ground-truth recommendation-comparison date; it is not the lead-time anchor. This is one historical case with a short 17-day baseline, not a broad claim of detection accuracy.
 
 **Calibration:** A separate Jan 15–31 baseline, held apart from the Feb 1–Mar 2 evaluation window, has a maximum daily score of 0.437500. The locked 0.437501 threshold produces 0/17 baseline alerts at the ≤5% target. See `docs/threshold_calibration.md`.
 

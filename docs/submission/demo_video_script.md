@@ -14,7 +14,7 @@ Use the running Docker application at `http://127.0.0.1:5173`. Record at 1920×1
 
 | Time | Screen action | Say this |
 |---|---|---|
-| 0:00–0:25 | Switch to **Scenario replay**, paused on 2026-02-10. | "India’s crude supply is exposed to a small number of maritime corridors. SETU turns geopolitical evidence into an operational decision. In this historical Hormuz replay, SETU first crossed its risk threshold on 10 February 2026—20 days before the publicly reported 2 March closure of the Strait of Hormuz." |
+| 0:00–0:25 | Switch to **Scenario replay**, paused on 2026-02-10. | "India’s crude supply is exposed to a small number of maritime corridors. SETU turns geopolitical evidence into an operational decision. In this historical Hormuz replay, SETU first crossed its risk threshold on 10 February 2026—20 days before the 2 March closure reference date." |
 | 0:25–0:50 | Show the replay headline, score, and timeline. | "This is a reproducible result, not a retrospective threshold fit. The threshold was locked at 0.437501 from a separate 17-day January baseline. We are precise about the boundary: this is one historical case, not a claim of broad detection accuracy." |
 | 0:50–1:10 | Switch to **Overview** and show the risk and forecast panels. | "Once a signal is detected, SETU makes the decision chain visible: source evidence, structured corridor risk, forecast uncertainty, network impact, and mitigation choices." |
 | 1:10–1:55 | Click **Run incident analysis**. Let the five stages complete. | "I’ll now run the operational workflow. SETU ingests a reference incident source, extracts a Hormuz military event, updates the risk state, runs a forecast, simulates the downstream cascade, and generates feasible mitigation options." |

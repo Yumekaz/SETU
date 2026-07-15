@@ -7,7 +7,7 @@ backtest:
   # so 0.437501 gives 0/17 observed baseline alerts at the <=5% target.
   risk_threshold: 0.437501
   reference_point_date: "2026-03-02"
-  reference_point_label: "EIA-dated closure of the Strait of Hormuz"
+  reference_point_label: "EIA-documented March 2 Strait of Hormuz closure reference"
   seed: 42
   n_simulations: 200
   # Six-hour GDELT sampling from 2026-01-15 through the locked 2026-03-02 reference date.

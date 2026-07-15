@@ -28,6 +28,20 @@ try {
     () => document.body.textContent?.includes("20 Days"),
     { timeout: 60_000 },
   );
+  const trajectoryResponse = await page.request.get("http://127.0.0.1:8000/api/backtest/trajectory");
+  const trajectory = await trajectoryResponse.json();
+  const crossingIndex = trajectory.points.findIndex((point) => point.date === "2026-02-10");
+  if (crossingIndex < 0) throw new Error("Locked 2026-02-10 replay crossing was not found");
+  await page.locator("#replay-scrub").evaluate((input, value) => {
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+    setter?.call(input, String(value));
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }, crossingIndex);
+  await page.waitForFunction(
+    () => document.body.textContent?.includes("2026-02-10") && document.body.textContent?.includes("0.5781"),
+    { timeout: 60_000 },
+  );
   await page.locator("#replay-headline").scrollIntoViewIfNeeded();
   await page.screenshot({ path: resolve(output, "setu-replay.png") });
 

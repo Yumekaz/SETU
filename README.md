@@ -8,7 +8,7 @@ Built for **ET AI Hackathon 2.0 — PS 2: AI-Driven Energy Supply Chain Resilien
 
 ## Evidence-backed early warning
 
-> **SETU flagged elevated Hormuz risk on 10 February 2026 — 20 days before the [publicly reported 2 March closure of the Strait of Hormuz](https://www.eia.gov/todayinenergy/detail.php?id=67424).**
+> **SETU flagged elevated Hormuz risk on 10 February 2026 — 20 days before the 2 March Hormuz closure reference date documented in [EIA's March 26 analysis](https://www.eia.gov/todayinenergy/detail.php?id=67386).**
 
 The replay crossed a pre-locked `0.437501` threshold at `0.578125`. The threshold was derived from a separate 17-day January baseline; this is a reproducible **N=1** historical result with a short-baseline caveat, not a broad accuracy claim. See the [full result](docs/backtest_results.md) and [calibration record](docs/threshold_calibration.md).
 
@@ -125,7 +125,7 @@ tests/         Backend and contract tests
 - The reference workflow is reproducible and does not claim that every displayed value is live market data.
 - External news and GDELT availability may change; real-world operational deployment requires expanded source coverage, validation, security, and domain review.
 - Forecasts are decision-support signals, not price predictions or procurement instructions.
-- The calibrated Hormuz replay crosses on **2026-02-10**, **20 days** before the [publicly reported March 2 closure of the Strait of Hormuz](https://www.eia.gov/todayinenergy/detail.php?id=67424), at score `0.578125` against the pre-locked `0.437501` threshold. The threshold is one six-decimal increment above the maximum score in a separate 17-day Jan baseline, producing 0 observed baseline alerts; this is N=1 evidence with a short-baseline caveat, not broad accuracy proof. See [the reproducible result](docs/backtest_results.md) and [calibration protocol](docs/threshold_calibration.md).
+- The calibrated Hormuz replay crosses on **2026-02-10**, **20 days** before the [2 March closure reference date documented in EIA's March 26 analysis](https://www.eia.gov/todayinenergy/detail.php?id=67386), at score `0.578125` against the pre-locked `0.437501` threshold. The threshold is one six-decimal increment above the maximum score in a separate 17-day Jan baseline, producing 0 observed baseline alerts; this is N=1 evidence with a short-baseline caveat, not broad accuracy proof. See [the reproducible result](docs/backtest_results.md) and [calibration protocol](docs/threshold_calibration.md).
 
 Full limitations: [docs/known_limitations.md](docs/known_limitations.md). Data-source notes: [docs/data_sources.md](docs/data_sources.md). Architecture: [docs/phase8_architecture.md](docs/phase8_architecture.md).
 

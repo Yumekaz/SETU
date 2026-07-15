@@ -13,7 +13,7 @@ No shared `daily_features.parquet` or SQLite score tables are written during rep
 
 ## Headline metric
 
-- **Reference point (source-verified):** `2026-03-02` — EIA-dated closure of the Strait of Hormuz.
+- **Reference point (source-documented):** `2026-03-02` — EIA's March 26 analysis records that tanker-rate increases followed Iran's closure on this date.
 - **Separate comparison date:** `2026-03-11` is only used for the optional qualitative recommendation comparison after a crossing; it is not the lead-time anchor.
 - **Threshold (locked):** `0.437501` in `data/config/backtest.yaml`, derived before final evaluation from the Jan 15–31 baseline at a ≤5% target (0 observed alerts in 17 days).
 - **First crossing:** earliest date where Hormuz score ≥ threshold.
