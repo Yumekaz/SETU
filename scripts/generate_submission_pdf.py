@@ -10,7 +10,6 @@ from reportlab.lib.units import inch
 from reportlab.platypus import (
     HRFlowable,
     Image,
-    KeepTogether,
     PageBreak,
     Paragraph,
     SimpleDocTemplate,
@@ -18,7 +17,6 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
-
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "output" / "pdf" / "SETU_ET_AI_Hackathon_Detailed_Submission.pdf"

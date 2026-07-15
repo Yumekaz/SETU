@@ -81,7 +81,7 @@ def calibrate_threshold(
             status="calibrated",
             reason=(
                 "The threshold is one six-decimal increment above the maximum "
-                f"baseline score and yields an observed false-positive rate of 0%."
+                "baseline score and yields an observed false-positive rate of 0%."
             ),
         )
 
