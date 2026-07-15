@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
+import { CircleMarker, GeoJSON, MapContainer, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
+import type { GeoJsonObject } from "geojson";
 import type { Corridor } from "../types/generated";
 import type { GraphNode, GraphResponse, RiskScore, RouteComparisonResult } from "../api/client";
 import {
@@ -54,6 +55,7 @@ export default function MapView({
   const [routeComp, setRouteComp] = useState<RouteComparisonResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [useOfflineTiles, setUseOfflineTiles] = useState(false);
+  const [landGeometry, setLandGeometry] = useState<GeoJsonObject | null>(null);
 
   useEffect(() => {
     Promise.all([fetchGraph(), fetchRiskScoresLatest()])
@@ -63,6 +65,27 @@ export default function MapView({
         setError(null);
       })
       .catch((err: Error) => setError(err.message));
+  }, []);
+
+  // A compact Natural Earth-derived coastline layer is shipped with the app.
+  // It keeps the maritime view geographically legible when raster map tiles
+  // are unavailable, without claiming live AIS or third-party map coverage.
+  useEffect(() => {
+    let active = true;
+    fetch("/geo/world.geojson")
+      .then((response) => {
+        if (!response.ok) throw new Error("Offline land layer unavailable");
+        return response.json() as Promise<GeoJsonObject>;
+      })
+      .then((geometry) => {
+        if (active) setLandGeometry(geometry);
+      })
+      .catch(() => {
+        // The grid surface remains as a last-resort visual fallback.
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Fetch dynamic backend route comparison whenever selectedCorridor changes
@@ -298,6 +321,19 @@ export default function MapView({
           className={`h-full w-full ${useOfflineTiles ? "setu-map-offline" : ""}`}
         >
           <MapRecenter center={targetCenter} />
+          {landGeometry && (
+            <GeoJSON
+              data={landGeometry}
+              interactive={false}
+              style={{
+                color: "#3f6680",
+                weight: 0.8,
+                opacity: 0.85,
+                fillColor: "#173d50",
+                fillOpacity: 0.88,
+              }}
+            />
+          )}
           {!useOfflineTiles && (
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
